@@ -13,6 +13,10 @@ public class ProdutoController {
     
     @GetMapping
     public List<Produto> listar(){
-        return true;
+        try {
+            
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
     }
 }
