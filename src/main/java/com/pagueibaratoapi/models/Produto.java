@@ -1,7 +1,10 @@
 package com.pagueibaratoapi.models;
 
+@Entity
 public class Produto {
     
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String nome;
     private String marca;
