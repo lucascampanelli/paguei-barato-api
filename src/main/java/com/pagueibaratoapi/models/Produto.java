@@ -2,15 +2,26 @@ package com.pagueibaratoapi.models;
 
 public class Produto {
     
+    private int id;
     private String nome;
     private String marca;
-    private String peso;
-    private int preco;
+    private String tamanho;
+    private String cor;
+    private int criadoPor;
+    private int categoriaId;
 
-    public String getNome() {
-        return nome;
+    public int getId() {
+        return id;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getNome() {
+       
+        return nome;
+    }
     public void setNome(String nome) {
         this.nome = nome;
     }
@@ -23,20 +34,36 @@ public class Produto {
         this.marca = marca;
     }
 
-    public String getPeso() {
-        return peso;
+    public String getTamanho() {
+        return tamanho;
     }
 
-    public void setPeso(String peso) {
-        this.peso = peso;
+    public void setTamanho(String tamanho) {
+        this.tamanho = tamanho;
     }
 
-    public int getPreco() {
-        return preco;
+    public String getCor() {
+        return cor;
+    }
+
+    public void setCor(String cor) {
+        this.cor = cor;
+    }
+
+    public int getCriadoPor() {
+        return criadoPor;
+    }
+
+    public void setCriadoPor(int criadoPor) {
+        this.criadoPor = criadoPor;
+    }
+
+    public int getCategoriaId() {
+        return categoriaId;
+    }
+
+    public void setCategoriaId(int categoriaId) {
+        this.categoriaId = categoriaId;
     }
     
-    public void setPreco(int preco) {
-        this.preco = preco;
-    }
-
 }

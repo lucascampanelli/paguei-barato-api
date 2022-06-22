@@ -1,11 +1,18 @@
 package com.pagueibaratoapi.controllers;
 
-import org.springframework.stereotype.Controller;
+import java.util.List;
 
-@Controller
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.pagueibaratoapi.models.Produto;
+
+@RestController
+@RequestMapping("/produto")
 public class ProdutoController {
     
-    public boolean create(){
+    @GetMapping
+    public List<Produto> listar(){
         return true;
     }
 }
