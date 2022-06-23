@@ -11,12 +11,12 @@ import com.pagueibaratoapi.models.Produto;
 @RequestMapping("/produto")
 public class ProdutoController {
     
-    @GetMapping
-    public List<Produto> listar(){
-        try {
+    // @GetMapping
+    // public List<Produto> listar(){
+    //     try {
             
-        } catch (Exception e) {
-            //TODO: handle exception
-        }
-    }
+    //     } catch (Exception e) {
+    //         //TODO: handle exception
+    //     }
+    // }
 }

@@ -1,10 +1,11 @@
 package com.pagueibaratoapi.models;
 
-public class Mercado {
+public class Usuario {
     
     private int id;
     private String nome;
-    private int ramo;
+    private String email;
+    private String senha;
     private String logradouro;
     private String numero;
     private String complemento;
@@ -29,12 +30,20 @@ public class Mercado {
         this.nome = nome;
     }
 
-    public int getRamo() {
-        return ramo;
+    public String getEmail() {
+        return email;
     }
 
-    public void setRamo(int ramo) {
-        this.ramo = ramo;
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
+
+    public void setSenha(String senha) {
+        this.senha = senha;
     }
 
     public String getLogradouro() {
@@ -95,7 +104,7 @@ public class Mercado {
 
     public Resultado create(){
         try {
-            return new Resultado(true, "Sucesso");
+            return new Resultado(true, "Usuário criado com sucesso!");
         }
         catch (Exception e) {
             return new Resultado(false, e.getLocalizedMessage());
@@ -104,7 +113,7 @@ public class Mercado {
 
     public Resultado read(){
         try {
-            return new Resultado(true, "Sucesso");
+            return new Resultado(true, "Usuário lido com sucesso!");
         }
         catch (Exception e) {
             return new Resultado(false, e.getLocalizedMessage());
@@ -113,7 +122,7 @@ public class Mercado {
 
     public Resultado update(){
         try {
-            return new Resultado(true, "Sucesso");
+            return new Resultado(true, "Usuário atualizado com sucesso!");
         }
         catch (Exception e) {
             return new Resultado(false, e.getLocalizedMessage());
@@ -122,7 +131,7 @@ public class Mercado {
 
     public Resultado delete(){
         try {
-            return new Resultado(true, "Sucesso");
+            return new Resultado(true, "Usuário excluído com sucesso!");
         }
         catch (Exception e) {
             return new Resultado(false, e.getLocalizedMessage());
