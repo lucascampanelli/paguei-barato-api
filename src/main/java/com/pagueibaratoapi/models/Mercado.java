@@ -3,8 +3,9 @@ package com.pagueibaratoapi.models;
 public class Mercado {
     
     private int id;
+    private int criadoPor;
+    private int ramoId;
     private String nome;
-    private int ramo;
     private String logradouro;
     private String numero;
     private String complemento;
@@ -15,6 +16,14 @@ public class Mercado {
 
     public int getId() {
         return id;
+    }
+
+    public void setCriadoPor(int criadoPor) {
+        this.criadoPor = criadoPor;
+    }
+
+    private int getCriadoPor() {
+        return criadoPor;
     }
 
     public void setId(int id) {
@@ -29,12 +38,12 @@ public class Mercado {
         this.nome = nome;
     }
 
-    public int getRamo() {
-        return ramo;
+    public int getRamoId() {
+        return ramoId;
     }
 
-    public void setRamo(int ramo) {
-        this.ramo = ramo;
+    public void setRamoId(int ramoId) {
+        this.ramoId = ramoId;
     }
 
     public String getLogradouro() {
