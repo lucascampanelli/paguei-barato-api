@@ -103,7 +103,6 @@ public class Mercado {
     }
 
     public Resultado create(){
-        System.out.println(this.getCriadoPor());
         try {
             return new Resultado(true, "Sucesso");
         }

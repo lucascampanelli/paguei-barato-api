@@ -18,7 +18,6 @@ public class MercadoController {
     
     @PostMapping(consumes = "application/json", produces = "application/json")
     public Mercado criar(@RequestBody Mercado mercado){
-        mercado.create();
         return mercado;
     }
 
