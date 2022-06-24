@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.pagueibaratoapi.models.Mercado;
 
@@ -26,8 +27,22 @@ public class MercadoController {
     }
 
     @GetMapping
-    public String listar(){
-        return "Bem vindo ao mercado!";
+    public String listar(
+        @RequestParam(required = false) Object criadoPor,
+        @RequestParam(required = false) Object ramoId,
+        @RequestParam(required = false) String nome,
+        @RequestParam(required = false) String logradouro,
+        @RequestParam(required = false) String numero,
+        @RequestParam(required = false) String complemento,
+        @RequestParam(required = false) String bairro,
+        @RequestParam(required = false) String cidade,
+        @RequestParam(required = false) String uf,
+        @RequestParam(required = false) String cep
+    ){
+        return "Bem vindo ao mercado! "+
+            "criadoPor: "+criadoPor+
+            "ramoId: "+ramoId+
+            "nome: "+nome;
     }
 
     @PatchMapping("/{id}")
