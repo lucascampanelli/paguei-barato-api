@@ -1,5 +1,6 @@
 package com.pagueibaratoapi.models;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -13,11 +14,16 @@ public class Mercado {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    @Column(name = "\"criadoPor\"")
     private int criadoPor;
+
+    @Column(name = "\"ramoId\"")
     private int ramoId;
+    
     private String nome;
     private String logradouro;
-    private String numero;
+    private int numero;
     private String complemento;
     private String bairro;
     private String cidade;
@@ -64,11 +70,11 @@ public class Mercado {
         this.logradouro = logradouro;
     }
 
-    public String getNumero() {
+    public int getNumero() {
         return numero;
     }
 
-    public void setNumero(String numero) {
+    public void setNumero(int numero) {
         this.numero = numero;
     }
 
