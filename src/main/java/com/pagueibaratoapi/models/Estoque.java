@@ -1,11 +1,25 @@
 package com.pagueibaratoapi.models;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "estoque")
 public class Estoque {
     
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private float preco;
+
+    @Column(name = "\"criadoPor\"")
     private int criadoPor;
+    @Column(name = "\"produtoId\"")
     private int produtoId;
+    @Column(name = "\"mercadoId\"")
     private int mercadoId;
 
     public int getId() {
@@ -14,14 +28,6 @@ public class Estoque {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public float getPreco() {
-        return preco;
-    }
-
-    public void setPreco(float preco) {
-        this.preco = preco;
     }
 
     public int getCriadoPor() {

@@ -1,5 +1,6 @@
 package com.pagueibaratoapi.models;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
@@ -17,7 +18,10 @@ public class Produto {
     private String marca;
     private String tamanho;
     private String cor;
+
+    @Column(name = "\"criadoPor\"")
     private int criadoPor;
+    @Column(name = "\"categoriaId\"")
     private int categoriaId;
 
     public int getId() {
