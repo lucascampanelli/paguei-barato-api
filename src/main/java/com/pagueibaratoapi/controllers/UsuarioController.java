@@ -21,7 +21,7 @@ public class UsuarioController {
         this.usuarioRepository = usuarioRepository;
     }
 
-    @GetMapping(consumes = "application/json", produces = "application/json")
+    @GetMapping(produces = "application/json")
     public List<Usuario> listar(){
         return usuarioRepository.findAll();
     }
