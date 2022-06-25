@@ -105,13 +105,13 @@ CREATE TABLE sugestao
     preco integer NOT NULL,
     "timestamp" timestamp without time zone,
     "estoqueId" integer NOT NULL,
-    "usuarioId" integer NOT NULL,
+    "criadoPor" integer NOT NULL,
     CONSTRAINT sugestao_pkey PRIMARY KEY (id),
     CONSTRAINT "sugestao_estoqueId_fkey" FOREIGN KEY (id)
         REFERENCES estoque (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION,
-    CONSTRAINT "sugestao_usuarioId_fkey" FOREIGN KEY ("usuarioId")
+    CONSTRAINT "sugestao_criadoPor_fkey" FOREIGN KEY ("criadoPor")
         REFERENCES usuario (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
