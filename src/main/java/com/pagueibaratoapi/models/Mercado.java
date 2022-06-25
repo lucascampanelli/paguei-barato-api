@@ -1,7 +1,17 @@
 package com.pagueibaratoapi.models;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "mercado")
 public class Mercado {
     
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private int criadoPor;
     private int ramoId;
@@ -100,41 +110,5 @@ public class Mercado {
 
     public void setCep(String cep) {
         this.cep = cep;
-    }
-
-    public Resultado create(){
-        try {
-            return new Resultado(true, "Sucesso");
-        }
-        catch (Exception e) {
-            return new Resultado(false, e.getLocalizedMessage());
-        }
-    }
-
-    public Resultado read(){
-        try {
-            return new Resultado(true, "Sucesso");
-        }
-        catch (Exception e) {
-            return new Resultado(false, e.getLocalizedMessage());
-        }
-    }
-
-    public Resultado update(){
-        try {
-            return new Resultado(true, "Sucesso");
-        }
-        catch (Exception e) {
-            return new Resultado(false, e.getLocalizedMessage());
-        }
-    }
-
-    public Resultado delete(){
-        try {
-            return new Resultado(true, "Sucesso");
-        }
-        catch (Exception e) {
-            return new Resultado(false, e.getLocalizedMessage());
-        }
     }
 }

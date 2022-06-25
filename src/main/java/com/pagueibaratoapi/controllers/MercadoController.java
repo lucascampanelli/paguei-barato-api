@@ -11,14 +11,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.pagueibaratoapi.models.Mercado;
+import com.pagueibaratoapi.repository.MercadoRepository;
 
 @RestController
 @RequestMapping("/mercado")
 public class MercadoController {
     
+    private final MercadoRepository mercadoRepository;
+
+    public MercadoController(MercadoRepository mercadoRepository) {
+        this.mercadoRepository = mercadoRepository;
+    }
+
     @PostMapping(consumes = "application/json", produces = "application/json")
     public Mercado criar(@RequestBody Mercado mercado){
-        return mercado;
+        return mercadoRepository.save(mercado);
     }
 
     @GetMapping("/{nome}")
