@@ -1,5 +1,10 @@
 package com.pagueibaratoapi.controllers;
 
+import java.util.List;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -23,7 +28,7 @@ public class MercadoController {
         this.mercadoRepository = mercadoRepository;
     }
 
-    @PostMapping(consumes = "application/json", produces = "application/json")
+    @PostMapping
     public Mercado criar(@RequestBody Mercado mercado){
         return mercadoRepository.save(mercado);
     }
@@ -34,22 +39,23 @@ public class MercadoController {
     }
 
     @GetMapping
-    public String listar(
-        @RequestParam(required = false) Object criadoPor,
-        @RequestParam(required = false) Object ramoId,
-        @RequestParam(required = false) String nome,
-        @RequestParam(required = false) String logradouro,
-        @RequestParam(required = false) String numero,
-        @RequestParam(required = false) String complemento,
-        @RequestParam(required = false) String bairro,
-        @RequestParam(required = false) String cidade,
-        @RequestParam(required = false) String uf,
-        @RequestParam(required = false) String cep
-    ){
-        return "Bem vindo ao mercado! "+
-            "criadoPor: "+criadoPor+
-            "ramoId: "+ramoId+
-            "nome: "+nome;
+    public List<Mercado> listar(Mercado requestMercado){
+
+        return mercadoRepository.findAll(
+            Example.of(requestMercado, ExampleMatcher
+                                .matching()
+                                .withIgnoreCase()
+                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
+    }
+
+    @GetMapping
+    public Page<Mercado> listar(Mercado requestMercado, @RequestParam(required = false, defaultValue = "0") Integer page, @RequestParam(required = false, defaultValue = "10") Integer size){
+
+        return mercadoRepository.findAll(
+            Example.of(requestMercado, ExampleMatcher
+                                .matching()
+                                .withIgnoreCase()
+                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)), PageRequest.of(page, size));
     }
 
     @PatchMapping("/{id}")
