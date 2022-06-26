@@ -63,18 +63,18 @@ public class MercadoController {
     public Mercado editar(@PathVariable int id, @RequestBody Mercado requestMercado){
         Mercado mercadoAtual = mercadoRepository.findById(id).get();
         
-        if(requestMercado.getRamoId() != null){
+        if(requestMercado.getRamoId() != null)
             mercadoAtual.setRamoId(requestMercado.getRamoId());
-        }
-        if(requestMercado.getNome() != null){
+
+        if(requestMercado.getNome() != null)
             mercadoAtual.setNome(requestMercado.getNome());
-        }
-        if(requestMercado.getLogradouro() != null){
+
+        if(requestMercado.getLogradouro() != null)
             mercadoAtual.setLogradouro(requestMercado.getLogradouro());
-        }
-        if(requestMercado.getNumero() != null){
+
+        if(requestMercado.getNumero() != null)
             mercadoAtual.setNumero(requestMercado.getNumero());
-        }
+
         if(requestMercado.getComplemento() != null){
             if(requestMercado.getComplemento().trim().isEmpty()){
                 mercadoAtual.setComplemento(null);
@@ -82,18 +82,18 @@ public class MercadoController {
                 mercadoAtual.setComplemento(requestMercado.getComplemento());
             }
         }
-        if(requestMercado.getBairro() != null){
+
+        if(requestMercado.getBairro() != null)
             mercadoAtual.setBairro(requestMercado.getBairro());
-        }
-        if(requestMercado.getCidade() != null){
+
+        if(requestMercado.getCidade() != null)
             mercadoAtual.setCidade(requestMercado.getCidade());
-        }
-        if(requestMercado.getUf() != null){
+            
+        if(requestMercado.getUf() != null)
             mercadoAtual.setUf(requestMercado.getUf());
-        }
-        if(requestMercado.getCep() != null){
+        
+        if(requestMercado.getCep() != null)
             mercadoAtual.setCep(requestMercado.getCep());
-        }
 
         return mercadoRepository.save(mercadoAtual);
     }
