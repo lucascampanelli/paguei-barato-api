@@ -32,18 +32,18 @@ public class Produto {
     @Column(name = "\"categoriaId\"")
     private Integer categoriaId;
 
-    @OneToMany(mappedBy = "produto")
+    @OneToMany(mappedBy = "produto", orphanRemoval = true)
     @JsonIgnore
     private List<Estoque> estoques;
 
     @ManyToOne
     @JsonIgnore
-    @JoinColumn(name = "\"criadoPor\"", updatable = false)
+    @JoinColumn(name = "\"criadoPor\"", updatable = false, insertable = false)
     private Usuario usuario;
 
     @ManyToOne
     @JsonIgnore
-    @JoinColumn(name = "\"categoriaId\"", updatable = false)
+    @JoinColumn(name = "\"categoriaId\"", updatable = false, insertable = false)
     private Categoria categoria;
 
     public Integer getId() {

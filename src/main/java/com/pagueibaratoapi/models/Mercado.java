@@ -1,5 +1,7 @@
 package com.pagueibaratoapi.models;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -7,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -36,13 +39,17 @@ public class Mercado {
 
     @ManyToOne
     @JsonIgnore
-    @JoinColumn(name = "\"criadoPor\"", updatable = false)
+    @JoinColumn(name = "\"criadoPor\"", updatable = false, insertable = false)
     private Usuario usuario;
 
     @ManyToOne
     @JsonIgnore
-    @JoinColumn(name = "\"ramoId\"", updatable = false)
+    @JoinColumn(name = "\"ramoId\"", updatable = false, insertable = false)
     private Ramo ramo;
+
+    @OneToMany(mappedBy = "mercado", orphanRemoval = true)
+    @JsonIgnore
+    private List<Estoque> estoques;
 
     public Integer getId() {
         return id;

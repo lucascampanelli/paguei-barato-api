@@ -34,17 +34,17 @@ public class Estoque {
     private List<Sugestao> sugestoes;
 
     @ManyToOne
-    @JoinColumn(name = "\"criadoPor\"", updatable = false)
+    @JoinColumn(name = "\"criadoPor\"", updatable = false, insertable = false)
     @JsonIgnore
     private Usuario usuario;
 
     @ManyToOne
-    @JoinColumn(name = "\"produtoId\"", updatable = false)
+    @JoinColumn(name = "\"produtoId\"", updatable = false, insertable = false)
     @JsonIgnore
     private Produto produto;
 
     @ManyToOne
-    @JoinColumn(name = "\"mercadoId\"", updatable = false)
+    @JoinColumn(name = "\"mercadoId\"", updatable = false, insertable = false)
     @JsonIgnore
     private Mercado mercado;
 

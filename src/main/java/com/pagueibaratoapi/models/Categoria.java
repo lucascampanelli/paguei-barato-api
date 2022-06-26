@@ -21,7 +21,7 @@ public class Categoria {
     private String nome;
     private String descricao;
 
-    @OneToMany
+    @OneToMany(mappedBy = "categoria", orphanRemoval = true)
     @JsonIgnore
     private List<Produto> produtos;
 

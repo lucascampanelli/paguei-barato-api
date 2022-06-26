@@ -35,12 +35,12 @@ public class Sugestao {
 
     @ManyToOne
     @JsonIgnore
-    @JoinColumn(name = "\"estoqueId\"", updatable = false)
+    @JoinColumn(name = "\"estoqueId\"", updatable = false, insertable = false)
     private Estoque estoque;
 
     @ManyToOne
     @JsonIgnore
-    @JoinColumn(name = "\"criadoPor\"", updatable = false)
+    @JoinColumn(name = "\"criadoPor\"", updatable = false, insertable = false)
     private Usuario usuario;
 
     public Integer getId() {

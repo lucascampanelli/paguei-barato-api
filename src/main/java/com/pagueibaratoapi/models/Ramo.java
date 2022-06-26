@@ -21,7 +21,7 @@ public class Ramo {
     private String nome;
     private String descricao;
 
-    @OneToMany
+    @OneToMany(mappedBy = "ramo", orphanRemoval = true)
     @JsonIgnore
     private List<Mercado> mercados;
 

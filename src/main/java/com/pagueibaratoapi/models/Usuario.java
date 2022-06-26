@@ -29,19 +29,19 @@ public class Usuario {
     private String uf;
     private String cep;
 
-    @OneToMany
+    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
     @JsonIgnore
     private List<Produto> produtos;
 
-    @OneToMany
+    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
     @JsonIgnore
     private List<Mercado> mercados;
 
-    @OneToMany
+    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
     @JsonIgnore
     private List<Estoque> estoques;
 
-    @OneToMany
+    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
     @JsonIgnore
     private List<Sugestao> sugestoes;
 
