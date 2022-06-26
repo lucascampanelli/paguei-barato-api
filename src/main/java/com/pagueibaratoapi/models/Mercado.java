@@ -83,7 +83,10 @@ public class Mercado {
     }
 
     public void setComplemento(String complemento) {
-        this.complemento = complemento.trim();
+        if(complemento != null)
+            this.complemento = complemento.trim();
+        else
+            this.complemento = null;
     }
 
     public String getBairro() {

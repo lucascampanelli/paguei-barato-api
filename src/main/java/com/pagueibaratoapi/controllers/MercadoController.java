@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.pagueibaratoapi.models.Mercado;
 import com.pagueibaratoapi.repository.MercadoRepository;
 
@@ -29,8 +30,8 @@ public class MercadoController {
     }
 
     @PostMapping
-    public Mercado criar(@RequestBody Mercado mercado){
-        return mercadoRepository.save(mercado);
+    public Mercado criar(@RequestBody Mercado requestMercado){
+        return mercadoRepository.save(requestMercado);
     }
 
     @GetMapping("/{id}")
@@ -45,7 +46,7 @@ public class MercadoController {
             Example.of(requestMercado, ExampleMatcher
                                 .matching()
                                 .withIgnoreCase()
-                                .withStringMatcher(ExampleMatcher.StringMatcher.DEFAULT)));
+                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
     }
 
     @GetMapping(params = {"pagina", "limite"})
@@ -55,21 +56,56 @@ public class MercadoController {
             Example.of(requestMercado, ExampleMatcher
                                 .matching()
                                 .withIgnoreCase()
-                                .withStringMatcher(ExampleMatcher.StringMatcher.DEFAULT)), PageRequest.of(pagina, limite));
+                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)), PageRequest.of(pagina, limite));
     }
 
     @PatchMapping("/{id}")
-    public void editar(@PathVariable int id){
+    public Mercado editar(@PathVariable int id, @RequestBody Mercado requestMercado){
+        Mercado mercadoAtual = mercadoRepository.findById(id).get();
+        
+        if(requestMercado.getRamoId() != null){
+            mercadoAtual.setRamoId(requestMercado.getRamoId());
+        }
+        if(requestMercado.getNome() != null){
+            mercadoAtual.setNome(requestMercado.getNome());
+        }
+        if(requestMercado.getLogradouro() != null){
+            mercadoAtual.setLogradouro(requestMercado.getLogradouro());
+        }
+        if(requestMercado.getNumero() != null){
+            mercadoAtual.setNumero(requestMercado.getNumero());
+        }
+        if(requestMercado.getComplemento() != null){
+            if(requestMercado.getComplemento().trim().isEmpty()){
+                mercadoAtual.setComplemento(null);
+            } else {
+                mercadoAtual.setComplemento(requestMercado.getComplemento());
+            }
+        }
+        if(requestMercado.getBairro() != null){
+            mercadoAtual.setBairro(requestMercado.getBairro());
+        }
+        if(requestMercado.getCidade() != null){
+            mercadoAtual.setCidade(requestMercado.getCidade());
+        }
+        if(requestMercado.getUf() != null){
+            mercadoAtual.setUf(requestMercado.getUf());
+        }
+        if(requestMercado.getCep() != null){
+            mercadoAtual.setCep(requestMercado.getCep());
+        }
 
+        return mercadoRepository.save(mercadoAtual);
     }
 
-    @PutMapping
-    public void atualizar(){
-
+    @PutMapping("/{id}")
+    public void atualizar(@PathVariable int id, @RequestBody Mercado requestMercado){
+        requestMercado.setId(id);
+        mercadoRepository.save(requestMercado);
     }
 
     @DeleteMapping("/{id}")
     public void remover(@PathVariable int id){
-
+        mercadoRepository.deleteById(id);
     }
 }
