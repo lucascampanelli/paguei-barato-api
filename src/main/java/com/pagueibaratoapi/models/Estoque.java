@@ -7,8 +7,12 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "estoque")
@@ -26,7 +30,23 @@ public class Estoque {
     private Integer mercadoId;
 
     @OneToMany(mappedBy = "estoque", orphanRemoval = true)
+    @JsonIgnore
     private List<Sugestao> sugestoes;
+
+    @ManyToOne
+    @JoinColumn(name = "\"criadoPor\"", updatable = false)
+    @JsonIgnore
+    private Usuario usuario;
+
+    @ManyToOne
+    @JoinColumn(name = "\"produtoId\"", updatable = false)
+    @JsonIgnore
+    private Produto produto;
+
+    @ManyToOne
+    @JoinColumn(name = "\"mercadoId\"", updatable = false)
+    @JsonIgnore
+    private Mercado mercado;
 
     public Integer getId() {
         return id;
@@ -59,4 +79,5 @@ public class Estoque {
     public void setMercadoId(Integer mercadoId) {
         this.mercadoId = mercadoId;
     }
+    
 }

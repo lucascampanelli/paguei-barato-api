@@ -5,7 +5,11 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "mercado")
@@ -14,12 +18,6 @@ public class Mercado {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @Column(name = "\"criadoPor\"")
-    private Integer criadoPor;
-
-    @Column(name = "\"ramoId\"")
-    private Integer ramoId;
     
     private String nome;
     private String logradouro;
@@ -29,6 +27,22 @@ public class Mercado {
     private String cidade;
     private String uf;
     private String cep;
+
+    @Column(name = "\"criadoPor\"")
+    private Integer criadoPor;
+
+    @Column(name = "\"ramoId\"")
+    private Integer ramoId;
+
+    @ManyToOne
+    @JsonIgnore
+    @JoinColumn(name = "\"criadoPor\"", updatable = false)
+    private Usuario usuario;
+
+    @ManyToOne
+    @JsonIgnore
+    @JoinColumn(name = "\"ramoId\"", updatable = false)
+    private Ramo ramo;
 
     public Integer getId() {
         return id;

@@ -1,10 +1,15 @@
 package com.pagueibaratoapi.models;
 
+import java.util.List;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "usuario")
@@ -23,6 +28,22 @@ public class Usuario {
     private String cidade;
     private String uf;
     private String cep;
+
+    @OneToMany
+    @JsonIgnore
+    private List<Produto> produtos;
+
+    @OneToMany
+    @JsonIgnore
+    private List<Mercado> mercados;
+
+    @OneToMany
+    @JsonIgnore
+    private List<Estoque> estoques;
+
+    @OneToMany
+    @JsonIgnore
+    private List<Sugestao> sugestoes;
 
     public int getId() {
         return id;

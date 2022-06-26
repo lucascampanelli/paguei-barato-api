@@ -1,9 +1,17 @@
 package com.pagueibaratoapi.models;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 
@@ -13,22 +21,36 @@ public class Produto {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     private String nome;
     private String marca;
     private String tamanho;
     private String cor;
 
     @Column(name = "\"criadoPor\"")
-    private int criadoPor;
+    private Integer criadoPor;
     @Column(name = "\"categoriaId\"")
-    private int categoriaId;
+    private Integer categoriaId;
 
-    public int getId() {
+    @OneToMany(mappedBy = "produto")
+    @JsonIgnore
+    private List<Estoque> estoques;
+
+    @ManyToOne
+    @JsonIgnore
+    @JoinColumn(name = "\"criadoPor\"", updatable = false)
+    private Usuario usuario;
+
+    @ManyToOne
+    @JsonIgnore
+    @JoinColumn(name = "\"categoriaId\"", updatable = false)
+    private Categoria categoria;
+
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -65,19 +87,19 @@ public class Produto {
         this.cor = cor.trim();
     }
 
-    private int getCriadoPor() {
+    private Integer getCriadoPor() {
         return criadoPor;
     }
 
-    public void setCriadoPor(int criadoPor) {
+    public void setCriadoPor(Integer criadoPor) {
         this.criadoPor = criadoPor;
     }
 
-    public int getCategoriaId() {
+    public Integer getCategoriaId() {
         return categoriaId;
     }
 
-    public void setCategoriaId(int categoriaId) {
+    public void setCategoriaId(Integer categoriaId) {
         this.categoriaId = categoriaId;
     }
     

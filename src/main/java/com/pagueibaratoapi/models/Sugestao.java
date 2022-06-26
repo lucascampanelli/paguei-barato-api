@@ -13,6 +13,8 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "sugestao")
 public class Sugestao {
@@ -25,12 +27,21 @@ public class Sugestao {
     @UpdateTimestamp
     private Calendar timestamp;
 
-    @ManyToOne
-    @JoinColumn(name = "\"estoqueId\"", nullable = false)
-    private Estoque estoque;
-
     @Column(name = "\"criadoPor\"")
     private Integer criadoPor;
+
+    @Column(name = "\"estoqueId\"")
+    private Integer estoqueId;
+
+    @ManyToOne
+    @JsonIgnore
+    @JoinColumn(name = "\"estoqueId\"", updatable = false)
+    private Estoque estoque;
+
+    @ManyToOne
+    @JsonIgnore
+    @JoinColumn(name = "\"criadoPor\"", updatable = false)
+    private Usuario usuario;
 
     public Integer getId() {
         return id;
@@ -56,20 +67,20 @@ public class Sugestao {
         this.timestamp = timestamp;
     }
 
-    public Estoque getEstoque() {
-        return estoque;
-    }
-
-    public void setEstoque(Estoque estoque) {
-        this.estoque = estoque;
-    }
-
     private Integer getCriadoPor() {
         return criadoPor;
     }
 
     public void setCriadoPor(Integer criadoPor) {
         this.criadoPor = criadoPor;
+    }
+
+    public Integer getEstoqueId() {
+        return estoqueId;
+    }
+
+    public void setEstoqueId(Integer estoqueId) {
+        this.estoqueId = estoqueId;
     }
     
 }

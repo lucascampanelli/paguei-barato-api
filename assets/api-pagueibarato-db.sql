@@ -59,7 +59,7 @@ CREATE TABLE mercado
     nome character varying(50) NOT NULL,
     logradouro character varying(120) NOT NULL,
     numero integer NOT NULL,
-    complemento character varying(20) NOT NULL,
+    complemento character varying(20),
     bairro character varying(50) NOT NULL,
     cidade character varying(30) NOT NULL,
     uf character(2) NOT NULL,

@@ -2,9 +2,14 @@ package com.pagueibaratoapi.controllers;
 
 import java.util.List;
 
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,12 +27,12 @@ public class ProdutoController {
     }
 
     @PostMapping(consumes = "application/json", produces = "application/json")
-    public Produto criar(@RequestBody Produto produto){
+    public Produto criar(@RequestBody Produto requestProduto){
         // Criando uma nova instância do produto para tratar o nome dele e criá-lo no banco
-        Produto produtoTratado = produto;
+        Produto produtoTratado = requestProduto;
 
         // Pegando cada palavra do nome do produto separado por espaço e em minúsculas
-        String[] nomeProduto = produto.getNome().toLowerCase().split(" ");
+        String[] nomeProduto = requestProduto.getNome().toLowerCase().split(" ");
 
         // Percorrendo cada palavra do nome do produto
         for(int i = 0; i < nomeProduto.length; i++){
@@ -51,14 +56,58 @@ public class ProdutoController {
         return produtoRepository.save(produtoTratado);
     }
 
-    @GetMapping(produces = "application/json")
-    public List<Produto> listar(){
-        return produtoRepository.findAll();
+    @GetMapping
+    public List<Produto> listar(Produto requestProduto){
+
+        return produtoRepository.findAll(
+            Example.of(requestProduto, ExampleMatcher
+                    .matching()
+                    .withIgnoreCase()
+                    .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING))
+        );
+
     }
 
     @GetMapping("/{id}")
     public Produto ler(@PathVariable(value = "id") Integer id){
         return produtoRepository.findById(id).get();
+    }
+
+    @PatchMapping("/{id}")
+    public Produto atualizarParcial(@PathVariable(value = "id") Integer id, @RequestBody Produto requestProduto){
+        Produto produtoAtual = produtoRepository.findById(id).get();
+
+        if(requestProduto.getNome() != null)
+            produtoAtual.setNome(requestProduto.getNome());
+
+        if(requestProduto.getMarca() != null)
+            produtoAtual.setMarca(requestProduto.getMarca());
+        
+        if(requestProduto.getTamanho() != null)
+            produtoAtual.setTamanho(requestProduto.getTamanho());
+
+        if(requestProduto.getCor() != null){
+            if(requestProduto.getCor() == "")
+                produtoAtual.setCor(null);
+            else
+                produtoAtual.setCor(requestProduto.getCor());
+        }
+
+        if(requestProduto.getCategoriaId() != null)
+            produtoAtual.setCategoriaId(requestProduto.getCategoriaId());
+
+        return produtoRepository.save(produtoAtual);
+    }
+
+    @PutMapping("/{id}")
+    public Produto atualizar(@PathVariable(value = "id") Integer id, @RequestBody Produto requestProduto){
+        requestProduto.setId(id);
+        return produtoRepository.save(requestProduto);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deletar(@PathVariable int id){
+        produtoRepository.deleteById(id);
     }
 
 }
