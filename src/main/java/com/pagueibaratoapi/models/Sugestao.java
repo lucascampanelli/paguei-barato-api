@@ -7,9 +7,10 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
@@ -18,30 +19,32 @@ public class Sugestao {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-    private float preco;
+    private Integer id;
+    private Float preco;
 
     @UpdateTimestamp
     private Calendar timestamp;
 
-    @Column(name = "\"estoqueId\"")
-    private int estoqueId;
-    @Column(name = "\"criadoPor\"")
-    private int criadoPor;
+    @ManyToOne
+    @JoinColumn(name = "\"estoqueId\"", nullable = false)
+    private Estoque estoque;
 
-    public int getId() {
+    @Column(name = "\"criadoPor\"")
+    private Integer criadoPor;
+
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public float getPreco() {
+    public Float getPreco() {
         return preco;
     }
 
-    public void setPreco(float preco) {
+    public void setPreco(Float preco) {
         this.preco = preco;
     }
 
@@ -53,19 +56,19 @@ public class Sugestao {
         this.timestamp = timestamp;
     }
 
-    public int getEstoqueId() {
-        return estoqueId;
+    public Estoque getEstoque() {
+        return estoque;
     }
 
-    public void setEstoqueId(int estoqueId) {
-        this.estoqueId = estoqueId;
+    public void setEstoque(Estoque estoque) {
+        this.estoque = estoque;
     }
 
-    private int getCriadoPor() {
+    private Integer getCriadoPor() {
         return criadoPor;
     }
 
-    public void setCriadoPor(int criadoPor) {
+    public void setCriadoPor(Integer criadoPor) {
         this.criadoPor = criadoPor;
     }
     
