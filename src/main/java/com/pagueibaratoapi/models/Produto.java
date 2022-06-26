@@ -36,8 +36,9 @@ public class Produto {
        
         return nome;
     }
+
     public void setNome(String nome) {
-        this.nome = nome;
+        this.nome = nome.trim();
     }
 
     public String getMarca() {
@@ -45,7 +46,7 @@ public class Produto {
     }
 
     public void setMarca(String marca) {
-        this.marca = marca;
+        this.marca = marca.trim();
     }
 
     public String getTamanho() {
@@ -53,7 +54,7 @@ public class Produto {
     }
 
     public void setTamanho(String tamanho) {
-        this.tamanho = tamanho;
+        this.tamanho = tamanho.trim();
     }
 
     public String getCor() {
@@ -61,7 +62,7 @@ public class Produto {
     }
 
     public void setCor(String cor) {
-        this.cor = cor;
+        this.cor = cor.trim();
     }
 
     private int getCriadoPor() {
