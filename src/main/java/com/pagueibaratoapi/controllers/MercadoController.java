@@ -33,9 +33,9 @@ public class MercadoController {
         return mercadoRepository.save(mercado);
     }
 
-    @GetMapping("/{nome}")
-    public String ler(@PathVariable Object nome){
-        return "Olá, "+nome+"!";
+    @GetMapping("/{id}")
+    public Mercado ler(@PathVariable(value = "id") Integer id){
+        return mercadoRepository.findById(id).get();
     }
 
     @GetMapping
@@ -45,17 +45,17 @@ public class MercadoController {
             Example.of(requestMercado, ExampleMatcher
                                 .matching()
                                 .withIgnoreCase()
-                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
+                                .withStringMatcher(ExampleMatcher.StringMatcher.DEFAULT)));
     }
 
-    @GetMapping
-    public Page<Mercado> listar(Mercado requestMercado, @RequestParam(required = false, defaultValue = "0") Integer page, @RequestParam(required = false, defaultValue = "10") Integer size){
+    @GetMapping(params = {"pagina", "limite"})
+    public Page<Mercado> listar(Mercado requestMercado, @RequestParam(required = false, defaultValue = "0") Integer pagina, @RequestParam(required = false, defaultValue = "10") Integer limite){
 
         return mercadoRepository.findAll(
             Example.of(requestMercado, ExampleMatcher
                                 .matching()
                                 .withIgnoreCase()
-                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)), PageRequest.of(page, size));
+                                .withStringMatcher(ExampleMatcher.StringMatcher.DEFAULT)), PageRequest.of(pagina, limite));
     }
 
     @PatchMapping("/{id}")
