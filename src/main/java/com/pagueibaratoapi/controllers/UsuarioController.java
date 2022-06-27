@@ -2,6 +2,7 @@ package com.pagueibaratoapi.controllers;
 
 import java.util.List;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -19,6 +20,7 @@ import com.pagueibaratoapi.repository.UsuarioRepository;
 public class UsuarioController {
     
     private final UsuarioRepository usuarioRepository;
+    private BCryptPasswordEncoder passwordEncoder;
 
     public UsuarioController(UsuarioRepository usuarioRepository){
         this.usuarioRepository = usuarioRepository;
@@ -26,6 +28,7 @@ public class UsuarioController {
 
     @PostMapping
     public Usuario criar(@RequestBody Usuario requestUsuario){
+        requestUsuario.setSenha(passwordEncoder.encode(requestUsuario.getSenha()));
         return usuarioRepository.save(requestUsuario);
     }
 
