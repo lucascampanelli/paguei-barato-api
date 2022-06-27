@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class Mercado {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer id;
     
     private String nome;
@@ -57,10 +57,6 @@ public class Mercado {
 
     public void setCriadoPor(Integer criadoPor) {
         this.criadoPor = criadoPor;
-    }
-
-    private Integer getCriadoPor() {
-        return criadoPor;
     }
 
     public void setId(Integer id) {
