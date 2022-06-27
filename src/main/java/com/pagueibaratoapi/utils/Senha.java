@@ -1,6 +1,7 @@
 package com.pagueibaratoapi.utils;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 // Classe com funções úteis para a senha
 public class Senha {
@@ -16,5 +17,11 @@ public class Senha {
     // Método responsável por salgar a senha
     public static String salgarSenha(String senha){
         return SALT_START + senha + SALT_END;
+    }
+
+    public static String encriptar(String senha){
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+        return passwordEncoder.encode(Senha.salgarSenha(senha));
     }
 }

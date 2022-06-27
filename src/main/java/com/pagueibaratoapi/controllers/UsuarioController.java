@@ -2,7 +2,6 @@ package com.pagueibaratoapi.controllers;
 
 import java.util.List;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -23,7 +22,6 @@ import com.pagueibaratoapi.utils.Senha;
 public class UsuarioController {
     
     private final UsuarioRepository usuarioRepository;
-    private BCryptPasswordEncoder passwordEncoder;
 
     public UsuarioController(UsuarioRepository usuarioRepository){
         this.usuarioRepository = usuarioRepository;
@@ -37,9 +35,7 @@ public class UsuarioController {
         if(usuarioRepository.findByEmail(requestUsuario.getEmail()) != null)
             throw new IllegalArgumentException("O e-mail já está sendo utilizado");
 
-        passwordEncoder = new BCryptPasswordEncoder();
-
-        requestUsuario.setSenha(passwordEncoder.encode(Senha.salgarSenha(requestUsuario.getSenha())));
+        requestUsuario.setSenha(Senha.encriptar(requestUsuario.getSenha()));
 
         return usuarioRepository.save(requestUsuario);
     }
@@ -76,9 +72,7 @@ public class UsuarioController {
 
         requestUsuario.setId(id);
 
-        passwordEncoder = new BCryptPasswordEncoder();
-
-        requestUsuario.setSenha(passwordEncoder.encode(Senha.salgarSenha(requestUsuario.getSenha())));
+        requestUsuario.setSenha(Senha.encriptar(requestUsuario.getSenha()));
 
         return usuarioRepository.save(requestUsuario);
     }
