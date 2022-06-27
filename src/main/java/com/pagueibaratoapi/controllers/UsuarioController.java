@@ -35,7 +35,7 @@ public class UsuarioController {
 
     @DeleteMapping("/{id}")
     public void remover(@PathVariable int id){
-        Usuario usuarioDeletado = new Usuario();
+        Usuario usuarioDeletado = usuarioRepository.findById(id).get();
 
         usuarioDeletado.setId(id);
         usuarioDeletado.setNome("");

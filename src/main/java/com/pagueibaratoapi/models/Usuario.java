@@ -132,4 +132,37 @@ public class Usuario {
     public void setCep(String cep) {
         this.cep = cep;
     }
+
+    public List<Produto> getProdutos() {
+        return produtos;
+    }
+
+    public void setProdutos(List<Produto> produtos) {
+        this.produtos = produtos;
+    }
+
+    public List<Mercado> getMercados() {
+        return mercados;
+    }
+
+    public void setMercados(List<Mercado> mercados) {
+        this.mercados = mercados;
+    }
+
+    public List<Estoque> getEstoques() {
+        return estoques;
+    }
+
+    public void setEstoques(List<Estoque> estoques) {
+        this.estoques = estoques;
+    }
+
+    public List<Sugestao> getSugestoes() {
+        return sugestoes;
+    }
+
+    public void setSugestoes(List<Sugestao> sugestoes) {
+        this.sugestoes = sugestoes;
+    }
+
 }
