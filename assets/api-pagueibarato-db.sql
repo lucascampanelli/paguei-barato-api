@@ -11,8 +11,7 @@ CREATE TABLE usuario
     uf character(2) NOT NULL,
     cep character(9) NOT NULL,
     complemento character varying(20),
-    CONSTRAINT usuario_pkey PRIMARY KEY (id),
-    CONSTRAINT usuario_email_key UNIQUE (email)
+    CONSTRAINT usuario_pkey PRIMARY KEY (id)
 )
 
 CREATE TABLE categoria
