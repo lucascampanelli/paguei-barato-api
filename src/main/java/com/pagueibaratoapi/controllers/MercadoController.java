@@ -76,11 +76,10 @@ public class MercadoController {
             mercadoAtual.setNumero(requestMercado.getNumero());
 
         if(requestMercado.getComplemento() != null){
-            if(requestMercado.getComplemento().trim().isEmpty()){
+            if(requestMercado.getComplemento().trim().isEmpty())
                 mercadoAtual.setComplemento(null);
-            } else {
+            else
                 mercadoAtual.setComplemento(requestMercado.getComplemento());
-            }
         }
 
         if(requestMercado.getBairro() != null)

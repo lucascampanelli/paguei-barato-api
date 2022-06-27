@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.pagueibaratoapi.models.Produto;
 import com.pagueibaratoapi.repository.ProdutoRepository;
@@ -26,7 +29,7 @@ public class ProdutoController {
         this.produtoRepository = produtoRepository;
     }
 
-    @PostMapping(consumes = "application/json", produces = "application/json")
+    @PostMapping
     public Produto criar(@RequestBody Produto requestProduto){
         // Criando uma nova instância do produto para tratar o nome dele e criá-lo no banco
         Produto produtoTratado = requestProduto;
@@ -56,25 +59,33 @@ public class ProdutoController {
         return produtoRepository.save(produtoTratado);
     }
 
-    @GetMapping
-    public List<Produto> listar(Produto requestProduto){
-
-        return produtoRepository.findAll(
-            Example.of(requestProduto, ExampleMatcher
-                    .matching()
-                    .withIgnoreCase()
-                    .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING))
-        );
-
-    }
-
     @GetMapping("/{id}")
     public Produto ler(@PathVariable(value = "id") Integer id){
         return produtoRepository.findById(id).get();
     }
 
+    @GetMapping
+    public List<Produto> listar(Produto requestProduto){
+
+        return produtoRepository.findAll(
+            Example.of(requestProduto, ExampleMatcher
+                                .matching()
+                                .withIgnoreCase()
+                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
+    }
+
+    @GetMapping(params = {"pagina", "limite"})
+    public Page<Produto> listar(Produto requestProduto, @RequestParam(required = false, defaultValue = "0") Integer pagina, @RequestParam(required = false, defaultValue = "10") Integer limite){
+
+        return produtoRepository.findAll(
+            Example.of(requestProduto, ExampleMatcher
+                                .matching()
+                                .withIgnoreCase()
+                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)), PageRequest.of(pagina, limite));
+    }
+
     @PatchMapping("/{id}")
-    public Produto atualizarParcial(@PathVariable(value = "id") Integer id, @RequestBody Produto requestProduto){
+    public Produto editar(@PathVariable int id, @RequestBody Produto requestProduto){
         Produto produtoAtual = produtoRepository.findById(id).get();
 
         if(requestProduto.getNome() != null)
@@ -100,7 +111,7 @@ public class ProdutoController {
     }
 
     @PutMapping("/{id}")
-    public Produto atualizar(@PathVariable(value = "id") Integer id, @RequestBody Produto requestProduto){
+    public Produto atualizar(@PathVariable int id, @RequestBody Produto requestProduto){
         requestProduto.setId(id);
         return produtoRepository.save(requestProduto);
     }

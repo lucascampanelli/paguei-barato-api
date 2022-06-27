@@ -8,8 +8,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -72,6 +74,22 @@ public class SugestaoController {
         }
 
         return responseSugestao;
+    }
+
+    @PatchMapping("/{id}")
+    public Sugestao editar(@PathVariable int id, @RequestBody Sugestao requestSugestao){
+        Sugestao sugestaoAtual = sugestaoRepository.findById(id).get();
+
+        if(requestSugestao.getPreco() != null)
+            sugestaoAtual.setPreco(requestSugestao.getPreco());
+
+        return sugestaoRepository.save(sugestaoAtual);
+    }
+
+    @PutMapping("/{id}")
+    public Sugestao atualizar(@PathVariable int id, @RequestBody Sugestao requestSugestao){
+        requestSugestao.setId(id);
+        return sugestaoRepository.save(requestSugestao);
     }
 
     @DeleteMapping("/{id}")
