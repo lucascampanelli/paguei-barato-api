@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class Sugestao {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer id;
     private Float preco;
 
@@ -65,10 +65,6 @@ public class Sugestao {
 
     public void setTimestamp(Calendar timestamp) {
         this.timestamp = timestamp;
-    }
-
-    private Integer getCriadoPor() {
-        return criadoPor;
     }
 
     public void setCriadoPor(Integer criadoPor) {

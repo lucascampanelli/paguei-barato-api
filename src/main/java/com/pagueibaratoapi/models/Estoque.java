@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class Estoque {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer id;
 
     @Column(name = "\"criadoPor\"")

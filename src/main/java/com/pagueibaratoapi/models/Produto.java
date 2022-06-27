@@ -20,7 +20,7 @@ import javax.persistence.GenerationType;
 public class Produto {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer id;
     private String nome;
     private String marca;
@@ -85,10 +85,6 @@ public class Produto {
 
     public void setCor(String cor) {
         this.cor = cor.trim();
-    }
-
-    private Integer getCriadoPor() {
-        return criadoPor;
     }
 
     public void setCriadoPor(Integer criadoPor) {

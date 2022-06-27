@@ -16,8 +16,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class Ramo {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Integer id;
     private String nome;
     private String descricao;
 
@@ -25,11 +25,11 @@ public class Ramo {
     @JsonIgnore
     private List<Mercado> mercados;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
