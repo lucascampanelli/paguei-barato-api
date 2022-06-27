@@ -17,12 +17,12 @@ public class Usuario {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     private String nome;
     private String email;
     private String senha;
     private String logradouro;
-    private int numero;
+    private Integer numero;
     private String complemento;
     private String bairro;
     private String cidade;
@@ -45,11 +45,11 @@ public class Usuario {
     @JsonIgnore
     private List<Sugestao> sugestoes;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -85,11 +85,11 @@ public class Usuario {
         this.logradouro = logradouro;
     }
 
-    public int getNumero() {
+    public Integer getNumero() {
         return numero;
     }
 
-    public void setNumero(int numero) {
+    public void setNumero(Integer numero) {
         this.numero = numero;
     }
 
@@ -131,41 +131,5 @@ public class Usuario {
 
     public void setCep(String cep) {
         this.cep = cep;
-    }
-
-    public Resultado create(){
-        try {
-            return new Resultado(true, "Usuário criado com sucesso!");
-        }
-        catch (Exception e) {
-            return new Resultado(false, e.getLocalizedMessage());
-        }
-    }
-
-    public Resultado read(){
-        try {
-            return new Resultado(true, "Usuário lido com sucesso!");
-        }
-        catch (Exception e) {
-            return new Resultado(false, e.getLocalizedMessage());
-        }
-    }
-
-    public Resultado update(){
-        try {
-            return new Resultado(true, "Usuário atualizado com sucesso!");
-        }
-        catch (Exception e) {
-            return new Resultado(false, e.getLocalizedMessage());
-        }
-    }
-
-    public Resultado delete(){
-        try {
-            return new Resultado(true, "Usuário excluído com sucesso!");
-        }
-        catch (Exception e) {
-            return new Resultado(false, e.getLocalizedMessage());
-        }
     }
 }
