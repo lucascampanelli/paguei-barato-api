@@ -1,5 +1,7 @@
 package com.pagueibaratoapi.utils;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 import com.pagueibaratoapi.models.Usuario;
 
 public class PatchUsuario {
@@ -11,8 +13,13 @@ public class PatchUsuario {
         if(usuarioEditado.getEmail() != null)
             usuarioAtual.setEmail(usuarioEditado.getEmail());
         
-        if(usuarioEditado.getSenha() != null)
-            usuarioAtual.setSenha(usuarioEditado.getSenha());
+        if(usuarioEditado.getSenha() != null){
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+            usuarioAtual.setSenha(passwordEncoder.encode(Senha.salgarSenha(usuarioEditado.getSenha())));
+
+            passwordEncoder = null;
+        }
 
         if(usuarioEditado.getLogradouro() != null)
             usuarioAtual.setLogradouro(usuarioEditado.getLogradouro());

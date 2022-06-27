@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,7 +58,29 @@ public class UsuarioController {
     public Usuario editar(@PathVariable(value = "id") Integer id, @RequestBody Usuario requestUsuario){
         Usuario usuarioAtual = usuarioRepository.findById(id).get();
 
+        if(requestUsuario.getEmail() != null){
+            if(requestUsuario.getEmail().isEmpty())
+                throw new IllegalArgumentException("O e-mail informado é inválido");
+        }
+        
         return usuarioRepository.save(EditaRecurso.editarUsuario(usuarioAtual, requestUsuario));
+    }
+
+    @PutMapping("/{id}")
+    public Usuario atualizar(@PathVariable(value = "id") Integer id, @RequestBody Usuario requestUsuario){
+        if(requestUsuario.getEmail().isEmpty())
+            throw new IllegalArgumentException("O preenchimento do e-mail é obrigatório");
+
+        if(usuarioRepository.findByEmail(requestUsuario.getEmail()) != null)
+            throw new IllegalArgumentException("O e-mail já está sendo utilizado");
+
+        requestUsuario.setId(id);
+
+        passwordEncoder = new BCryptPasswordEncoder();
+
+        requestUsuario.setSenha(passwordEncoder.encode(Senha.salgarSenha(requestUsuario.getSenha())));
+
+        return usuarioRepository.save(requestUsuario);
     }
 
     @DeleteMapping("/{id}")
