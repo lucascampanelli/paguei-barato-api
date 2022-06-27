@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,14 +24,60 @@ public class UsuarioController {
         this.usuarioRepository = usuarioRepository;
     }
 
-    @GetMapping(produces = "application/json")
+    @PostMapping
+    public Usuario criar(@RequestBody Usuario requestUsuario){
+        return usuarioRepository.save(requestUsuario);
+    }
+
+    @GetMapping("/{id}")
+    public Usuario ler(@PathVariable(value = "id") Integer id){
+        return usuarioRepository.findById(id).get();
+    }
+
+    @GetMapping
     public List<Usuario> listar(){
         return usuarioRepository.findAll();
     }
 
-    @PostMapping(consumes = "application/json", produces = "application/json")
-    public Usuario criar(@RequestBody Usuario usuario){
-        return usuarioRepository.save(usuario);
+    @PatchMapping("/{id}")
+    public Usuario editar(@PathVariable(value = "id") Integer id, @RequestBody Usuario requestUsuario){
+        Usuario usuarioAtual = usuarioRepository.findById(id).get();
+
+        if(requestUsuario.getNome() != null)
+            usuarioAtual.setNome(requestUsuario.getNome());
+        
+        if(requestUsuario.getEmail() != null)
+            usuarioAtual.setEmail(requestUsuario.getEmail());
+        
+        if(requestUsuario.getSenha() != null)
+            usuarioAtual.setSenha(requestUsuario.getSenha());
+
+        if(requestUsuario.getLogradouro() != null)
+            usuarioAtual.setLogradouro(requestUsuario.getLogradouro());
+
+        if(requestUsuario.getNumero() != null)
+            usuarioAtual.setNumero(requestUsuario.getNumero());
+
+        if(requestUsuario.getComplemento() != null){
+            if(requestUsuario.getComplemento() == "")
+                usuarioAtual.setComplemento(null);
+            else
+                usuarioAtual.setComplemento(requestUsuario.getComplemento());
+        }
+
+        if(requestUsuario.getBairro() != null)
+            usuarioAtual.setBairro(requestUsuario.getBairro());
+
+        if(requestUsuario.getCidade() != null)
+            usuarioAtual.setCidade(requestUsuario.getCidade());
+
+        if(requestUsuario.getUf() != null)
+            usuarioAtual.setUf(requestUsuario.getUf());
+        
+        if(requestUsuario.getCep() != null)
+            usuarioAtual.setCep(requestUsuario.getCep());
+
+        return usuarioRepository.save(usuarioAtual);
     }
 
     @DeleteMapping("/{id}")
