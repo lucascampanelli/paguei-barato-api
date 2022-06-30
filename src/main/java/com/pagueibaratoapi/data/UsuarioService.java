@@ -1,4 +1,4 @@
-package com.pagueibaratoapi.services;
+package com.pagueibaratoapi.data;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -17,7 +17,8 @@ public class UsuarioService implements UserDetails{
     public UsuarioService(Optional<Usuario> usuario) {
         this.usuario = usuario;
     }
-
+    
+    // Autorizações do usuário
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;
@@ -25,11 +26,13 @@ public class UsuarioService implements UserDetails{
 
     @Override
     public String getPassword() {
+        // Retorna um modelo de usuário null ou sua senha
         return usuario.orElse(new Usuario()).getSenha();
     }
 
     @Override
     public String getUsername() {
+        // Retorna um modelo de usuário null ou seu email
         return usuario.orElse(new Usuario()).getEmail();
     }
 

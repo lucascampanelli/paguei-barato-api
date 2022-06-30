@@ -20,14 +20,15 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pagueibaratoapi.data.UsuarioService;
 import com.pagueibaratoapi.models.Usuario;
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter{
     
-    @Value("${pagueibarato.config.token.expiration")
+    @Value("${pagueibarato.config.token.expiration}")
     private static int EXPIRA_EM;
 
-    @Value("${pagueibarato.config.token.expiration")
+    @Value("${pagueibarato.config.token.secret.key}")
     private static String SEGREDO;
 
     private final AuthenticationManager authenticationManager;
@@ -36,37 +37,46 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         this.authenticationManager = authenticationManager;
     }
 
+    @Override
     public Authentication attemptAuthentication(HttpServletRequest request, 
                                                 HttpServletResponse response) throws AuthenticationException {
 
-        ObjectMapper mapper = new ObjectMapper();
-        
         try {
 
-            Usuario usuario = mapper.readValue(request.getInputStream(), Usuario.class);
+            Usuario usuario = new ObjectMapper().readValue(request.getInputStream(), Usuario.class);
 
-            return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(usuario.getEmail(), usuario.getSenha()));
+            return authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                                                        usuario.getEmail(), 
+                                                        usuario.getSenha()
+                )
+            );
 
         } catch (StreamReadException e) {
-            throw new RuntimeException("Erro ao ler o JSON do usuário");
+            throw new RuntimeException("Falha ao autenticar o usuário");
         } catch (DatabindException e) {
-            throw new RuntimeException("Erro ao ler o JSON do usuário");
+            throw new RuntimeException("Falha ao autenticar o usuário");
         } catch (IOException e) {
-            throw new RuntimeException("Erro ao ler o JSON do usuário");
+            throw new RuntimeException("Falha ao autenticar o usuário");
         }
+
     }
 
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, 
-                                            FilterChain filter, Authentication authResult) throws IOException, ServletException {
+    protected void successfulAuthentication(HttpServletRequest request, 
+                                            HttpServletResponse response, 
+                                            FilterChain filter, 
+                                            Authentication authResult) throws IOException, ServletException {
         
-        Usuario usuario = (Usuario) authResult.getPrincipal();
+        UsuarioService usuarioService = (UsuarioService) authResult.getPrincipal();
+
         String token = JWT.create()
-                .withSubject(usuario.getEmail())
+                .withSubject(usuarioService.getUsername())
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRA_EM))
                 .sign(Algorithm.HMAC512(SEGREDO));
 
         response.getWriter().write(token);
         response.getWriter().flush();
+
     }
 }

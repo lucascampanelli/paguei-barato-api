@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 
+// Classe para validação do token JWT estendendo a classe BasicAuthenticationFilter, que filta o JWT
 public class JWTValidateFilter extends BasicAuthenticationFilter{
 
     @Value("${pagueibarato.config.secret.key}")
@@ -26,7 +27,8 @@ public class JWTValidateFilter extends BasicAuthenticationFilter{
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, 
+    protected void doFilterInternal(HttpServletRequest request, 
+                                    HttpServletResponse response, 
                                     FilterChain chain) throws IOException, ServletException {
 
         String header = request.getHeader("Authorization");
@@ -36,27 +38,25 @@ public class JWTValidateFilter extends BasicAuthenticationFilter{
             return;
         }
 
+        // Remove o prefixo do cabeçalho do token
         String token = header.replace("Bearer ", "");
 
-        try {
-            String usuario = JWT.require(Algorithm.HMAC256(SEGREDO))
-                .build()
-                .verify(token)
-                .getSubject();
+        UsernamePasswordAuthenticationToken authenticationToken = getAuthenticationToken(token);
 
-            if(usuario == null){
-                chain.doFilter(request, response);
-                return;
-            }
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(usuario, null, null);
-            SecurityContextHolder.getContext().setAuthentication(auth);
-
-        } catch (Exception e) {
-            response.setStatus(401);
-            return;
-        }
         chain.doFilter(request, response);
     }
 
+    private UsernamePasswordAuthenticationToken getAuthenticationToken(String token) {
+        String usuario = JWT.require(Algorithm.HMAC256(SEGREDO))
+                                .build()
+                                .verify(token)
+                                .getSubject();
+
+        if(usuario == null)
+            return null;
+        
+        return new UsernamePasswordAuthenticationToken(usuario, null, null);
+    }
 }
