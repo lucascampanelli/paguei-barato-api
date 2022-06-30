@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -22,14 +23,15 @@ import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pagueibaratoapi.data.UsuarioService;
 import com.pagueibaratoapi.models.Usuario;
+import com.pagueibaratoapi.utils.Senha;
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter{
     
     @Value("${pagueibarato.config.token.expiration}")
-    private static int EXPIRA_EM;
+    private long EXPIRA_EM = 2592000000L;
 
     @Value("${pagueibarato.config.token.secret.key}")
-    private static String SEGREDO;
+    private String SEGREDO = "shhh";
 
     private final AuthenticationManager authenticationManager;
 
@@ -48,15 +50,21 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             return authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                                                         usuario.getEmail(), 
-                                                        usuario.getSenha()
+                                                        Senha.salgar(usuario.getSenha())
                 )
             );
-
+        
+        } catch(BadCredentialsException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Senha inválida.");
         } catch (StreamReadException e) {
-            throw new RuntimeException("Falha ao autenticar o usuário");
+            e.printStackTrace();
+            throw new RuntimeException("Falha ao autenticar o usuário: ");
         } catch (DatabindException e) {
+            e.printStackTrace();
             throw new RuntimeException("Falha ao autenticar o usuário");
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException("Falha ao autenticar o usuário");
         }
 

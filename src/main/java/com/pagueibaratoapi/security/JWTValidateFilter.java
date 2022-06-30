@@ -19,8 +19,8 @@ import com.auth0.jwt.algorithms.Algorithm;
 // Classe para validação do token JWT estendendo a classe BasicAuthenticationFilter, que filta o JWT
 public class JWTValidateFilter extends BasicAuthenticationFilter{
 
-    @Value("${pagueibarato.config.secret.key}")
-    private static String SEGREDO;
+    @Value("${pagueibarato.config.token.secret.key}")
+    private static String SEGREDO = "shhh";
 
     public JWTValidateFilter(AuthenticationManager authenticationManager) {
         super(authenticationManager);
@@ -49,7 +49,7 @@ public class JWTValidateFilter extends BasicAuthenticationFilter{
     }
 
     private UsernamePasswordAuthenticationToken getAuthenticationToken(String token) {
-        String usuario = JWT.require(Algorithm.HMAC256(SEGREDO))
+        String usuario = JWT.require(Algorithm.HMAC512(SEGREDO))
                                 .build()
                                 .verify(token)
                                 .getSubject();
