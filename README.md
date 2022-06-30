@@ -8,6 +8,6 @@
 
 <p>A API segue os critérios para o design RESTful, oferecendo um serviço fácil e rápido de ser consumido.</p>
 
-made in ❤ in 🇧🇷
-
 # Como usar?
+
+made with ❤ in 🇧🇷
