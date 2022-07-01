@@ -20,7 +20,7 @@ import javax.persistence.GenerationType;
 public class Produto {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String nome;
     private String marca;

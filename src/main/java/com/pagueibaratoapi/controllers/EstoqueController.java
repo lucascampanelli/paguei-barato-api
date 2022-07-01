@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import com.pagueibaratoapi.models.Estoque;
 import com.pagueibaratoapi.repository.EstoqueRepository;
@@ -35,27 +37,65 @@ public class EstoqueController {
 
     @GetMapping("/{id}")
     public Estoque ler(@PathVariable(value = "id") Integer id){
-        return estoqueRepository.findById(id).get();
+        Estoque responseEstoque = estoqueRepository.findById(id).get();
+
+        if(responseEstoque != null){
+            responseEstoque.add(
+                linkTo(
+                    methodOn(EstoqueController.class).listar(new Estoque())
+                )
+                .withRel("collection")
+            );
+        }
+
+        return responseEstoque;
     }
 
     @GetMapping
     public List<Estoque> listar(Estoque requestEstoque){
 
-        return estoqueRepository.findAll(
+        List<Estoque> responseEstoque = estoqueRepository.findAll(
             Example.of(requestEstoque, ExampleMatcher
                                 .matching()
                                 .withIgnoreCase()
                                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
+
+        if(!responseEstoque.isEmpty()){
+            for(Estoque estoque : responseEstoque){
+                estoque.add(
+                    linkTo(
+                        methodOn(EstoqueController.class).ler(estoque.getId())
+                    )
+                    .withSelfRel()
+                );
+            }
+        }
+
+        return responseEstoque;
     }
 
     @GetMapping(params = {"pagina", "limite"})
     public Page<Estoque> listar(Estoque requestEstoque, @RequestParam(required = false, defaultValue = "0") Integer pagina, @RequestParam(required = false, defaultValue = "10") Integer limite){
 
-        return estoqueRepository.findAll(
+        Page<Estoque> responseEstoque = estoqueRepository.findAll(
             Example.of(requestEstoque, ExampleMatcher
                                 .matching()
                                 .withIgnoreCase()
-                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)), PageRequest.of(pagina, limite));
+                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)),
+            PageRequest.of(pagina, limite));
+
+        if(!responseEstoque.isEmpty()){
+            for(Estoque estoque : responseEstoque){
+                estoque.add(
+                    linkTo(
+                        methodOn(EstoqueController.class).ler(estoque.getId())
+                    )
+                    .withSelfRel()
+                );
+            }
+        }
+
+        return responseEstoque;
     }
 
     @DeleteMapping("/{id}")
