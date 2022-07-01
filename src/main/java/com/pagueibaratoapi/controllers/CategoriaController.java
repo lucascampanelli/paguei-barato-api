@@ -1,5 +1,8 @@
 package com.pagueibaratoapi.controllers;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+
 import java.util.List;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,7 +40,15 @@ public class CategoriaController {
 
     @GetMapping
     public List<Categoria> listar() {
-        return categoriaRepository.findAll();
+        List<Categoria> responseCategoria = categoriaRepository.findAll();
+
+        if(!responseCategoria.isEmpty()) {
+            for(Categoria categoria : responseCategoria) {
+                categoria.add(linkTo(methodOn(CategoriaController.class).ler(categoria.getId())).withSelfRel());
+            }
+        }
+
+        return responseCategoria;
     }
 
     @PatchMapping("/{id}")
