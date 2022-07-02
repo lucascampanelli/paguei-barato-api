@@ -33,7 +33,16 @@ public class EstoqueController {
 
     @PostMapping
     public Estoque criar(@RequestBody Estoque requestEstoque) {
-        return estoqueRepository.save(requestEstoque);
+        Estoque responseEstoque = estoqueRepository.save(requestEstoque);
+
+        responseEstoque.add(
+            linkTo(
+                methodOn(EstoqueController.class).ler(responseEstoque.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseEstoque;
     }
 
     @GetMapping("/{id}")
@@ -137,8 +146,12 @@ public class EstoqueController {
     }
 
     @DeleteMapping("/{id}")
-    public void remover(@PathVariable int id){
+    public Object remover(@PathVariable int id){
         estoqueRepository.deleteById(id);
+
+        return linkTo(
+                    methodOn(EstoqueController.class).listar(new Estoque())
+                )
+                .withRel("collection");
     }
-    
 }

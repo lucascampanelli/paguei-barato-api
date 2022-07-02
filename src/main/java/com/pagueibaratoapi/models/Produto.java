@@ -6,6 +6,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+import org.springframework.hateoas.RepresentationModel;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.Id;
@@ -17,7 +19,7 @@ import javax.persistence.GenerationType;
 
 @Entity
 @Table(name = "produto")
-public class Produto {
+public class Produto extends RepresentationModel<Produto> {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -17,7 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.pagueibaratoapi.models.Produto;
+import com.pagueibaratoapi.models.ResponsePagina;
 import com.pagueibaratoapi.repository.ProdutoRepository;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/produto")
@@ -56,32 +59,116 @@ public class ProdutoController {
                 produtoTratado.setNome(produtoTratado.getNome() + " " + nomeProduto[i]);
         }
 
-        return produtoRepository.save(produtoTratado);
+        Produto responseProduto = produtoRepository.save(produtoTratado);
+
+        responseProduto.add(
+            linkTo(
+                methodOn(ProdutoController.class).ler(responseProduto.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseProduto;
     }
 
     @GetMapping("/{id}")
     public Produto ler(@PathVariable(value = "id") Integer id){
-        return produtoRepository.findById(id).get();
+        Produto responseProduto = produtoRepository.findById(id).get();
+        
+        if(responseProduto != null){
+            responseProduto.add(
+                linkTo(
+                    methodOn(ProdutoController.class).listar(new Produto())
+                )
+                .withRel("collection")
+            );
+        }
+        
+        return responseProduto;
     }
 
     @GetMapping
     public List<Produto> listar(Produto requestProduto){
 
-        return produtoRepository.findAll(
+        List<Produto> responseProduto = produtoRepository.findAll(
             Example.of(requestProduto, ExampleMatcher
                                 .matching()
                                 .withIgnoreCase()
                                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
+
+        if(responseProduto != null){
+            for(Produto produto : responseProduto){
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produto.getId())
+                    )
+                    .withSelfRel()
+                );
+            }
+        }
+
+        return responseProduto;
     }
 
     @GetMapping(params = {"pagina", "limite"})
-    public Page<Produto> listar(Produto requestProduto, @RequestParam(required = false, defaultValue = "0") Integer pagina, @RequestParam(required = false, defaultValue = "10") Integer limite){
+    public ResponsePagina listar(Produto requestProduto, @RequestParam(required = false, defaultValue = "0") Integer pagina, @RequestParam(required = false, defaultValue = "10") Integer limite){
 
-        return produtoRepository.findAll(
+        Page<Produto> paginaProduto = produtoRepository.findAll(
             Example.of(requestProduto, ExampleMatcher
                                 .matching()
                                 .withIgnoreCase()
-                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)), PageRequest.of(pagina, limite));
+                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)), 
+            PageRequest.of(pagina, limite));
+
+        ResponsePagina responseProduto = new ResponsePagina();
+        responseEstoque.setContagem((limite * pagina) - (pagina - 1));
+        responseEstoque.setItensPorPagina(limite);
+        responseEstoque.setPaginaAtual(pagina);
+        responseEstoque.setTotalPaginas(paginaEstoque.getTotalPages());
+        responseEstoque.setTotalRegistros(paginaEstoque.getTotalElements());
+        responseEstoque.setItens(paginaEstoque.getContent());
+        responseEstoque.add(
+            linkTo(
+                methodOn(ProdutoController.class).listar(requestProduto, 0, limite)
+            )
+            .withRel("first")
+        );
+
+        if(!paginaProduto.isEmpty()){
+            if(pagina > 0){
+                responseProduto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).listar(requestProduto, pagina-1, limite)
+                    )
+                    .withRel("previous")
+                );
+            }
+            if(pagina < paginaProduto.getTotalPages()-1){
+                responseProduto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).listar(requestProduto, pagina+1, limite)
+                    )
+                    .withRel("next")
+                );
+            }
+            responseProduto.add(
+                linkTo(
+                    methodOn(ProdutoController.class).listar(requestProduto, paginaProduto.getTotalPages()-1, limite)
+                )
+                .withRel("last")
+            );
+
+            for(Produto produto : paginaProduto){
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produto.getId())
+                    )
+                    .withSelfRel()
+                );
+            }
+        }
+
+        return responseProduto;
     }
 
     @PatchMapping("/{id}")
@@ -107,18 +194,42 @@ public class ProdutoController {
         if(requestProduto.getCategoriaId() != null)
             produtoAtual.setCategoriaId(requestProduto.getCategoriaId());
 
-        return produtoRepository.save(produtoAtual);
+        Produto responseProduto = produtoRepository.save(produtoAtual);
+
+        responseProduto.add(
+            linkTo(
+                methodOn(ProdutoController.class).ler(responseProduto.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseProduto;
     }
 
     @PutMapping("/{id}")
     public Produto atualizar(@PathVariable int id, @RequestBody Produto requestProduto){
         requestProduto.setId(id);
-        return produtoRepository.save(requestProduto);
+
+        Produto responseProduto = produtoRepository.save(requestProduto);
+
+        responseProduto.add(
+            linkTo(
+                methodOn(ProdutoController.class).ler(responseProduto.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseProduto;
     }
 
     @DeleteMapping("/{id}")
-    public void deletar(@PathVariable int id){
+    public Object deletar(@PathVariable int id){
         produtoRepository.deleteById(id);
+
+        return linkTo(
+                    methodOn(ProdutoController.class).listar(new Produto())
+                )
+                .withRel("collection");
     }
 
 }
