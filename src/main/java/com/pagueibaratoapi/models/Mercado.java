@@ -12,11 +12,13 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.springframework.hateoas.RepresentationModel;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "mercado")
-public class Mercado {
+public class Mercado extends RepresentationModel<Mercado> {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

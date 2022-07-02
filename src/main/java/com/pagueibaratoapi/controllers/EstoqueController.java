@@ -20,6 +20,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import com.pagueibaratoapi.models.Estoque;
 import com.pagueibaratoapi.models.ResponsePagina;
 import com.pagueibaratoapi.repository.EstoqueRepository;
+import com.pagueibaratoapi.utils.PaginaUtils;
 
 @RestController
 @RequestMapping("/estoque")
@@ -94,13 +95,8 @@ public class EstoqueController {
                                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)),
             PageRequest.of(pagina, limite));
 
-        ResponsePagina responseEstoque = new ResponsePagina();
-        responseEstoque.setContagem((limite * pagina) - (pagina - 1));
-        responseEstoque.setItensPorPagina(limite);
-        responseEstoque.setPaginaAtual(pagina);
-        responseEstoque.setTotalPaginas(paginaEstoque.getTotalPages());
-        responseEstoque.setTotalRegistros(paginaEstoque.getTotalElements());
-        responseEstoque.setItens(paginaEstoque.getContent());
+        ResponsePagina responseEstoque = PaginaUtils.criarResposta(pagina, limite, paginaEstoque);
+        
         responseEstoque.add(
             linkTo(
                 methodOn(EstoqueController.class).listar(requestEstoque, 0, limite)
@@ -143,6 +139,7 @@ public class EstoqueController {
         }
 
         return responseEstoque;
+        
     }
 
     @DeleteMapping("/{id}")
