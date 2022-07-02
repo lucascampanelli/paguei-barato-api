@@ -12,12 +12,13 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.hateoas.RepresentationModel;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "sugestao")
-public class Sugestao {
+public class Sugestao extends RepresentationModel<Sugestao> {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
