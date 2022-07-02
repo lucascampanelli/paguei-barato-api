@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import com.pagueibaratoapi.models.Ramo;
 import com.pagueibaratoapi.repository.RamoRepository;
@@ -29,22 +31,56 @@ public class RamoController {
 
     @PostMapping
     public Ramo criar(@RequestBody Ramo requestRamo){
-        return ramoRepository.save(requestRamo);
+        Ramo responseRamo = ramoRepository.save(requestRamo);
+
+        responseRamo.add(
+            linkTo(
+                methodOn(RamoController.class).ler(responseRamo.getId())
+            )
+            .withSelfRel()
+        );
+        
+        return responseRamo;
     }
 
     @GetMapping("/{id}")
     public Ramo ler(@PathVariable(value = "id") Integer id){
-        return ramoRepository.findById(id).get();
+        Ramo responseRamo = ramoRepository.findById(id).get();
+
+        responseRamo.add(
+            linkTo(
+                methodOn(RamoController.class).listar(new Ramo())
+            )
+            .withRel("collection")
+        );
+
+        return responseRamo;
     }
 
     @GetMapping
     public List<Ramo> listar(Ramo requestRamo){
+        List<Ramo> responseRamo = ramoRepository.findAll(
+                                                    Example.of(requestRamo, ExampleMatcher
+                                                                                .matching()
+                                                                                .withIgnoreCase()
+                                                                                .withStringMatcher(
+                                                                                    ExampleMatcher.StringMatcher.CONTAINING
+                                                                                )
+                                                            )
+                                                        );
 
-        return ramoRepository.findAll(
-            Example.of(requestRamo, ExampleMatcher
-                                .matching()
-                                .withIgnoreCase()
-                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
+        if(!responseRamo.isEmpty()){
+            for(Ramo ramo : responseRamo){
+                ramo.add(
+                    linkTo(
+                        methodOn(RamoController.class).ler(ramo.getId())
+                    )
+                    .withSelfRel()
+                );
+            }
+        }
+
+        return responseRamo;
 
     }
 
@@ -58,17 +94,41 @@ public class RamoController {
         if(requestRamo.getDescricao() != null)
             ramoAtual.setDescricao(requestRamo.getDescricao());
 
-        return ramoRepository.save(ramoAtual);
+        Ramo responseRamo = ramoRepository.save(ramoAtual);
+
+        responseRamo.add(
+            linkTo(
+                methodOn(RamoController.class).ler(responseRamo.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseRamo;
     }
 
     @PutMapping("/{id}")
     public Ramo atualizar(@PathVariable(value = "id") Integer id, @RequestBody Ramo requestRamo){
         requestRamo.setId(id);
-        return ramoRepository.save(requestRamo);
+
+        Ramo responseRamo = ramoRepository.save(requestRamo);
+
+        responseRamo.add(
+            linkTo(
+                methodOn(RamoController.class).ler(responseRamo.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseRamo;
     }
 
     @DeleteMapping("/{id}")
-    public void deletar(@PathVariable int id){
+    public Object deletar(@PathVariable int id){
         ramoRepository.deleteById(id);
+        
+        return linkTo(
+                    methodOn(RamoController.class).listar(new Ramo())
+                )
+                .withRel("collection"); 
     }
 }
