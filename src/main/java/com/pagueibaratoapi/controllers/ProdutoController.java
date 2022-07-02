@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pagueibaratoapi.models.Produto;
 import com.pagueibaratoapi.models.ResponsePagina;
 import com.pagueibaratoapi.repository.ProdutoRepository;
+import com.pagueibaratoapi.utils.PaginaUtils;
+
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
@@ -120,14 +122,9 @@ public class ProdutoController {
                                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)), 
             PageRequest.of(pagina, limite));
 
-        ResponsePagina responseProduto = new ResponsePagina();
-        responseEstoque.setContagem((limite * pagina) - (pagina - 1));
-        responseEstoque.setItensPorPagina(limite);
-        responseEstoque.setPaginaAtual(pagina);
-        responseEstoque.setTotalPaginas(paginaEstoque.getTotalPages());
-        responseEstoque.setTotalRegistros(paginaEstoque.getTotalElements());
-        responseEstoque.setItens(paginaEstoque.getContent());
-        responseEstoque.add(
+        ResponsePagina responseProduto = PaginaUtils.criarResposta(pagina, limite, paginaProduto);
+
+        responseProduto.add(
             linkTo(
                 methodOn(ProdutoController.class).listar(requestProduto, 0, limite)
             )
