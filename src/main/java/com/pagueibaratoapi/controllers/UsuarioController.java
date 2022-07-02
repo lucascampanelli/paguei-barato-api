@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import com.pagueibaratoapi.models.Usuario;
 import com.pagueibaratoapi.repository.UsuarioRepository;
@@ -37,17 +39,49 @@ public class UsuarioController {
 
         requestUsuario.setSenha(Senha.encriptar(requestUsuario.getSenha()));
 
-        return usuarioRepository.save(requestUsuario);
+        Usuario responseUsuario = usuarioRepository.save(requestUsuario);
+
+        responseUsuario.add(
+            linkTo(
+                methodOn(UsuarioController.class).ler(responseUsuario.getId())
+            ).withSelfRel()
+        );
+
+        return responseUsuario;
     }
 
     @GetMapping("/{id}")
     public Usuario ler(@PathVariable(value = "id") Integer id){
-        return usuarioRepository.findById(id).get();
+        Usuario responseUsuario = usuarioRepository.findById(id).get();
+
+        if(responseUsuario != null){
+            responseUsuario.add(
+                linkTo(
+                    methodOn(UsuarioController.class).listar()
+                )
+                .withRel("collection")
+            );
+        }
+
+        return responseUsuario;
     }
 
     @GetMapping
     public List<Usuario> listar(){
-        return usuarioRepository.findAll();
+        List<Usuario> responseUsuario = usuarioRepository.findAll();
+
+        if(!responseUsuario.isEmpty()){
+            for(Usuario usuario : responseUsuario){
+                usuario.add(
+                    linkTo(
+                        methodOn(UsuarioController.class).ler(usuario.getId())
+                    )
+                    .withSelfRel()
+                );
+            }
+        }
+
+        return responseUsuario;
     }
 
     @PatchMapping("/{id}")
@@ -59,7 +93,16 @@ public class UsuarioController {
                 throw new IllegalArgumentException("O e-mail informado é inválido");
         }
         
-        return usuarioRepository.save(EditaRecurso.editarUsuario(usuarioAtual, requestUsuario));
+        Usuario responseUsuario = usuarioRepository.save(EditaRecurso.editarUsuario(usuarioAtual, requestUsuario));
+
+        responseUsuario.add(
+            linkTo(
+                methodOn(UsuarioController.class).ler(responseUsuario.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseUsuario;
     }
 
     @PutMapping("/{id}")
@@ -74,11 +117,20 @@ public class UsuarioController {
 
         requestUsuario.setSenha(Senha.encriptar(requestUsuario.getSenha()));
 
-        return usuarioRepository.save(requestUsuario);
+        Usuario responseUsuario = usuarioRepository.save(requestUsuario);
+
+        responseUsuario.add(
+            linkTo(
+                methodOn(UsuarioController.class).ler(responseUsuario.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseUsuario;
     }
 
     @DeleteMapping("/{id}")
-    public void remover(@PathVariable int id){
+    public Object remover(@PathVariable int id){
         Usuario usuarioDeletado = usuarioRepository.findById(id).get();
 
         usuarioDeletado.setId(id);
@@ -94,5 +146,9 @@ public class UsuarioController {
         usuarioDeletado.setCep("00000-000");
 
         usuarioRepository.save(usuarioDeletado);
+
+        return linkTo(
+                    methodOn(UsuarioController.class).listar()
+                ).withRel("collection");
     }
 }

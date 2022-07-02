@@ -79,11 +79,11 @@ public class SugestaoController {
                                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
 
         if(!responseSugestao.isEmpty()){
-            for(Sugestao item : responseSugestao) {
-                item.setPreco(item.getPreco() / 100);
-                item.add(
+            for(Sugestao sugestao : responseSugestao) {
+                sugestao.setPreco(sugestao.getPreco() / 100);
+                sugestao.add(
                     linkTo(
-                        methodOn(SugestaoController.class).ler(item.getId())
+                        methodOn(SugestaoController.class).ler(sugestao.getId())
                     )
                     .withSelfRel()
                 );
