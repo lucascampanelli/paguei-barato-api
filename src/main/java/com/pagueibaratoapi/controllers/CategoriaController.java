@@ -30,12 +30,32 @@ public class CategoriaController {
 
     @PostMapping
     public Categoria criar(@RequestBody Categoria requestCategoria) {
-        return categoriaRepository.save(requestCategoria);
+        Categoria responseCategoria = categoriaRepository.save(requestCategoria);;
+
+        responseCategoria.add(
+            linkTo(
+                methodOn(CategoriaController.class).ler(responseCategoria.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseCategoria;
     }
 
     @GetMapping("/{id}")
     public Categoria ler(@PathVariable(value = "id") Integer id){
-        return categoriaRepository.findById(id).get();
+        Categoria responseCategoria = categoriaRepository.findById(id).get();
+
+        if(responseCategoria != null){
+            responseCategoria.add(
+                linkTo(
+                    methodOn(CategoriaController.class).listar()
+                )
+                .withRel("collection")
+            );
+        }
+
+        return responseCategoria;
     }
 
     @GetMapping
@@ -44,7 +64,12 @@ public class CategoriaController {
 
         if(!responseCategoria.isEmpty()) {
             for(Categoria categoria : responseCategoria) {
-                categoria.add(linkTo(methodOn(CategoriaController.class).ler(categoria.getId())).withSelfRel());
+                categoria.add(
+                    linkTo(
+                        methodOn(CategoriaController.class).ler(categoria.getId())
+                    )
+                    .withSelfRel()
+                );
             }
         }
 
@@ -61,17 +86,41 @@ public class CategoriaController {
         if(requestCategoria.getDescricao() != null)
             categoriaAtual.setDescricao(requestCategoria.getDescricao());
 
-        return categoriaRepository.save(categoriaAtual);
+        Categoria responseCategoria = categoriaRepository.save(categoriaAtual);
+
+        responseCategoria.add(
+            linkTo(
+                methodOn(CategoriaController.class).ler(responseCategoria.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseCategoria;
     }
 
     @PutMapping("/{id}")
-    public void atualizar(@PathVariable int id, @RequestBody Categoria requestCategoria){
+    public Categoria atualizar(@PathVariable int id, @RequestBody Categoria requestCategoria){
         requestCategoria.setId(id);
-        categoriaRepository.save(requestCategoria);
+
+        Categoria responseCategoria = categoriaRepository.save(requestCategoria);
+
+        responseCategoria.add(
+            linkTo(
+                methodOn(CategoriaController.class).ler(responseCategoria.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseCategoria;
     }
 
     @DeleteMapping("/{id}")
-    public void remover(@PathVariable int id){
+    public Object remover(@PathVariable int id){
         categoriaRepository.deleteById(id);
+
+        return linkTo(
+                    methodOn(CategoriaController.class).listar()
+                )
+                .withRel("collection");
     }
 }
