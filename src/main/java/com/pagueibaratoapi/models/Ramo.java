@@ -9,11 +9,13 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.springframework.hateoas.RepresentationModel;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "ramo")
-public class Ramo {
+public class Ramo extends RepresentationModel<Ramo> {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
