@@ -18,6 +18,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import com.pagueibaratoapi.models.Estoque;
+import com.pagueibaratoapi.models.ResponsePagina;
 import com.pagueibaratoapi.repository.EstoqueRepository;
 
 @RestController
@@ -75,17 +76,54 @@ public class EstoqueController {
     }
 
     @GetMapping(params = {"pagina", "limite"})
-    public Page<Estoque> listar(Estoque requestEstoque, @RequestParam(required = false, defaultValue = "0") Integer pagina, @RequestParam(required = false, defaultValue = "10") Integer limite){
+    public ResponsePagina listar(Estoque requestEstoque, @RequestParam(required = false, defaultValue = "0") Integer pagina, @RequestParam(required = false, defaultValue = "10") Integer limite){
 
-        Page<Estoque> responseEstoque = estoqueRepository.findAll(
+        Page<Estoque> paginaEstoque = estoqueRepository.findAll(
             Example.of(requestEstoque, ExampleMatcher
                                 .matching()
                                 .withIgnoreCase()
                                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)),
             PageRequest.of(pagina, limite));
 
-        if(!responseEstoque.isEmpty()){
-            for(Estoque estoque : responseEstoque){
+        ResponsePagina responseEstoque = new ResponsePagina();
+        responseEstoque.setContagem((limite * pagina) - (pagina - 1));
+        responseEstoque.setItensPorPagina(limite);
+        responseEstoque.setPaginaAtual(pagina);
+        responseEstoque.setTotalPaginas(paginaEstoque.getTotalPages());
+        responseEstoque.setTotalRegistros(paginaEstoque.getTotalElements());
+        responseEstoque.setItens(paginaEstoque.getContent());
+        responseEstoque.add(
+            linkTo(
+                methodOn(EstoqueController.class).listar(requestEstoque, 0, limite)
+            )
+            .withRel("first")
+        );
+
+        if(!paginaEstoque.isEmpty()){
+            if(pagina > 0){
+                responseEstoque.add(
+                    linkTo(
+                        methodOn(EstoqueController.class).listar(requestEstoque, pagina-1, limite)
+                    )
+                    .withRel("previous")
+                );
+            }
+            if(pagina < paginaEstoque.getTotalPages()-1){
+                responseEstoque.add(
+                    linkTo(
+                        methodOn(EstoqueController.class).listar(requestEstoque, pagina+1, limite)
+                    )
+                    .withRel("next")
+                );
+            }
+            responseEstoque.add(
+                linkTo(
+                    methodOn(EstoqueController.class).listar(requestEstoque, paginaEstoque.getTotalPages()-1, limite)
+                )
+                .withRel("last")
+            );
+
+            for(Estoque estoque : paginaEstoque){
                 estoque.add(
                     linkTo(
                         methodOn(EstoqueController.class).ler(estoque.getId())
