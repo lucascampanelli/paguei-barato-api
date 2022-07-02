@@ -1,5 +1,8 @@
 package com.pagueibaratoapi.controllers;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+
 import java.util.List;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -17,7 +20,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pagueibaratoapi.models.Mercado;
+import com.pagueibaratoapi.models.ResponsePagina;
 import com.pagueibaratoapi.repository.MercadoRepository;
+import com.pagueibaratoapi.utils.PaginaUtils;
 
 @RestController
 @RequestMapping("/mercado")
@@ -31,32 +36,112 @@ public class MercadoController {
 
     @PostMapping
     public Mercado criar(@RequestBody Mercado requestMercado){
-        return mercadoRepository.save(requestMercado);
+        Mercado responseMercado = mercadoRepository.save(requestMercado);
+
+        responseMercado.add(
+            linkTo(
+                methodOn(MercadoController.class).ler(responseMercado.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseMercado;
     }
 
     @GetMapping("/{id}")
     public Mercado ler(@PathVariable(value = "id") Integer id){
-        return mercadoRepository.findById(id).get();
+        Mercado responseMercado = mercadoRepository.findById(id).get();
+
+        if(responseMercado != null){
+            responseMercado.add(
+                linkTo(
+                    methodOn(MercadoController.class).listar(new Mercado())
+                )
+                .withRel("collection")
+            );
+        }
+
+        return responseMercado;
     }
 
     @GetMapping
     public List<Mercado> listar(Mercado requestMercado){
-
-        return mercadoRepository.findAll(
-            Example.of(requestMercado, ExampleMatcher
-                                .matching()
-                                .withIgnoreCase()
-                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
+        List<Mercado> responseMercado = mercadoRepository.findAll(
+                                            Example.of(requestMercado, ExampleMatcher
+                                                                .matching()
+                                                                .withIgnoreCase()
+                                                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
+        
+        if(!responseMercado.isEmpty()){
+            for(Mercado mercado : responseMercado){
+                mercado.add(
+                    linkTo(
+                        methodOn(MercadoController.class).ler(mercado.getId())
+                    )
+                    .withSelfRel()
+                );
+            }
+        }
+        
+        return responseMercado;
     }
 
     @GetMapping(params = {"pagina", "limite"})
-    public Page<Mercado> listar(Mercado requestMercado, @RequestParam(required = false, defaultValue = "0") Integer pagina, @RequestParam(required = false, defaultValue = "10") Integer limite){
+    public ResponsePagina listar(Mercado requestMercado, @RequestParam(required = false, defaultValue = "0") Integer pagina, @RequestParam(required = false, defaultValue = "10") Integer limite){
 
-        return mercadoRepository.findAll(
-            Example.of(requestMercado, ExampleMatcher
-                                .matching()
-                                .withIgnoreCase()
-                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)), PageRequest.of(pagina, limite));
+        Page<Mercado> paginaMercado = mercadoRepository.findAll(
+                                                            Example.of(requestMercado, ExampleMatcher
+                                                                                .matching()
+                                                                                .withIgnoreCase()
+                                                                                .withStringMatcher(
+                                                                                    ExampleMatcher.StringMatcher.CONTAINING)), 
+                                                                                    PageRequest.of(pagina, limite));
+
+        
+        ResponsePagina responseMercado = PaginaUtils.criarResposta(pagina, limite, paginaMercado);
+
+        responseMercado.add(
+            linkTo(
+                methodOn(MercadoController.class).listar(requestMercado, 0, limite)
+            )
+            .withRel("first")
+        );
+
+        if(!paginaMercado.isEmpty()){
+            if(pagina > 0){
+                responseMercado.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listar(requestMercado, pagina-1, limite)
+                    )
+                    .withRel("previous")
+                );
+            }
+            if(pagina < paginaMercado.getTotalPages()-1){
+                responseMercado.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listar(requestMercado, pagina+1, limite)
+                    )
+                    .withRel("next")
+                );
+            }
+            responseMercado.add(
+                linkTo(
+                    methodOn(MercadoController.class).listar(requestMercado, paginaMercado.getTotalPages()-1, limite)
+                )
+                .withRel("last")
+            );
+
+            for(Mercado mercado : paginaMercado){
+                mercado.add(
+                    linkTo(
+                        methodOn(MercadoController.class).ler(mercado.getId())
+                    )
+                    .withSelfRel()
+                );
+            }
+        }
+        
+        return responseMercado;
     }
 
     @PatchMapping("/{id}")
@@ -94,17 +179,41 @@ public class MercadoController {
         if(requestMercado.getCep() != null)
             mercadoAtual.setCep(requestMercado.getCep());
 
-        return mercadoRepository.save(mercadoAtual);
+        Mercado responseMercado = mercadoRepository.save(mercadoAtual);
+        
+        responseMercado.add(
+            linkTo(
+                methodOn(MercadoController.class).ler(responseMercado.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseMercado;
     }
 
     @PutMapping("/{id}")
-    public void atualizar(@PathVariable int id, @RequestBody Mercado requestMercado){
+    public Mercado atualizar(@PathVariable int id, @RequestBody Mercado requestMercado){
         requestMercado.setId(id);
-        mercadoRepository.save(requestMercado);
+
+        Mercado responseMercado = mercadoRepository.save(requestMercado);
+        
+        responseMercado.add(
+            linkTo(
+                methodOn(MercadoController.class).ler(responseMercado.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseMercado;
     }
 
     @DeleteMapping("/{id}")
-    public void remover(@PathVariable int id){
+    public Object remover(@PathVariable int id){
         mercadoRepository.deleteById(id);
+
+        return linkTo(
+                            methodOn(MercadoController.class).listar(new Mercado())
+                        )
+                        .withRel("collection");
     }
 }
