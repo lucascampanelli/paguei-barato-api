@@ -1,6 +1,6 @@
 package com.pagueibaratoapi.utils;
 
-import com.pagueibaratoapi.models.Usuario;
+import com.pagueibaratoapi.models.requests.Usuario;
 
 public class EditaRecurso {
     

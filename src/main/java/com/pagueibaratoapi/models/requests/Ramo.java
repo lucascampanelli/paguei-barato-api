@@ -1,4 +1,4 @@
-package com.pagueibaratoapi.models;
+package com.pagueibaratoapi.models.requests;
 
 import java.util.List;
 
@@ -9,13 +9,11 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import org.springframework.hateoas.RepresentationModel;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-@Table(name = "categoria")
-public class Categoria extends RepresentationModel<Categoria> {
+@Table(name = "ramo")
+public class Ramo {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,9 +21,9 @@ public class Categoria extends RepresentationModel<Categoria> {
     private String nome;
     private String descricao;
 
-    @OneToMany(mappedBy = "categoria", orphanRemoval = true)
+    @OneToMany(mappedBy = "ramo", orphanRemoval = true)
     @JsonIgnore
-    private List<Produto> produtos;
+    private List<Mercado> mercados;
 
     public Integer getId() {
         return id;

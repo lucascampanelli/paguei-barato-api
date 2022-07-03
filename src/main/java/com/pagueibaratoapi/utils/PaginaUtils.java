@@ -2,7 +2,7 @@ package com.pagueibaratoapi.utils;
 
 import org.springframework.data.domain.Page;
 
-import com.pagueibaratoapi.models.ResponsePagina;
+import com.pagueibaratoapi.models.responses.ResponsePagina;
 
 /**
  * Classe utilitária para paginação de dados.

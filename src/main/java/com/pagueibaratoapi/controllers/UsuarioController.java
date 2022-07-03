@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pagueibaratoapi.models.Usuario;
+import com.pagueibaratoapi.models.requests.Usuario;
 import com.pagueibaratoapi.repository.UsuarioRepository;
 import com.pagueibaratoapi.utils.EditaRecurso;
 import com.pagueibaratoapi.utils.Senha;

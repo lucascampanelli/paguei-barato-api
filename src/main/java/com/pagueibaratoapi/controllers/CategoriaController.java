@@ -3,6 +3,7 @@ package com.pagueibaratoapi.controllers;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,7 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pagueibaratoapi.models.Categoria;
+import com.pagueibaratoapi.models.requests.Categoria;
+import com.pagueibaratoapi.models.responses.ResponseCategoria;
 import com.pagueibaratoapi.repository.CategoriaRepository;
 
 @RestController
@@ -29,8 +31,8 @@ public class CategoriaController {
     }
 
     @PostMapping
-    public Categoria criar(@RequestBody Categoria requestCategoria) {
-        Categoria responseCategoria = categoriaRepository.save(requestCategoria);;
+    public ResponseCategoria criar(@RequestBody Categoria requestCategoria) {
+        ResponseCategoria responseCategoria = new ResponseCategoria(categoriaRepository.save(requestCategoria));
 
         responseCategoria.add(
             linkTo(
@@ -43,8 +45,8 @@ public class CategoriaController {
     }
 
     @GetMapping("/{id}")
-    public Categoria ler(@PathVariable(value = "id") Integer id){
-        Categoria responseCategoria = categoriaRepository.findById(id).get();
+    public ResponseCategoria ler(@PathVariable(value = "id") Integer id){
+        ResponseCategoria responseCategoria = new ResponseCategoria(categoriaRepository.findById(id).get());
 
         if(responseCategoria != null){
             responseCategoria.add(
@@ -59,11 +61,18 @@ public class CategoriaController {
     }
 
     @GetMapping
-    public List<Categoria> listar() {
-        List<Categoria> responseCategoria = categoriaRepository.findAll();
+    public List<ResponseCategoria> listar() {
+        List<Categoria> categorias = categoriaRepository.findAll();
+        List<ResponseCategoria> responseCategoria = new ArrayList<ResponseCategoria>();
+
+        for(Categoria categoria : categorias){
+            responseCategoria.add(
+                new ResponseCategoria(categoria)
+            );
+        }
 
         if(!responseCategoria.isEmpty()) {
-            for(Categoria categoria : responseCategoria) {
+            for(ResponseCategoria categoria : responseCategoria) {
                 categoria.add(
                     linkTo(
                         methodOn(CategoriaController.class).ler(categoria.getId())
@@ -77,7 +86,7 @@ public class CategoriaController {
     }
 
     @PatchMapping("/{id}")
-    public Categoria editar(@PathVariable int id, @RequestBody Categoria requestCategoria) {
+    public ResponseCategoria editar(@PathVariable int id, @RequestBody Categoria requestCategoria) {
         Categoria categoriaAtual = categoriaRepository.findById(id).get();
         
         if(requestCategoria.getNome() != null)
@@ -86,7 +95,7 @@ public class CategoriaController {
         if(requestCategoria.getDescricao() != null)
             categoriaAtual.setDescricao(requestCategoria.getDescricao());
 
-        Categoria responseCategoria = categoriaRepository.save(categoriaAtual);
+        ResponseCategoria responseCategoria = new ResponseCategoria(categoriaRepository.save(categoriaAtual));
 
         responseCategoria.add(
             linkTo(
@@ -99,10 +108,10 @@ public class CategoriaController {
     }
 
     @PutMapping("/{id}")
-    public Categoria atualizar(@PathVariable int id, @RequestBody Categoria requestCategoria){
+    public ResponseCategoria atualizar(@PathVariable int id, @RequestBody Categoria requestCategoria){
         requestCategoria.setId(id);
 
-        Categoria responseCategoria = categoriaRepository.save(requestCategoria);
+        ResponseCategoria responseCategoria = new ResponseCategoria(categoriaRepository.save(requestCategoria));
 
         responseCategoria.add(
             linkTo(

@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import com.pagueibaratoapi.data.UsuarioService;
-import com.pagueibaratoapi.models.Usuario;
+import com.pagueibaratoapi.models.requests.Usuario;
 import com.pagueibaratoapi.repository.UsuarioRepository;
 
 @Component

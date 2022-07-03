@@ -7,7 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import com.pagueibaratoapi.models.Usuario;
+import com.pagueibaratoapi.models.requests.Usuario;
 
 @Component
 public class UsuarioService implements UserDetails{

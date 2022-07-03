@@ -1,5 +1,6 @@
 package com.pagueibaratoapi.controllers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Example;
@@ -17,8 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-import com.pagueibaratoapi.models.Estoque;
-import com.pagueibaratoapi.models.ResponsePagina;
+import com.pagueibaratoapi.models.requests.Estoque;
+import com.pagueibaratoapi.models.responses.ResponseEstoque;
+import com.pagueibaratoapi.models.responses.ResponsePagina;
 import com.pagueibaratoapi.repository.EstoqueRepository;
 import com.pagueibaratoapi.utils.PaginaUtils;
 
@@ -33,8 +35,8 @@ public class EstoqueController {
     }
 
     @PostMapping
-    public Estoque criar(@RequestBody Estoque requestEstoque) {
-        Estoque responseEstoque = estoqueRepository.save(requestEstoque);
+    public ResponseEstoque criar(@RequestBody Estoque requestEstoque) {
+        ResponseEstoque responseEstoque = new ResponseEstoque(estoqueRepository.save(requestEstoque));
 
         responseEstoque.add(
             linkTo(
@@ -47,8 +49,8 @@ public class EstoqueController {
     }
 
     @GetMapping("/{id}")
-    public Estoque ler(@PathVariable(value = "id") Integer id){
-        Estoque responseEstoque = estoqueRepository.findById(id).get();
+    public ResponseEstoque ler(@PathVariable(value = "id") Integer id){
+        ResponseEstoque responseEstoque = new ResponseEstoque(estoqueRepository.findById(id).get());
 
         if(responseEstoque != null){
             responseEstoque.add(
@@ -63,16 +65,22 @@ public class EstoqueController {
     }
 
     @GetMapping
-    public List<Estoque> listar(Estoque requestEstoque){
+    public List<ResponseEstoque> listar(Estoque requestEstoque){
 
-        List<Estoque> responseEstoque = estoqueRepository.findAll(
+        List<Estoque> estoques = estoqueRepository.findAll(
             Example.of(requestEstoque, ExampleMatcher
                                 .matching()
                                 .withIgnoreCase()
                                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
 
+        List<ResponseEstoque> responseEstoque = new ArrayList<ResponseEstoque>();
+
+        for(Estoque estoque : estoques){
+            responseEstoque.add(new ResponseEstoque(estoque));
+        }
+
         if(!responseEstoque.isEmpty()){
-            for(Estoque estoque : responseEstoque){
+            for(ResponseEstoque estoque : responseEstoque){
                 estoque.add(
                     linkTo(
                         methodOn(EstoqueController.class).ler(estoque.getId())
@@ -94,6 +102,12 @@ public class EstoqueController {
                                 .withIgnoreCase()
                                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)),
             PageRequest.of(pagina, limite));
+
+        List<ResponseEstoque> estoques = new ArrayList<ResponseEstoque>();
+        
+        for(Estoque estoque : paginaEstoque.getContent()){
+            estoques.add(new ResponseEstoque(estoque));
+        }
 
         ResponsePagina responseEstoque = PaginaUtils.criarResposta(pagina, limite, paginaEstoque);
         
@@ -128,7 +142,7 @@ public class EstoqueController {
                 .withRel("last")
             );
 
-            for(Estoque estoque : paginaEstoque){
+            for(ResponseEstoque estoque : estoques){
                 estoque.add(
                     linkTo(
                         methodOn(EstoqueController.class).ler(estoque.getId())

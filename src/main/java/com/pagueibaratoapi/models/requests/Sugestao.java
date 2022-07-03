@@ -1,4 +1,4 @@
-package com.pagueibaratoapi.models;
+package com.pagueibaratoapi.models.requests;
 
 import java.util.Calendar;
 

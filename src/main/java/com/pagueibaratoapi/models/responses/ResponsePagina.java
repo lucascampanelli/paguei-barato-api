@@ -1,4 +1,4 @@
-package com.pagueibaratoapi.models;
+package com.pagueibaratoapi.models.responses;
 
 import java.util.List;
 

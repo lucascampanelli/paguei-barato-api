@@ -22,7 +22,7 @@ import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pagueibaratoapi.data.UsuarioService;
-import com.pagueibaratoapi.models.Usuario;
+import com.pagueibaratoapi.models.requests.Usuario;
 import com.pagueibaratoapi.utils.Senha;
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter{

@@ -1,4 +1,4 @@
-package com.pagueibaratoapi.models;
+package com.pagueibaratoapi.models.requests;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "estoque")
-public class Estoque extends RepresentationModel<Estoque> {
+public class Estoque {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

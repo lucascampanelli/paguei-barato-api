@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pagueibaratoapi.models.Sugestao;
+import com.pagueibaratoapi.models.requests.Sugestao;
 import com.pagueibaratoapi.repository.SugestaoRepository;
 
 @RestController

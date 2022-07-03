@@ -1,30 +1,26 @@
-package com.pagueibaratoapi.models;
+package com.pagueibaratoapi.models.requests;
 
 import java.util.List;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
-import org.springframework.hateoas.RepresentationModel;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-@Table(name = "mercado")
-public class Mercado extends RepresentationModel<Mercado> {
+@Table(name = "usuario")
+public class Usuario {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    
     private String nome;
+    private String email;
+    private String senha;
     private String logradouro;
     private Integer numero;
     private String complemento;
@@ -33,32 +29,24 @@ public class Mercado extends RepresentationModel<Mercado> {
     private String uf;
     private String cep;
 
-    @Column(name = "\"criadoPor\"")
-    private Integer criadoPor;
-
-    @Column(name = "\"ramoId\"")
-    private Integer ramoId;
-
-    @ManyToOne
+    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
     @JsonIgnore
-    @JoinColumn(name = "\"criadoPor\"", updatable = false, insertable = false)
-    private Usuario usuario;
+    private List<Produto> produtos;
 
-    @ManyToOne
+    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
     @JsonIgnore
-    @JoinColumn(name = "\"ramoId\"", updatable = false, insertable = false)
-    private Ramo ramo;
+    private List<Mercado> mercados;
 
-    @OneToMany(mappedBy = "mercado", orphanRemoval = true)
+    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
     @JsonIgnore
     private List<Estoque> estoques;
 
+    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
+    @JsonIgnore
+    private List<Sugestao> sugestoes;
+
     public Integer getId() {
         return id;
-    }
-
-    public void setCriadoPor(Integer criadoPor) {
-        this.criadoPor = criadoPor;
     }
 
     public void setId(Integer id) {
@@ -70,15 +58,23 @@ public class Mercado extends RepresentationModel<Mercado> {
     }
 
     public void setNome(String nome) {
-        this.nome = nome.trim();
+        this.nome = nome;
     }
 
-    public Integer getRamoId() {
-        return ramoId;
+    public String getEmail() {
+        return email;
     }
 
-    public void setRamoId(Integer ramoId) {
-        this.ramoId = ramoId;
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
+
+    public void setSenha(String senha) {
+        this.senha = senha;
     }
 
     public String getLogradouro() {
@@ -86,7 +82,7 @@ public class Mercado extends RepresentationModel<Mercado> {
     }
 
     public void setLogradouro(String logradouro) {
-        this.logradouro = logradouro.trim();
+        this.logradouro = logradouro;
     }
 
     public Integer getNumero() {
@@ -102,10 +98,7 @@ public class Mercado extends RepresentationModel<Mercado> {
     }
 
     public void setComplemento(String complemento) {
-        if(complemento != null)
-            this.complemento = complemento.trim();
-        else
-            this.complemento = null;
+        this.complemento = complemento;
     }
 
     public String getBairro() {
@@ -113,7 +106,7 @@ public class Mercado extends RepresentationModel<Mercado> {
     }
 
     public void setBairro(String bairro) {
-        this.bairro = bairro.trim();
+        this.bairro = bairro;
     }
 
     public String getCidade() {
@@ -121,7 +114,7 @@ public class Mercado extends RepresentationModel<Mercado> {
     }
 
     public void setCidade(String cidade) {
-        this.cidade = cidade.trim();
+        this.cidade = cidade;
     }
 
     public String getUf() {
@@ -129,7 +122,7 @@ public class Mercado extends RepresentationModel<Mercado> {
     }
 
     public void setUf(String uf) {
-        this.uf = uf.trim().toUpperCase();
+        this.uf = uf;
     }
 
     public String getCep() {
@@ -137,6 +130,39 @@ public class Mercado extends RepresentationModel<Mercado> {
     }
 
     public void setCep(String cep) {
-        this.cep = cep.trim().replaceAll("[^0-9-]", "");
+        this.cep = cep;
     }
+
+    public List<Produto> getProdutos() {
+        return produtos;
+    }
+
+    public void setProdutos(List<Produto> produtos) {
+        this.produtos = produtos;
+    }
+
+    public List<Mercado> getMercados() {
+        return mercados;
+    }
+
+    public void setMercados(List<Mercado> mercados) {
+        this.mercados = mercados;
+    }
+
+    public List<Estoque> getEstoques() {
+        return estoques;
+    }
+
+    public void setEstoques(List<Estoque> estoques) {
+        this.estoques = estoques;
+    }
+
+    public List<Sugestao> getSugestoes() {
+        return sugestoes;
+    }
+
+    public void setSugestoes(List<Sugestao> sugestoes) {
+        this.sugestoes = sugestoes;
+    }
+
 }

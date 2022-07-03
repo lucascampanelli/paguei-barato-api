@@ -1,22 +1,9 @@
-package com.pagueibaratoapi.models;
+package com.pagueibaratoapi.models.responses;
 
-import java.util.List;
+import com.pagueibaratoapi.models.requests.Usuario;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-@Entity
-@Table(name = "usuario")
-public class Usuario {
+public class ResponseUsuario {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String nome;
     private String email;
@@ -29,21 +16,19 @@ public class Usuario {
     private String uf;
     private String cep;
 
-    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
-    @JsonIgnore
-    private List<Produto> produtos;
-
-    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
-    @JsonIgnore
-    private List<Mercado> mercados;
-
-    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
-    @JsonIgnore
-    private List<Estoque> estoques;
-
-    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
-    @JsonIgnore
-    private List<Sugestao> sugestoes;
+    public ResponseUsuario(Usuario usuario) {
+        this.id = usuario.getId();
+        this.nome = usuario.getNome();
+        this.email = usuario.getEmail();
+        this.senha = usuario.getSenha();
+        this.logradouro = usuario.getLogradouro();
+        this.numero = usuario.getNumero();
+        this.complemento = usuario.getComplemento();
+        this.bairro = usuario.getBairro();
+        this.cidade = usuario.getCidade();
+        this.uf = usuario.getUf();
+        this.cep = usuario.getCep();
+    }
 
     public Integer getId() {
         return id;
@@ -131,38 +116,6 @@ public class Usuario {
 
     public void setCep(String cep) {
         this.cep = cep;
-    }
-
-    public List<Produto> getProdutos() {
-        return produtos;
-    }
-
-    public void setProdutos(List<Produto> produtos) {
-        this.produtos = produtos;
-    }
-
-    public List<Mercado> getMercados() {
-        return mercados;
-    }
-
-    public void setMercados(List<Mercado> mercados) {
-        this.mercados = mercados;
-    }
-
-    public List<Estoque> getEstoques() {
-        return estoques;
-    }
-
-    public void setEstoques(List<Estoque> estoques) {
-        this.estoques = estoques;
-    }
-
-    public List<Sugestao> getSugestoes() {
-        return sugestoes;
-    }
-
-    public void setSugestoes(List<Sugestao> sugestoes) {
-        this.sugestoes = sugestoes;
     }
 
 }

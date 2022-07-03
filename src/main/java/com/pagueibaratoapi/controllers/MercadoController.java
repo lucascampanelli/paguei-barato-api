@@ -3,6 +3,7 @@ package com.pagueibaratoapi.controllers;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -19,8 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pagueibaratoapi.models.Mercado;
-import com.pagueibaratoapi.models.ResponsePagina;
+import com.pagueibaratoapi.models.requests.Mercado;
+import com.pagueibaratoapi.models.responses.ResponseMercado;
+import com.pagueibaratoapi.models.responses.ResponsePagina;
 import com.pagueibaratoapi.repository.MercadoRepository;
 import com.pagueibaratoapi.utils.PaginaUtils;
 
@@ -35,8 +37,8 @@ public class MercadoController {
     }
 
     @PostMapping
-    public Mercado criar(@RequestBody Mercado requestMercado){
-        Mercado responseMercado = mercadoRepository.save(requestMercado);
+    public ResponseMercado criar(@RequestBody Mercado requestMercado){
+        ResponseMercado responseMercado = new ResponseMercado(mercadoRepository.save(requestMercado));
 
         responseMercado.add(
             linkTo(
@@ -49,8 +51,8 @@ public class MercadoController {
     }
 
     @GetMapping("/{id}")
-    public Mercado ler(@PathVariable(value = "id") Integer id){
-        Mercado responseMercado = mercadoRepository.findById(id).get();
+    public ResponseMercado ler(@PathVariable(value = "id") Integer id){
+        ResponseMercado responseMercado = new ResponseMercado(mercadoRepository.findById(id).get());
 
         if(responseMercado != null){
             responseMercado.add(
@@ -65,15 +67,21 @@ public class MercadoController {
     }
 
     @GetMapping
-    public List<Mercado> listar(Mercado requestMercado){
-        List<Mercado> responseMercado = mercadoRepository.findAll(
+    public List<ResponseMercado> listar(Mercado requestMercado){
+        List<Mercado> mercados = mercadoRepository.findAll(
                                             Example.of(requestMercado, ExampleMatcher
                                                                 .matching()
                                                                 .withIgnoreCase()
                                                                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
         
+        List<ResponseMercado> responseMercado = new ArrayList<ResponseMercado>();
+
+        for(Mercado mercado : mercados){
+            responseMercado.add(new ResponseMercado(mercado));
+        }
+
         if(!responseMercado.isEmpty()){
-            for(Mercado mercado : responseMercado){
+            for(ResponseMercado mercado : responseMercado){
                 mercado.add(
                     linkTo(
                         methodOn(MercadoController.class).ler(mercado.getId())
@@ -98,6 +106,12 @@ public class MercadoController {
                                                                                     PageRequest.of(pagina, limite));
 
         
+        List<ResponseMercado> mercados = new ArrayList<ResponseMercado>();
+
+        for(Mercado mercado : paginaMercado.getContent()){
+            mercados.add(new ResponseMercado(mercado));
+        }
+
         ResponsePagina responseMercado = PaginaUtils.criarResposta(pagina, limite, paginaMercado);
 
         responseMercado.add(
@@ -131,7 +145,7 @@ public class MercadoController {
                 .withRel("last")
             );
 
-            for(Mercado mercado : paginaMercado){
+            for(ResponseMercado mercado : mercados){
                 mercado.add(
                     linkTo(
                         methodOn(MercadoController.class).ler(mercado.getId())
@@ -145,7 +159,7 @@ public class MercadoController {
     }
 
     @PatchMapping("/{id}")
-    public Mercado editar(@PathVariable int id, @RequestBody Mercado requestMercado){
+    public ResponseMercado editar(@PathVariable int id, @RequestBody Mercado requestMercado){
         Mercado mercadoAtual = mercadoRepository.findById(id).get();
         
         if(requestMercado.getRamoId() != null)
@@ -179,7 +193,7 @@ public class MercadoController {
         if(requestMercado.getCep() != null)
             mercadoAtual.setCep(requestMercado.getCep());
 
-        Mercado responseMercado = mercadoRepository.save(mercadoAtual);
+        ResponseMercado responseMercado = new ResponseMercado(mercadoRepository.save(mercadoAtual));
         
         responseMercado.add(
             linkTo(
@@ -192,10 +206,10 @@ public class MercadoController {
     }
 
     @PutMapping("/{id}")
-    public Mercado atualizar(@PathVariable int id, @RequestBody Mercado requestMercado){
+    public ResponseMercado atualizar(@PathVariable int id, @RequestBody Mercado requestMercado){
         requestMercado.setId(id);
 
-        Mercado responseMercado = mercadoRepository.save(requestMercado);
+        ResponseMercado responseMercado = new ResponseMercado(mercadoRepository.save(requestMercado));
         
         responseMercado.add(
             linkTo(

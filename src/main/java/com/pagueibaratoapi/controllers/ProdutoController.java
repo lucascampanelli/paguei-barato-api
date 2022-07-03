@@ -1,5 +1,6 @@
 package com.pagueibaratoapi.controllers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Example;
@@ -16,8 +17,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.pagueibaratoapi.models.Produto;
-import com.pagueibaratoapi.models.ResponsePagina;
+
+import com.pagueibaratoapi.models.requests.Produto;
+import com.pagueibaratoapi.models.responses.ResponsePagina;
+import com.pagueibaratoapi.models.responses.ResponseProduto;
 import com.pagueibaratoapi.repository.ProdutoRepository;
 import com.pagueibaratoapi.utils.PaginaUtils;
 
@@ -35,7 +38,7 @@ public class ProdutoController {
     }
 
     @PostMapping
-    public Produto criar(@RequestBody Produto requestProduto){
+    public ResponseProduto criar(@RequestBody Produto requestProduto){
         // Criando uma nova instância do produto para tratar o nome dele e criá-lo no banco
         Produto produtoTratado = requestProduto;
 
@@ -61,7 +64,7 @@ public class ProdutoController {
                 produtoTratado.setNome(produtoTratado.getNome() + " " + nomeProduto[i]);
         }
 
-        Produto responseProduto = produtoRepository.save(produtoTratado);
+        ResponseProduto responseProduto = new ResponseProduto(produtoRepository.save(produtoTratado));
 
         responseProduto.add(
             linkTo(
@@ -74,8 +77,8 @@ public class ProdutoController {
     }
 
     @GetMapping("/{id}")
-    public Produto ler(@PathVariable(value = "id") Integer id){
-        Produto responseProduto = produtoRepository.findById(id).get();
+    public ResponseProduto ler(@PathVariable(value = "id") Integer id){
+        ResponseProduto responseProduto = new ResponseProduto(produtoRepository.findById(id).get());
         
         if(responseProduto != null){
             responseProduto.add(
@@ -90,16 +93,22 @@ public class ProdutoController {
     }
 
     @GetMapping
-    public List<Produto> listar(Produto requestProduto){
+    public List<ResponseProduto> listar(Produto requestProduto){
 
-        List<Produto> responseProduto = produtoRepository.findAll(
+        List<Produto> produtos = produtoRepository.findAll(
             Example.of(requestProduto, ExampleMatcher
                                 .matching()
                                 .withIgnoreCase()
                                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
 
+        List<ResponseProduto> responseProduto = new ArrayList<ResponseProduto>();
+
+        for(Produto produto : produtos){
+            responseProduto.add(new ResponseProduto(produto));
+        }
+
         if(responseProduto != null){
-            for(Produto produto : responseProduto){
+            for(ResponseProduto produto : responseProduto){
                 produto.add(
                     linkTo(
                         methodOn(ProdutoController.class).ler(produto.getId())
@@ -123,6 +132,12 @@ public class ProdutoController {
             PageRequest.of(pagina, limite));
 
         ResponsePagina responseProduto = PaginaUtils.criarResposta(pagina, limite, paginaProduto);
+
+        List<ResponseProduto> produtos = new ArrayList<ResponseProduto>();
+
+        for(Produto produto : paginaProduto.getContent()){
+            produtos.add(new ResponseProduto(produto));
+        }
 
         responseProduto.add(
             linkTo(
@@ -155,7 +170,7 @@ public class ProdutoController {
                 .withRel("last")
             );
 
-            for(Produto produto : paginaProduto){
+            for(ResponseProduto produto : produtos){
                 produto.add(
                     linkTo(
                         methodOn(ProdutoController.class).ler(produto.getId())
@@ -169,7 +184,7 @@ public class ProdutoController {
     }
 
     @PatchMapping("/{id}")
-    public Produto editar(@PathVariable int id, @RequestBody Produto requestProduto){
+    public ResponseProduto editar(@PathVariable int id, @RequestBody Produto requestProduto){
         Produto produtoAtual = produtoRepository.findById(id).get();
 
         if(requestProduto.getNome() != null)
@@ -191,7 +206,7 @@ public class ProdutoController {
         if(requestProduto.getCategoriaId() != null)
             produtoAtual.setCategoriaId(requestProduto.getCategoriaId());
 
-        Produto responseProduto = produtoRepository.save(produtoAtual);
+        ResponseProduto responseProduto = new ResponseProduto(produtoRepository.save(produtoAtual));
 
         responseProduto.add(
             linkTo(
@@ -204,10 +219,10 @@ public class ProdutoController {
     }
 
     @PutMapping("/{id}")
-    public Produto atualizar(@PathVariable int id, @RequestBody Produto requestProduto){
+    public ResponseProduto atualizar(@PathVariable int id, @RequestBody Produto requestProduto){
         requestProduto.setId(id);
 
-        Produto responseProduto = produtoRepository.save(requestProduto);
+        ResponseProduto responseProduto = new ResponseProduto(produtoRepository.save(requestProduto));
 
         responseProduto.add(
             linkTo(

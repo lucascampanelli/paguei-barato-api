@@ -1,4 +1,4 @@
-package com.pagueibaratoapi.models;
+package com.pagueibaratoapi.models.requests;
 
 import java.util.List;
 
@@ -19,7 +19,7 @@ import javax.persistence.GenerationType;
 
 @Entity
 @Table(name = "produto")
-public class Produto extends RepresentationModel<Produto> {
+public class Produto {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
