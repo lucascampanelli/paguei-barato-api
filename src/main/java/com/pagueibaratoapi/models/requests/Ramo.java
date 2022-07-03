@@ -1,5 +1,6 @@
 package com.pagueibaratoapi.models.requests;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -23,7 +24,7 @@ public class Ramo {
 
     @OneToMany(mappedBy = "ramo", orphanRemoval = true)
     @JsonIgnore
-    private List<Mercado> mercados;
+    private List<Mercado> mercados = new ArrayList<Mercado>();;
 
     public Integer getId() {
         return id;

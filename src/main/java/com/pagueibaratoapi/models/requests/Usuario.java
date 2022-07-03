@@ -1,5 +1,6 @@
 package com.pagueibaratoapi.models.requests;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -31,19 +32,19 @@ public class Usuario {
 
     @OneToMany(mappedBy = "usuario", orphanRemoval = true)
     @JsonIgnore
-    private List<Produto> produtos;
+    private List<Produto> produtos = new ArrayList<Produto>();;
 
     @OneToMany(mappedBy = "usuario", orphanRemoval = true)
     @JsonIgnore
-    private List<Mercado> mercados;
+    private List<Mercado> mercados = new ArrayList<Mercado>();;
 
     @OneToMany(mappedBy = "usuario", orphanRemoval = true)
     @JsonIgnore
-    private List<Estoque> estoques;
+    private List<Estoque> estoques = new ArrayList<Estoque>();;
 
     @OneToMany(mappedBy = "usuario", orphanRemoval = true)
     @JsonIgnore
-    private List<Sugestao> sugestoes;
+    private List<Sugestao> sugestoes = new ArrayList<Sugestao>();;
 
     public Integer getId() {
         return id;

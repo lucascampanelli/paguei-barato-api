@@ -1,5 +1,6 @@
 package com.pagueibaratoapi.models.requests;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -34,7 +35,7 @@ public class Produto {
 
     @OneToMany(mappedBy = "produto", orphanRemoval = true)
     @JsonIgnore
-    private List<Estoque> estoques;
+    private List<Estoque> estoques = new ArrayList<Estoque>();;
 
     @ManyToOne
     @JsonIgnore
@@ -97,6 +98,30 @@ public class Produto {
 
     public void setCategoriaId(Integer categoriaId) {
         this.categoriaId = categoriaId;
+    }
+    
+    public List<Estoque> getEstoques() {
+        return estoques;
+    }
+
+    public void setEstoques(List<Estoque> estoques) {
+        this.estoques = estoques;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+    }
+
+    public Categoria getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(Categoria categoria) {
+        this.categoria = categoria;
     }
     
 }

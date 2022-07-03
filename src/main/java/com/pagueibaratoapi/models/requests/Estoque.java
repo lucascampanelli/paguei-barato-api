@@ -1,5 +1,6 @@
 package com.pagueibaratoapi.models.requests;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -31,7 +32,7 @@ public class Estoque {
 
     @OneToMany(mappedBy = "estoque", orphanRemoval = true)
     @JsonIgnore
-    private List<Sugestao> sugestoes;
+    private List<Sugestao> sugestoes = new ArrayList<Sugestao>();;
 
     @ManyToOne
     @JoinColumn(name = "\"criadoPor\"", updatable = false, insertable = false)

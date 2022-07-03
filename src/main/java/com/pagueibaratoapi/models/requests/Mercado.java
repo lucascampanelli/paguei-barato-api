@@ -1,5 +1,6 @@
 package com.pagueibaratoapi.models.requests;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -49,7 +50,7 @@ public class Mercado {
 
     @OneToMany(mappedBy = "mercado", orphanRemoval = true)
     @JsonIgnore
-    private List<Estoque> estoques;
+    private List<Estoque> estoques = new ArrayList<Estoque>();;
 
     public Integer getId() {
         return id;
