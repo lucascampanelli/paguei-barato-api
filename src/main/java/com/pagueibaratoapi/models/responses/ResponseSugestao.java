@@ -2,9 +2,11 @@ package com.pagueibaratoapi.models.responses;
 
 import java.util.Calendar;
 
+import org.springframework.hateoas.RepresentationModel;
+
 import com.pagueibaratoapi.models.requests.Sugestao;
 
-public class ResponseSugestao {
+public class ResponseSugestao extends RepresentationModel<ResponseRamo> {
     
     private Integer id;
     private Float preco;

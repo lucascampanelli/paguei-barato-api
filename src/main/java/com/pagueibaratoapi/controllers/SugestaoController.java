@@ -1,5 +1,6 @@
 package com.pagueibaratoapi.controllers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Example;
@@ -16,9 +17,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import com.pagueibaratoapi.models.responses.ResponsePagina;
+import com.pagueibaratoapi.models.responses.ResponseSugestao;
 import com.pagueibaratoapi.models.requests.Sugestao;
 import com.pagueibaratoapi.repository.SugestaoRepository;
+import com.pagueibaratoapi.utils.PaginaUtils;
 
 @RestController
 @RequestMapping("/sugestao")
@@ -31,10 +37,17 @@ public class SugestaoController {
     }
 
     @PostMapping
-    public Sugestao criar(@RequestBody Sugestao requestSugestao) {
+    public ResponseSugestao criar(@RequestBody Sugestao requestSugestao) {
         requestSugestao.setPreco(requestSugestao.getPreco() * 100);
 
-        Sugestao responseSugestao = sugestaoRepository.save(requestSugestao);
+        ResponseSugestao responseSugestao = new ResponseSugestao(sugestaoRepository.save(requestSugestao));
+
+        responseSugestao.add(
+            linkTo(
+                methodOn(SugestaoController.class).ler(responseSugestao.getId())
+            )
+            .withSelfRel()
+        );
 
         responseSugestao.setPreco(responseSugestao.getPreco() / 100);
 
@@ -42,58 +55,156 @@ public class SugestaoController {
     }
 
     @GetMapping("/{id}")
-    public Sugestao ler(@PathVariable(value = "id") Integer id){
-        return sugestaoRepository.findById(id).get();
+    public ResponseSugestao ler(@PathVariable(value = "id") Integer id){
+        ResponseSugestao responseSugestao = new ResponseSugestao(sugestaoRepository.findById(id).get());
+
+        if(responseSugestao != null){
+            responseSugestao.setPreco(responseSugestao.getPreco() / 100);
+            responseSugestao.add(
+                linkTo(
+                    methodOn(SugestaoController.class).listar(new Sugestao())
+                )
+                .withRel("collection")
+            );
+        }
+
+        return responseSugestao;
     }
 
     @GetMapping
-    public List<Sugestao> listar(Sugestao requestSugestao) {
-        List<Sugestao> responseSugestao = sugestaoRepository.findAll(
-            Example.of(requestSugestao, ExampleMatcher
-                .matching()
-                .withIgnoreCase()
-                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
+    public List<ResponseSugestao> listar(Sugestao requestSugestao) {
 
-        for(Sugestao item : responseSugestao) {
-            item.setPreco(item.getPreco() / 100);
+        List<Sugestao> sugestoes = sugestaoRepository.findAll(
+            Example.of(requestSugestao, ExampleMatcher
+                                .matching()
+                                .withIgnoreCase()
+                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
+
+        List<ResponseSugestao> responseSugestao = new ArrayList<ResponseSugestao>();
+
+        for(Sugestao sugestao : sugestoes){
+            responseSugestao.add(new ResponseSugestao(sugestao));
+        }
+
+        if(!responseSugestao.isEmpty()){
+            for(ResponseSugestao sugestao : responseSugestao) {
+                sugestao.setPreco(sugestao.getPreco() / 100);
+                sugestao.add(
+                    linkTo(
+                        methodOn(SugestaoController.class).ler(sugestao.getId())
+                    )
+                    .withSelfRel()
+                );
+            }
         }
 
         return responseSugestao;
     }
 
     @GetMapping(params = {"pagina", "limite"})
-    public Page<Sugestao> listar(Sugestao requestSugestao, @RequestParam(required = false, defaultValue = "0") Integer pagina, @RequestParam(required = false, defaultValue = "10") Integer limite) {
-        Page<Sugestao> responseSugestao = sugestaoRepository.findAll(
+    public ResponsePagina listar(Sugestao requestSugestao, @RequestParam(required = false, defaultValue = "0") Integer pagina, @RequestParam(required = false, defaultValue = "10") Integer limite) {
+        
+        Page<Sugestao> paginaSugestao = sugestaoRepository.findAll(
             Example.of(requestSugestao, ExampleMatcher
-                .matching()
-                .withIgnoreCase()
-                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)), PageRequest.of(pagina, limite));
+                                .matching()
+                                .withIgnoreCase()
+                                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)), 
+            PageRequest.of(pagina, limite));
 
-        for(Sugestao item : responseSugestao.getContent()) {
-            item.setPreco(item.getPreco() / 100);
+        ResponsePagina responsePagina = PaginaUtils.criarResposta(pagina, limite, paginaSugestao);
+
+        List<ResponseSugestao> sugestoes = new ArrayList<ResponseSugestao>();
+
+        for(Sugestao sugestao : paginaSugestao.getContent()){
+            sugestoes.add(new ResponseSugestao(sugestao));
         }
 
-        return responseSugestao;
+        responsePagina.add(
+            linkTo(
+                methodOn(SugestaoController.class).listar(requestSugestao, 0, limite)
+            )
+            .withRel("first")
+        );
+
+        if(!paginaSugestao.isEmpty()){
+            if(pagina > 0){
+                responsePagina.add(
+                    linkTo(
+                        methodOn(SugestaoController.class).listar(requestSugestao, pagina-1, limite)
+                    )
+                    .withRel("previous")
+                );
+            }
+            if(pagina < paginaSugestao.getTotalPages()-1){
+                responsePagina.add(
+                    linkTo(
+                        methodOn(SugestaoController.class).listar(requestSugestao, pagina+1, limite)
+                    )
+                    .withRel("next")
+                );
+            }
+            responsePagina.add(
+                linkTo(
+                    methodOn(SugestaoController.class).listar(requestSugestao, paginaSugestao.getTotalPages()-1, limite)
+                )
+                .withRel("last")
+            );
+
+            for(ResponseSugestao sugestao : sugestoes){
+                sugestao.setPreco(sugestao.getPreco() / 100);
+                sugestao.add(
+                    linkTo(
+                        methodOn(SugestaoController.class).ler(sugestao.getId())
+                    )
+                    .withSelfRel()
+                );
+            }
+        }
+
+        return responsePagina;
     }
 
     @PatchMapping("/{id}")
-    public Sugestao editar(@PathVariable int id, @RequestBody Sugestao requestSugestao){
+    public ResponseSugestao editar(@PathVariable int id, @RequestBody Sugestao requestSugestao){
         Sugestao sugestaoAtual = sugestaoRepository.findById(id).get();
 
         if(requestSugestao.getPreco() != null)
             sugestaoAtual.setPreco(requestSugestao.getPreco());
 
-        return sugestaoRepository.save(sugestaoAtual);
+        ResponseSugestao responseSugestao = new ResponseSugestao(sugestaoRepository.save(sugestaoAtual));
+
+        responseSugestao.add(
+            linkTo(
+                methodOn(SugestaoController.class).ler(responseSugestao.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseSugestao;
     }
 
     @PutMapping("/{id}")
-    public Sugestao atualizar(@PathVariable int id, @RequestBody Sugestao requestSugestao){
+    public ResponseSugestao atualizar(@PathVariable int id, @RequestBody Sugestao requestSugestao){
         requestSugestao.setId(id);
-        return sugestaoRepository.save(requestSugestao);
+
+        ResponseSugestao responseSugestao = new ResponseSugestao(sugestaoRepository.save(requestSugestao));
+
+        responseSugestao.add(
+            linkTo(
+                methodOn(SugestaoController.class).ler(responseSugestao.getId())
+            )
+            .withSelfRel()
+        );
+
+        return responseSugestao;
     }
 
     @DeleteMapping("/{id}")
-    public void remover(@PathVariable int id){
+    public Object remover(@PathVariable int id){
         sugestaoRepository.deleteById(id);
+
+        return linkTo(
+                    methodOn(SugestaoController.class).listar(new Sugestao())
+                ).withRel("collection");
     }
 }

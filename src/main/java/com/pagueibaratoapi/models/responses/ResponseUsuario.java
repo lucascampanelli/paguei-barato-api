@@ -1,8 +1,10 @@
 package com.pagueibaratoapi.models.responses;
 
+import org.springframework.hateoas.RepresentationModel;
+
 import com.pagueibaratoapi.models.requests.Usuario;
 
-public class ResponseUsuario {
+public class ResponseUsuario extends RepresentationModel<ResponseRamo> {
     
     private Integer id;
     private String nome;
