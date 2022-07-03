@@ -109,7 +109,7 @@ public class EstoqueController {
             estoques.add(new ResponseEstoque(estoque));
         }
 
-        ResponsePagina responseEstoque = PaginaUtils.criarResposta(pagina, limite, paginaEstoque);
+        ResponsePagina responseEstoque = PaginaUtils.criarResposta(pagina, limite, paginaEstoque, estoques);
         
         responseEstoque.add(
             linkTo(

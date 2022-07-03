@@ -111,9 +111,9 @@ public class SugestaoController {
                                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)), 
             PageRequest.of(pagina, limite));
 
-        ResponsePagina responsePagina = PaginaUtils.criarResposta(pagina, limite, paginaSugestao);
-
         List<ResponseSugestao> sugestoes = new ArrayList<ResponseSugestao>();
+
+        ResponsePagina responsePagina = PaginaUtils.criarResposta(pagina, limite, paginaSugestao, sugestoes);
 
         for(Sugestao sugestao : paginaSugestao.getContent()){
             sugestoes.add(new ResponseSugestao(sugestao));

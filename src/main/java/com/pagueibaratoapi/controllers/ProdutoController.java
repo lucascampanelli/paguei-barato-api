@@ -131,9 +131,9 @@ public class ProdutoController {
                                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)), 
             PageRequest.of(pagina, limite));
 
-        ResponsePagina responseProduto = PaginaUtils.criarResposta(pagina, limite, paginaProduto);
-
         List<ResponseProduto> produtos = new ArrayList<ResponseProduto>();
+
+        ResponsePagina responseProduto = PaginaUtils.criarResposta(pagina, limite, paginaProduto, produtos);
 
         for(Produto produto : paginaProduto.getContent()){
             produtos.add(new ResponseProduto(produto));

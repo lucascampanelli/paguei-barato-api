@@ -112,7 +112,7 @@ public class MercadoController {
             mercados.add(new ResponseMercado(mercado));
         }
 
-        ResponsePagina responseMercado = PaginaUtils.criarResposta(pagina, limite, paginaMercado);
+        ResponsePagina responseMercado = PaginaUtils.criarResposta(pagina, limite, paginaMercado, mercados);
 
         responseMercado.add(
             linkTo(

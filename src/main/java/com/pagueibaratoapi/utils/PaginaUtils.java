@@ -1,5 +1,7 @@
 package com.pagueibaratoapi.utils;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 
 import com.pagueibaratoapi.models.responses.ResponsePagina;
@@ -16,7 +18,7 @@ public class PaginaUtils {
      * @param pagina Objeto de iteração retornado pelo JPA contendo os registros da pesquisa.
      * @return
      */
-    public static ResponsePagina criarResposta(Integer numeroPagina, Integer limite, Page<?> pagina) {
+    public static ResponsePagina criarResposta(Integer numeroPagina, Integer limite, Page<?> pagina, List<?> itens) {
 
         ResponsePagina responsePagina = new ResponsePagina();
         
@@ -25,7 +27,7 @@ public class PaginaUtils {
         responsePagina.setPaginaAtual(numeroPagina);
         responsePagina.setTotalPaginas(pagina.getTotalPages());
         responsePagina.setTotalRegistros(pagina.getTotalElements());
-        responsePagina.setItens(pagina.getContent());
+        responsePagina.setItens(itens);
 
         return responsePagina;
 
