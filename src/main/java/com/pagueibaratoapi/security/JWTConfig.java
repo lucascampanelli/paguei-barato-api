@@ -51,14 +51,15 @@ public class JWTConfig {
                     .authorizeRequests()
 
                     // Permite as seguintes requisições
-                    .antMatchers(HttpMethod.POST, "/usuario").permitAll()
+                    .antMatchers(HttpMethod.POST, "/usuario/").permitAll()
                     .antMatchers(HttpMethod.POST, "/login").permitAll()
-                    .antMatchers(HttpMethod.GET, "/categoria").permitAll()
-                    .antMatchers(HttpMethod.GET, "/estoque").permitAll()
-                    .antMatchers(HttpMethod.GET, "/mercado").permitAll()
-                    .antMatchers(HttpMethod.GET, "/produto").permitAll()
-                    .antMatchers(HttpMethod.GET, "/ramo").permitAll()
-                    .antMatchers(HttpMethod.GET, "/sugestao").permitAll()
+                    .antMatchers(HttpMethod.GET, "/categoria/**").permitAll()
+                    .antMatchers(HttpMethod.GET, "/estoque/**").permitAll()
+                    .antMatchers(HttpMethod.GET, "/mercado/**").permitAll()
+                    .antMatchers(HttpMethod.GET, "/produto/**").permitAll()
+                    .antMatchers(HttpMethod.GET, "/ramo/**").permitAll()
+                    .antMatchers(HttpMethod.GET, "/sugestao/**").permitAll()
+                    .antMatchers(HttpMethod.GET, "/").permitAll()
 
                     // Bloqueia qualquer outra requisição
                     .anyRequest().authenticated()
