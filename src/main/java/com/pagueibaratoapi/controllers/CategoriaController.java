@@ -39,7 +39,7 @@ public class CategoriaController {
     @PostMapping
     public ResponseCategoria criar(@RequestBody Categoria requestCategoria) {
         try {
-            Tratamento.validarCategoria(requestCategoria);
+            Tratamento.validarCategoria(requestCategoria, false);
 
             if(categoriaRepository.existsByNome(requestCategoria.getNome()))
                 throw new DadosConflitantesException("nome_existente");
@@ -130,25 +130,18 @@ public class CategoriaController {
     @PatchMapping("/{id}")
     public ResponseCategoria editar(@PathVariable int id, @RequestBody Categoria requestCategoria) {
         try {
+            Tratamento.validarCategoria(requestCategoria, true);
 
             if(categoriaRepository.existsByNome(requestCategoria.getNome()))
                 throw new DadosConflitantesException("nome_existente");
 
             Categoria categoriaAtual = categoriaRepository.findById(id).get();
             
-            if(requestCategoria.getNome() != null && !requestCategoria.getNome().isEmpty()){
-                if(requestCategoria.getNome().length() < 30)
-                    categoriaAtual.setNome(requestCategoria.getNome());
-                else
-                    throw new DadosInvalidosException("nome_invalido");
-            }
+            if(requestCategoria.getNome() != null)
+                categoriaAtual.setNome(requestCategoria.getNome());
     
-            if(requestCategoria.getDescricao() != null && !requestCategoria.getDescricao().isEmpty()){
-                if(requestCategoria.getDescricao().length() < 150)
-                    categoriaAtual.setDescricao(requestCategoria.getDescricao());
-                else
-                    throw new DadosInvalidosException("descricao_invalido");
-            }
+            if(requestCategoria.getDescricao() != null)
+                categoriaAtual.setNome(requestCategoria.getNome());
 
             ResponseCategoria responseCategoria = new ResponseCategoria(categoriaRepository.save(categoriaAtual));
     
@@ -183,7 +176,7 @@ public class CategoriaController {
             if(categoriaRepository.existsByNome(requestCategoria.getNome()))
                 throw new DadosConflitantesException("nome_existente");
             
-            Tratamento.validarCategoria(requestCategoria);
+            Tratamento.validarCategoria(requestCategoria, false);
 
             if(!categoriaRepository.existsById(id))
                 throw new NoSuchElementException("nao_encontrado");

@@ -8,6 +8,8 @@ import com.pagueibaratoapi.models.requests.Usuario;
 @Component
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
+    public boolean existsById(Integer id);
+
     public Usuario findByEmail(String email);
 
 }

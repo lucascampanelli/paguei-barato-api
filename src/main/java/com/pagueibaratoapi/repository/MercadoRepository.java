@@ -6,4 +6,6 @@ import com.pagueibaratoapi.models.requests.Mercado;
 
 public interface MercadoRepository extends JpaRepository<Mercado, Integer> {
 
+    public boolean existsById(Integer id);
+
 }
