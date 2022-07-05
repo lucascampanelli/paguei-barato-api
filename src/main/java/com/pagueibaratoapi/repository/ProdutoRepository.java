@@ -6,4 +6,6 @@ import com.pagueibaratoapi.models.requests.Produto;
 
 public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
     
+    public boolean existsById(Integer id);
+
 }
