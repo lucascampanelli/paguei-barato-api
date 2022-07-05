@@ -3,6 +3,7 @@ package com.pagueibaratoapi.controllers;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
@@ -18,10 +19,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pagueibaratoapi.models.requests.Estoque;
 import com.pagueibaratoapi.models.requests.Produto;
+import com.pagueibaratoapi.models.requests.Sugestao;
+import com.pagueibaratoapi.models.responses.ResponseLevantamentoProduto;
 import com.pagueibaratoapi.models.responses.ResponsePagina;
 import com.pagueibaratoapi.models.responses.ResponseProduto;
+import com.pagueibaratoapi.repository.EstoqueRepository;
 import com.pagueibaratoapi.repository.ProdutoRepository;
+import com.pagueibaratoapi.repository.SugestaoRepository;
 import com.pagueibaratoapi.utils.PaginaUtils;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -32,9 +38,16 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class ProdutoController {
     
     private final ProdutoRepository produtoRepository;
+    private final EstoqueRepository estoqueRepository;
+    private final SugestaoRepository sugestaoRepository;
 
-    public ProdutoController(ProdutoRepository produtoRepository){
+    public ProdutoController(ProdutoRepository produtoRepository, 
+                             EstoqueRepository estoqueRepository, 
+                             SugestaoRepository sugestaoRepository) {
+
         this.produtoRepository = produtoRepository;
+        this.estoqueRepository = estoqueRepository;
+        this.sugestaoRepository = sugestaoRepository;
     }
 
     @PostMapping
@@ -118,6 +131,59 @@ public class ProdutoController {
             }
         }
 
+        return responseProduto;
+    }
+
+    @GetMapping("/{id}/levantamento")
+    public ResponseLevantamentoProduto levantamento(@PathVariable(value = "id") Integer id){
+        ResponseLevantamentoProduto responseProduto = new ResponseLevantamentoProduto(produtoRepository.findById(id).get());
+        
+        List<Estoque> estoques = estoqueRepository.findByProdutoId(id);
+
+        float somaPreco = 0.0f;
+        int quantidadeSugestoes = 0;
+
+        if(estoques != null){
+            for(Estoque estoque : estoques){
+                // Buscando as sugestões do produto no mercado atual
+                List<Sugestao> sugestoes = sugestaoRepository.findByEstoqueId(estoque.getId());
+                
+                if(sugestoes != null){
+                    for(Sugestao sugestao : sugestoes){
+                        quantidadeSugestoes++;
+                        somaPreco += (sugestao.getPreco()/100);
+        
+                        if(responseProduto.getDataUltimaSugestao() == null)
+                            responseProduto.setDataUltimaSugestao(sugestao.getTimestamp());
+                        else if(responseProduto.getDataUltimaSugestao().before(sugestao.getTimestamp()))
+                            responseProduto.setDataUltimaSugestao(sugestao.getTimestamp());
+        
+                        if(responseProduto.getMaiorPreco() == 0.0f)
+                            responseProduto.setMaiorPreco(sugestao.getPreco()/100);
+                        else if(responseProduto.getMaiorPreco() < sugestao.getPreco())
+                            responseProduto.setMaiorPreco(sugestao.getPreco()/100);
+        
+                        if(responseProduto.getMenorPreco() == 0.0f)
+                            responseProduto.setMenorPreco(sugestao.getPreco()/100);
+                        else if(responseProduto.getMenorPreco() > sugestao.getPreco())
+                            responseProduto.setMenorPreco(sugestao.getPreco()/100);
+                    }
+                }
+            }
+        }
+
+        responseProduto.setQuantidadeSugestoes(quantidadeSugestoes);
+        responseProduto.setPrecoMedio(quantidadeSugestoes > 0 ? somaPreco / quantidadeSugestoes : 0.0f);
+
+        if(responseProduto != null){
+            responseProduto.add(
+                linkTo(
+                    methodOn(ProdutoController.class).listar(new Produto())
+                )
+                .withRel("collection")
+            );
+        }
+        
         return responseProduto;
     }
 
