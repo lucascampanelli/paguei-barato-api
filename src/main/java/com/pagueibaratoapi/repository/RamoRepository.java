@@ -8,4 +8,6 @@ public interface RamoRepository extends JpaRepository<Ramo, Integer> {
     
     public boolean existsById(Integer id);
 
+    public boolean existsByNomeIgnoreCase(String nome);
+
 }
