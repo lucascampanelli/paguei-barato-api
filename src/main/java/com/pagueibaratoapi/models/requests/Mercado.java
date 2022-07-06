@@ -56,12 +56,16 @@ public class Mercado {
         return id;
     }
 
-    public void setCriadoPor(Integer criadoPor) {
-        this.criadoPor = criadoPor;
-    }
-
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Integer getCriadoPor() {
+        return criadoPor;
+    }
+
+    public void setCriadoPor(Integer criadoPor) {
+        this.criadoPor = criadoPor;
     }
 
     public String getNome() {

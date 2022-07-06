@@ -41,7 +41,7 @@ public class CategoriaController {
         try {
             Tratamento.validarCategoria(requestCategoria, false);
 
-            if(categoriaRepository.existsByNome(requestCategoria.getNome()))
+            if(categoriaRepository.existsByNomeIgnoreCase(requestCategoria.getNome()))
                 throw new DadosConflitantesException("nome_existente");
 
             ResponseCategoria responseCategoria = new ResponseCategoria(categoriaRepository.save(requestCategoria));
@@ -132,7 +132,7 @@ public class CategoriaController {
         try {
             Tratamento.validarCategoria(requestCategoria, true);
 
-            if(categoriaRepository.existsByNome(requestCategoria.getNome()))
+            if(categoriaRepository.existsByNomeIgnoreCase(requestCategoria.getNome()))
                 throw new DadosConflitantesException("nome_existente");
 
             Categoria categoriaAtual = categoriaRepository.findById(id).get();
@@ -173,7 +173,7 @@ public class CategoriaController {
     public ResponseCategoria atualizar(@PathVariable int id, @RequestBody Categoria requestCategoria){
         try {
 
-            if(categoriaRepository.existsByNome(requestCategoria.getNome()))
+            if(categoriaRepository.existsByNomeIgnoreCase(requestCategoria.getNome()))
                 throw new DadosConflitantesException("nome_existente");
             
             Tratamento.validarCategoria(requestCategoria, false);

@@ -232,8 +232,6 @@ public class EstoqueController {
 
         } catch (DadosInvalidosException e) {
             throw new ResponseStatusException(400, e.getMessage(), e);
-        } catch (DataIntegrityViolationException e) {
-            throw new ResponseStatusException(500, "erro_insercao", e);
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(500, "erro_inesperado", e);
         } catch (NullPointerException e) {

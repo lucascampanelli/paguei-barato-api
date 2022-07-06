@@ -8,6 +8,6 @@ public interface CategoriaRepository extends JpaRepository<Categoria, Integer> {
 
     public boolean existsById(Integer id);
 
-    public boolean existsByNome(String nome);
+    public boolean existsByNomeIgnoreCase(String nome);
 
 }

@@ -6,4 +6,6 @@ import com.pagueibaratoapi.models.requests.Ramo;
 
 public interface RamoRepository extends JpaRepository<Ramo, Integer> {
     
+    public boolean existsById(Integer id);
+
 }
