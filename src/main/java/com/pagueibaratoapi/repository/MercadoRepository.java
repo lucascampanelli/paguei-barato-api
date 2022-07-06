@@ -12,7 +12,7 @@ public interface MercadoRepository extends JpaRepository<Mercado, Integer> {
 
     public boolean existsByNomeIgnoreCase(String nome);
     
-    @Query("SELECT m FROM Mercado m WHERE UPPER(m.logradouro) LIKE UPPER(CONCAT('%',:logradouro,'%')) AND m.numero = :numero AND (m.complemento IS NULL OR UPPER(m.complemento) LIKE UPPER(CONCAT('%',:complemento,'%'))) AND m.bairro = :bairro AND m.cidade = :cidade AND m.uf = :uf AND m.cep = :cep")
+    @Query("SELECT m FROM Mercado m WHERE UPPER(m.logradouro) LIKE UPPER(CONCAT('%',:logradouro,'%')) AND m.numero = :numero AND (m.complemento IS NULL OR UPPER(m.complemento) LIKE UPPER(CONCAT('%',:complemento,'%'))) AND UPPER(m.bairro) = UPPER(:bairro) AND UPPER(m.cidade) = UPPER(:cidade) AND UPPER(m.uf) = UPPER(:uf) AND m.cep = :cep")
     public Mercado findByEndereco(
         @Param("logradouro") String logradouro, 
         @Param("numero") Integer numero, 
