@@ -1,6 +1,7 @@
 ![PagueiBaratoLogo](https://user-images.githubusercontent.com/56810073/176563856-105698e9-6258-463b-96fc-3032660bf308.png)
 # PagueiBarato API
 made with ❤ in 🇧🇷
+<br>
 0.0.1
 <hr>
 
