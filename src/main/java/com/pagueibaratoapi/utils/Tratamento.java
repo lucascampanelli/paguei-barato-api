@@ -7,6 +7,7 @@ import com.pagueibaratoapi.models.requests.Mercado;
 import com.pagueibaratoapi.models.requests.Produto;
 import com.pagueibaratoapi.models.requests.Ramo;
 import com.pagueibaratoapi.models.requests.Sugestao;
+import com.pagueibaratoapi.models.requests.Usuario;
 
 public class Tratamento {
     
@@ -53,6 +54,14 @@ public class Tratamento {
     public static void validarSugestao(Sugestao sugestao, boolean opcional) throws DadosInvalidosException {
         try{
             TratamentoSugestao.validar(sugestao, opcional);
+        } catch(DadosInvalidosException e){
+            throw new DadosInvalidosException(e.getMessage());
+        }
+    }
+    
+    public static void validarUsuario(Usuario usuario, boolean opcional) throws DadosInvalidosException {
+        try{
+            TratamentoUsuario.validar(usuario, opcional);
         } catch(DadosInvalidosException e){
             throw new DadosInvalidosException(e.getMessage());
         }

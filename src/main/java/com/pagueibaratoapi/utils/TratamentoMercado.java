@@ -32,10 +32,10 @@ public class TratamentoMercado {
             else if(mercado.getCidade() == null || mercado.getCidade().isEmpty() || mercado.getCidade().length() > 30 || mercado.getCidade().length() < 3){
                 throw new DadosInvalidosException("cidade_invalido");
             }
-            else if(mercado.getUf() == null || mercado.getUf().isEmpty() || mercado.getUf().length() != 2 || !mercado.getUf().matches("^[a-zA-Z]+$")){
+            else if(mercado.getUf() == null || mercado.getUf().isEmpty() || !validarUf(mercado.getUf())){
                 throw new DadosInvalidosException("uf_invalido");
             }
-            else if(mercado.getCep() == null || mercado.getCep().isEmpty() || mercado.getCep().length() != 9 || mercado.getCep().matches("[a-zA-Z]+$")){
+            else if(mercado.getCep() == null || mercado.getCep().isEmpty() || mercado.getCep().length() != 9 || mercado.getCep().matches("[a-zA-Z]+$") || !mercado.getCep().contains("-")){
                 throw new DadosInvalidosException("cep_invalido");
             }
             else if(mercado.getCriadoPor() == null || mercado.getCriadoPor() <= 0){
@@ -61,10 +61,10 @@ public class TratamentoMercado {
             else if(mercado.getCidade() != null && (mercado.getCidade().isEmpty() || mercado.getCidade().length() > 30 || mercado.getCidade().length() < 3)){
                 throw new DadosInvalidosException("cidade_invalido");
             }
-            else if(mercado.getUf() != null && (mercado.getUf().isEmpty() || mercado.getUf().length() != 2 || !mercado.getUf().matches("^[a-zA-Z]+$"))){
+            else if(mercado.getUf() != null && (mercado.getUf().isEmpty() || !validarUf(mercado.getUf()))){
                 throw new DadosInvalidosException("uf_invalido");
             }
-            else if(mercado.getCep() != null && (mercado.getCep().isEmpty() || mercado.getCep().length() != 9 || mercado.getCep().matches("[a-zA-Z]+$"))){
+            else if(mercado.getCep() != null && (mercado.getCep().isEmpty() || mercado.getCep().length() != 9 || mercado.getCep().matches("[a-zA-Z]+$") || !mercado.getCep().contains("-"))){
                 throw new DadosInvalidosException("cep_invalido");
             }
             else if(mercado.getCriadoPor() != null && mercado.getCriadoPor() <= 0){
@@ -74,5 +74,17 @@ public class TratamentoMercado {
                 throw new DadosInvalidosException("ramo_invalido");
             }
         }
+    }
+
+    private static boolean validarUf(String uf){
+
+        String[] ufs = {"AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"};
+
+        for(String ufValida : ufs){
+            if(ufValida.equals(uf.toUpperCase()))
+                return true;
+        }
+
+        return false;
     }
 }
