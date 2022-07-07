@@ -221,7 +221,7 @@ public class RamoController {
     }
 
     @DeleteMapping("/{id}")
-    public Object deletar(@PathVariable int id){
+    public Object remover(@PathVariable int id){
         try {
 
             if(!ramoRepository.existsById(id))

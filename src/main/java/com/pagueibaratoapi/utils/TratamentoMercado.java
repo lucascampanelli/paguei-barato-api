@@ -38,6 +38,12 @@ public class TratamentoMercado {
             else if(mercado.getCep() == null || mercado.getCep().isEmpty() || mercado.getCep().length() != 9 || mercado.getCep().matches("[a-zA-Z]+$")){
                 throw new DadosInvalidosException("cep_invalido");
             }
+            else if(mercado.getCriadoPor() == null || mercado.getCriadoPor() <= 0){
+                throw new DadosInvalidosException("usuario_invalido");
+            }
+            else if(mercado.getRamoId() == null || mercado.getRamoId() <= 0){
+                throw new DadosInvalidosException("ramo_invalido");
+            }
         }
         else{
             if(mercado.getNome() != null && (mercado.getNome().isEmpty() || mercado.getNome().length() > 50 || mercado.getNome().length() < 5)){
@@ -60,6 +66,12 @@ public class TratamentoMercado {
             }
             else if(mercado.getCep() != null && (mercado.getCep().isEmpty() || mercado.getCep().length() != 9 || mercado.getCep().matches("[a-zA-Z]+$"))){
                 throw new DadosInvalidosException("cep_invalido");
+            }
+            else if(mercado.getCriadoPor() != null && mercado.getCriadoPor() <= 0){
+                throw new DadosInvalidosException("usuario_invalido");
+            }
+            else if(mercado.getRamoId() != null && mercado.getRamoId() <= 0){
+                throw new DadosInvalidosException("ramo_invalido");
             }
         }
     }

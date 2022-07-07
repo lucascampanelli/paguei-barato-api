@@ -246,6 +246,7 @@ public class ProdutoController {
             }
     
             return responseProduto;
+
         } catch(DadosInvalidosException e) {
             throw new ResponseStatusException(400, e.getMessage(), e);
         } catch(NullPointerException  e) {
@@ -436,7 +437,7 @@ public class ProdutoController {
     }
 
     @DeleteMapping("/{id}")
-    public Object deletar(@PathVariable int id){
+    public Object remover(@PathVariable int id){
         try {
 
             if(!produtoRepository.existsById(id))

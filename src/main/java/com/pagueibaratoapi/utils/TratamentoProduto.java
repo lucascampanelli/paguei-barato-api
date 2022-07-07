@@ -26,6 +26,12 @@ public class TratamentoProduto {
             else if(produto.getTamanho() == null || produto.getTamanho().isEmpty() || produto.getTamanho().length() > 20){
                 throw new DadosInvalidosException("tamanho_invalido");
             }
+            else if(produto.getCriadoPor() == null || produto.getCriadoPor() <= 0){
+                throw new DadosInvalidosException("usuario_invalido");
+            }
+            else if(produto.getCategoriaId() == null || produto.getCategoriaId() <= 0){
+                throw new DadosInvalidosException("categoria_invalido");
+            }
         }
         else{
             if(produto.getNome() != null && (produto.getNome().isEmpty() || produto.getNome().length() > 150 || produto.getNome().length() < 10)){
@@ -36,6 +42,12 @@ public class TratamentoProduto {
             }
             else if(produto.getTamanho() != null && (produto.getTamanho().isEmpty() || produto.getTamanho().length() > 20)){
                 throw new DadosInvalidosException("tamanho_invalido");
+            }
+            else if(produto.getCriadoPor() != null && produto.getCriadoPor() <= 0){
+                throw new DadosInvalidosException("usuario_invalido");
+            }
+            else if(produto.getCategoriaId() != null && produto.getCategoriaId() <= 0){
+                throw new DadosInvalidosException("categoria_invalido");
             }
         }
     }

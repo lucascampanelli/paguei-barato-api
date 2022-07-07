@@ -67,6 +67,10 @@ public class Sugestao {
         this.timestamp = timestamp;
     }
 
+    public Integer getCriadoPor() {
+        return criadoPor;
+    }
+
     public void setCriadoPor(Integer criadoPor) {
         this.criadoPor = criadoPor;
     }
