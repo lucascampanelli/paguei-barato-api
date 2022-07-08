@@ -26,11 +26,16 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.pagueibaratoapi.models.exceptions.DadosConflitantesException;
 import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
+import com.pagueibaratoapi.models.requests.Estoque;
 import com.pagueibaratoapi.models.requests.Mercado;
+import com.pagueibaratoapi.models.requests.Sugestao;
 import com.pagueibaratoapi.models.responses.ResponseMercado;
 import com.pagueibaratoapi.models.responses.ResponsePagina;
+import com.pagueibaratoapi.models.responses.ResponseSugestao;
+import com.pagueibaratoapi.repository.EstoqueRepository;
 import com.pagueibaratoapi.repository.MercadoRepository;
 import com.pagueibaratoapi.repository.RamoRepository;
+import com.pagueibaratoapi.repository.SugestaoRepository;
 import com.pagueibaratoapi.repository.UsuarioRepository;
 import com.pagueibaratoapi.utils.PaginaUtils;
 import com.pagueibaratoapi.utils.Tratamento;
@@ -42,11 +47,20 @@ public class MercadoController {
     private final MercadoRepository mercadoRepository;
     private final RamoRepository ramoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final SugestaoRepository sugestaoRepository;
+    private final EstoqueRepository estoqueRepository;
 
-    public MercadoController(MercadoRepository mercadoRepository, RamoRepository ramoRepository, UsuarioRepository usuarioRepository) {
+    public MercadoController(MercadoRepository mercadoRepository, 
+                             RamoRepository ramoRepository, 
+                             UsuarioRepository usuarioRepository,
+                             SugestaoRepository sugestaoRepository,
+                             EstoqueRepository estoqueRepository) {
+
         this.mercadoRepository = mercadoRepository;
         this.ramoRepository = ramoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.sugestaoRepository = sugestaoRepository;
+        this.estoqueRepository = estoqueRepository;
     }
 
     @PostMapping
@@ -110,6 +124,75 @@ public class MercadoController {
             
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(404, "nao_encontrado", e);
+        } catch (Exception e) {
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    @GetMapping("/{id}/produto/{produtoId}")
+    public List<ResponseSugestao> ler(@PathVariable(value = "id") Integer id, @PathVariable(value = "produtoId") Integer produtoId){
+        try {
+            List<ResponseSugestao> responseSugestao = new ArrayList<ResponseSugestao>();
+
+            // Buscando o registro do estoque do mercado, que associa o produto ao estoque do mercado
+            Estoque estoque = estoqueRepository.findByProdutoIdAndMercadoId(produtoId, id);
+            
+            if(estoque == null)
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Buscando todas as sugestões de preço do produto no mercado informado
+            List<Sugestao> sugestoes = sugestaoRepository.findByEstoqueId(estoque.getId());
+
+            if(sugestoes == null)
+                throw new NoSuchElementException("sugestao_nao_encontrado");
+
+            for(Sugestao sugestao : sugestoes){
+                responseSugestao.add(new ResponseSugestao(sugestao));
+            }
+
+            for(ResponseSugestao sugestao : responseSugestao){
+                sugestao.setPreco(sugestao.getPreco() / 100);
+
+                sugestao.add(
+                    linkTo(
+                        methodOn(SugestaoController.class).ler(sugestao.getId())
+                    )
+                    .withSelfRel()
+                );
+
+                sugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listar(new Mercado())
+                    )
+                    .withRel("collection")
+                );
+
+                sugestao.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produtoId)
+                    )
+                    .withRel("produto")
+                );
+
+                sugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).ler(id)
+                    )
+                    .withRel("mercado")
+                );
+
+                sugestao.add(
+                    linkTo(
+                        methodOn(EstoqueController.class).ler(estoque.getId())
+                    )
+                    .withRel("estoque")
+                );
+            }
+    
+            return responseSugestao;
+            
+        } catch (NoSuchElementException e) {
+            throw new ResponseStatusException(404, e.getMessage(), e);
         } catch (Exception e) {
             throw new ResponseStatusException(500, "erro_inesperado", e);
         }

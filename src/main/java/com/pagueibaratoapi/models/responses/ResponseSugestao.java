@@ -6,7 +6,7 @@ import org.springframework.hateoas.RepresentationModel;
 
 import com.pagueibaratoapi.models.requests.Sugestao;
 
-public class ResponseSugestao extends RepresentationModel<ResponseRamo> {
+public class ResponseSugestao extends RepresentationModel<ResponseSugestao> {
     
     private Integer id;
     private Float preco;

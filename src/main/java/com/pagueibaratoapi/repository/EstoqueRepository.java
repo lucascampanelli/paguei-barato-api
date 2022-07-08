@@ -12,4 +12,6 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Integer> {
 
     public List<Estoque> findByProdutoId(Integer produtoId);
 
+    public Estoque findByProdutoIdAndMercadoId(Integer produtoId, Integer mercadoId);
+
 }
