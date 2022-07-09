@@ -37,6 +37,7 @@ import com.pagueibaratoapi.repository.MercadoRepository;
 import com.pagueibaratoapi.repository.RamoRepository;
 import com.pagueibaratoapi.repository.SugestaoRepository;
 import com.pagueibaratoapi.repository.UsuarioRepository;
+import com.pagueibaratoapi.utils.EditaRecurso;
 import com.pagueibaratoapi.utils.PaginaUtils;
 import com.pagueibaratoapi.utils.Tratamento;
 
@@ -328,46 +329,17 @@ public class MercadoController {
 
             Mercado mercadoAtual = mercadoRepository.findById(id).get();
             
-            if(requestMercado.getRamoId() != null){
-                if(!ramoRepository.existsById(requestMercado.getRamoId()))
+            if(!ramoRepository.existsById(requestMercado.getRamoId()))
                     throw new DadosInvalidosException("ramo_nao_encontrado");
 
-                mercadoAtual.setRamoId(requestMercado.getRamoId());
-            }
+            if(mercadoRepository.existsByNomeIgnoreCase(requestMercado.getNome()))
+                throw new DadosConflitantesException("mercado_existente");
     
-            if(requestMercado.getNome() != null){
-                if(mercadoRepository.existsByNomeIgnoreCase(requestMercado.getNome()))
-                    throw new DadosConflitantesException("mercado_existente");
-
-                mercadoAtual.setNome(requestMercado.getNome());
-            }
-    
-            if(requestMercado.getLogradouro() != null)
-                mercadoAtual.setLogradouro(requestMercado.getLogradouro());
-    
-            if(requestMercado.getNumero() != null)
-                mercadoAtual.setNumero(requestMercado.getNumero());
-    
-            if(requestMercado.getComplemento() != null){
-                if(requestMercado.getComplemento().trim().isEmpty())
-                    mercadoAtual.setComplemento(null);
-                else
-                    mercadoAtual.setComplemento(requestMercado.getComplemento());
-            }
-    
-            if(requestMercado.getBairro() != null)
-                mercadoAtual.setBairro(requestMercado.getBairro());
-    
-            if(requestMercado.getCidade() != null)
-                mercadoAtual.setCidade(requestMercado.getCidade());
-                
-            if(requestMercado.getUf() != null)
-                mercadoAtual.setUf(requestMercado.getUf());
-            
-            if(requestMercado.getCep() != null)
-                mercadoAtual.setCep(requestMercado.getCep());
-    
-            ResponseMercado responseMercado = new ResponseMercado(mercadoRepository.save(mercadoAtual));
+            ResponseMercado responseMercado = new ResponseMercado(
+                                                            mercadoRepository.save(
+                                                                EditaRecurso.editarMercado(mercadoAtual, requestMercado)
+                                                            )
+                                                        );
             
             responseMercado.add(
                 linkTo(
