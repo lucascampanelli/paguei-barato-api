@@ -21,7 +21,7 @@ import com.pagueibaratoapi.services.UsuarioServiceImpl;
 @Configuration
 @EnableWebSecurity
 public class JWTConfig {
-    
+
     private final UsuarioServiceImpl usuarioServiceImpl;
     private AuthenticationManager authenticationManager;
 
@@ -47,34 +47,35 @@ public class JWTConfig {
         authenticationManager = authenticationManagerBuilder.build();
 
         http.cors().and().csrf().disable()
-                    
-                    .authorizeRequests()
 
-                    // Permite as seguintes requisições
-                    .antMatchers(HttpMethod.POST, "/usuario/").permitAll()
-                    .antMatchers(HttpMethod.POST, "/login").permitAll()
-                    .antMatchers(HttpMethod.GET, "/categoria/**").permitAll()
-                    .antMatchers(HttpMethod.GET, "/estoque/**").permitAll()
-                    .antMatchers(HttpMethod.GET, "/mercado/**").permitAll()
-                    .antMatchers(HttpMethod.GET, "/produto/**").permitAll()
-                    .antMatchers(HttpMethod.GET, "/produto/**/**").permitAll()
-                    .antMatchers(HttpMethod.GET, "/ramo/**").permitAll()
-                    .antMatchers(HttpMethod.GET, "/sugestao/**").permitAll()
-                    .antMatchers(HttpMethod.GET, "/").permitAll()
+            .authorizeRequests()
 
-                    // Bloqueia qualquer outra requisição
-                    .anyRequest().authenticated()
+            // Permite as seguintes requisições
+            .antMatchers(HttpMethod.POST, "/usuario/").permitAll()
+            .antMatchers(HttpMethod.POST, "/login").permitAll()
+            .antMatchers(HttpMethod.GET, "/categoria/**").permitAll()
+            .antMatchers(HttpMethod.GET, "/estoque/**").permitAll()
+            .antMatchers(HttpMethod.GET, "/mercado/**").permitAll()
+            .antMatchers(HttpMethod.GET, "/produto/**").permitAll()
+            .antMatchers(HttpMethod.GET, "/produto/**/**").permitAll()
+            .antMatchers(HttpMethod.GET, "/ramo/**").permitAll()
+            .antMatchers(HttpMethod.GET, "/sugestao/**").permitAll()
+            .antMatchers(HttpMethod.GET, "/").permitAll()
 
-                    .and()
-                    .authenticationManager(authenticationManager)
+            // Bloqueia qualquer outra requisição
+            .anyRequest().authenticated()
 
-                    // Filtra o token
-                    .addFilter(new JWTAuthenticationFilter(authenticationManager))
-                    .addFilter(new JWTValidateFilter(authenticationManager))
+            .and()
+            .authenticationManager(authenticationManager)
 
-                    .sessionManagement()
-                    // Não cria sessão para requisições feitas por um cliente (Não armazena o estado)
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+            // Filtra o token
+            .addFilter(new JWTAuthenticationFilter(authenticationManager))
+            .addFilter(new JWTValidateFilter(authenticationManager))
+
+            .sessionManagement()
+            // Não cria sessão para requisições feitas por um cliente (Não armazena o
+            // estado)
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         return http.build();
     }

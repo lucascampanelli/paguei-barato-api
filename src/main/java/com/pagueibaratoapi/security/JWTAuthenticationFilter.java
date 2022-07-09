@@ -25,8 +25,8 @@ import com.pagueibaratoapi.data.UsuarioService;
 import com.pagueibaratoapi.models.requests.Usuario;
 import com.pagueibaratoapi.utils.Senha;
 
-public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter{
-    
+public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+
     @Value("${pagueibarato.config.token.expiration}")
     private long EXPIRA_EM = 2592000000L;
 
@@ -40,22 +40,19 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     }
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, 
-                                                HttpServletResponse response) throws AuthenticationException {
-
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         try {
 
             Usuario usuario = new ObjectMapper().readValue(request.getInputStream(), Usuario.class);
 
             return authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                                                        usuario.getEmail(), 
-                                                        Senha.salgar(usuario.getSenha())
+                    usuario.getEmail(),
+                    Senha.salgar(usuario.getSenha())
                 )
             );
-        
-        } catch(BadCredentialsException e) {
-            e.printStackTrace();
+
+        } catch (BadCredentialsException e) {
             throw new RuntimeException("Senha inválida.");
         } catch (StreamReadException e) {
             e.printStackTrace();
@@ -67,24 +64,24 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             e.printStackTrace();
             throw new RuntimeException("Falha ao autenticar o usuário");
         }
-
     }
 
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, 
-                                            HttpServletResponse response, 
-                                            FilterChain filter, 
-                                            Authentication authResult) throws IOException, ServletException {
-        
+    protected void successfulAuthentication(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain filter,
+        Authentication authResult
+    ) throws IOException, ServletException {
+
         UsuarioService usuarioService = (UsuarioService) authResult.getPrincipal();
 
         String token = JWT.create()
-                .withSubject(usuarioService.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRA_EM))
-                .sign(Algorithm.HMAC512(SEGREDO));
+            .withSubject(usuarioService.getUsername())
+            .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRA_EM))
+            .sign(Algorithm.HMAC512(SEGREDO));
 
         response.getWriter().write(token);
         response.getWriter().flush();
-
     }
 }

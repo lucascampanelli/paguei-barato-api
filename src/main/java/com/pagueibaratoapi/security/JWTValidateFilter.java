@@ -17,7 +17,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 
 // Classe para validação do token JWT estendendo a classe BasicAuthenticationFilter, que filta o JWT
-public class JWTValidateFilter extends BasicAuthenticationFilter{
+public class JWTValidateFilter extends BasicAuthenticationFilter {
 
     @Value("${pagueibarato.config.token.secret.key}")
     private static String SEGREDO = "shhh";
@@ -27,9 +27,11 @@ public class JWTValidateFilter extends BasicAuthenticationFilter{
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, 
-                                    HttpServletResponse response, 
-                                    FilterChain chain) throws IOException, ServletException {
+    protected void doFilterInternal(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain chain
+    ) throws IOException, ServletException {
 
         String header = request.getHeader("Authorization");
 
@@ -42,7 +44,6 @@ public class JWTValidateFilter extends BasicAuthenticationFilter{
         String token = header.replace("Bearer ", "");
 
         UsernamePasswordAuthenticationToken authenticationToken = getAuthenticationToken(token);
-
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
         chain.doFilter(request, response);
@@ -50,13 +51,13 @@ public class JWTValidateFilter extends BasicAuthenticationFilter{
 
     private UsernamePasswordAuthenticationToken getAuthenticationToken(String token) {
         String usuario = JWT.require(Algorithm.HMAC512(SEGREDO))
-                                .build()
-                                .verify(token)
-                                .getSubject();
+            .build()
+            .verify(token)
+            .getSubject();
 
         if(usuario == null)
             return null;
-        
+
         return new UsernamePasswordAuthenticationToken(usuario, null, null);
     }
 }
