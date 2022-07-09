@@ -33,7 +33,7 @@ import com.pagueibaratoapi.repository.ProdutoRepository;
 import com.pagueibaratoapi.repository.UsuarioRepository;
 import com.pagueibaratoapi.utils.PaginaUtils;
 import com.pagueibaratoapi.utils.Tratamento;
-import com.pagueibaratoapi.utils.TratamentoEstoque;
+import com.pagueibaratoapi.utils.tratamentos.TratamentoEstoque;
 
 @RestController
 @RequestMapping("/estoque")

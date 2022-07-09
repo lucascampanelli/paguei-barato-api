@@ -31,6 +31,7 @@ import com.pagueibaratoapi.models.requests.Sugestao;
 import com.pagueibaratoapi.repository.EstoqueRepository;
 import com.pagueibaratoapi.repository.SugestaoRepository;
 import com.pagueibaratoapi.repository.UsuarioRepository;
+import com.pagueibaratoapi.utils.EditaRecurso;
 import com.pagueibaratoapi.utils.PaginaUtils;
 import com.pagueibaratoapi.utils.Tratamento;
 
@@ -255,11 +256,15 @@ public class SugestaoController {
             Tratamento.validarSugestao(requestSugestao, true);
 
             Sugestao sugestaoAtual = sugestaoRepository.findById(id).get();
-
-            if(requestSugestao.getPreco() != null)
-                sugestaoAtual.setPreco(requestSugestao.getPreco() * 100);
-
-            ResponseSugestao responseSugestao = new ResponseSugestao(sugestaoRepository.save(sugestaoAtual));
+    
+            ResponseSugestao responseSugestao = new ResponseSugestao(
+                sugestaoRepository.save(
+                    EditaRecurso.editarSugestao(
+                        sugestaoAtual, 
+                        requestSugestao
+                    )
+                )
+            );
 
             responseSugestao.add(
                 linkTo(

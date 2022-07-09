@@ -141,7 +141,7 @@ public class UsuarioController {
                 throw new DadosConflitantesException("email_em_uso");
 
             Usuario usuarioAtual = usuarioRepository.findById(id).get();
-
+            
             ResponseUsuario responseUsuario = new ResponseUsuario(
                 usuarioRepository.save(
                     EditaRecurso.editarUsuario(
@@ -150,7 +150,7 @@ public class UsuarioController {
                     )
                 )
             );
-
+    
             responseUsuario.add(
                 linkTo(
                     methodOn(UsuarioController.class).ler(responseUsuario.getId())
