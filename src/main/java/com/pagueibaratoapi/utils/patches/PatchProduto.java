@@ -4,7 +4,7 @@ import com.pagueibaratoapi.models.requests.Produto;
 
 public class PatchProduto {
 
-    public static Produto edita(Produto produtoAtual, Produto produtoEditado){
+    public static Produto edita(Produto produtoAtual, Produto produtoEditado) {
         if(produtoEditado.getNome() != null)
                 produtoAtual.setNome(produtoEditado.getNome());
     
@@ -14,7 +14,7 @@ public class PatchProduto {
         if(produtoEditado.getTamanho() != null)
             produtoAtual.setTamanho(produtoEditado.getTamanho());
 
-        if(produtoEditado.getCor() != null){
+        if(produtoEditado.getCor() != null) {
             if(produtoEditado.getCor() == "")
                 produtoAtual.setCor(null);
             else
@@ -26,5 +26,4 @@ public class PatchProduto {
 
         return produtoAtual;
     }
-
 }

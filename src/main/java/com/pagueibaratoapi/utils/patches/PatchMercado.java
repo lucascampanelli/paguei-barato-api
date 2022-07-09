@@ -4,14 +4,12 @@ import com.pagueibaratoapi.models.requests.Mercado;
 
 public class PatchMercado {
     
-    public static Mercado edita(Mercado mercadoAtual, Mercado mercadoEditado){
-        if(mercadoEditado.getRamoId() != null){
+    public static Mercado edita(Mercado mercadoAtual, Mercado mercadoEditado) {
+        if(mercadoEditado.getRamoId() != null)
             mercadoAtual.setRamoId(mercadoEditado.getRamoId());
-        }
 
-        if(mercadoEditado.getNome() != null){
+        if(mercadoEditado.getNome() != null)
             mercadoAtual.setNome(mercadoEditado.getNome());
-        }
 
         if(mercadoEditado.getLogradouro() != null)
             mercadoAtual.setLogradouro(mercadoEditado.getLogradouro());
@@ -19,7 +17,7 @@ public class PatchMercado {
         if(mercadoEditado.getNumero() != null)
             mercadoAtual.setNumero(mercadoEditado.getNumero());
 
-        if(mercadoEditado.getComplemento() != null){
+        if(mercadoEditado.getComplemento() != null) {
             if(mercadoEditado.getComplemento().trim().isEmpty())
                 mercadoAtual.setComplemento(null);
             else
@@ -40,5 +38,4 @@ public class PatchMercado {
 
         return mercadoAtual;
     }
-
 }

@@ -5,16 +5,15 @@ import com.pagueibaratoapi.utils.Senha;
 
 public class PatchUsuario {
 
-    public static Usuario edita(Usuario usuarioAtual, Usuario usuarioEditado){
+    public static Usuario edita(Usuario usuarioAtual, Usuario usuarioEditado) {
         if(usuarioEditado.getNome() != null)
             usuarioAtual.setNome(usuarioEditado.getNome());
         
         if(usuarioEditado.getEmail() != null)
             usuarioAtual.setEmail(usuarioEditado.getEmail());
         
-        if(usuarioEditado.getSenha() != null){
+        if(usuarioEditado.getSenha() != null)
             usuarioAtual.setSenha(Senha.encriptar(usuarioEditado.getSenha()));
-        }
 
         if(usuarioEditado.getLogradouro() != null)
             usuarioAtual.setLogradouro(usuarioEditado.getLogradouro());
@@ -22,7 +21,7 @@ public class PatchUsuario {
         if(usuarioEditado.getNumero() != null)
             usuarioAtual.setNumero(usuarioEditado.getNumero());
 
-        if(usuarioEditado.getComplemento() != null){
+        if(usuarioEditado.getComplemento() != null) {
             if(usuarioEditado.getComplemento() == "")
                 usuarioAtual.setComplemento(null);
             else
@@ -43,5 +42,4 @@ public class PatchUsuario {
 
         return usuarioAtual;
     }
-
 }

@@ -29,5 +29,4 @@ public class UsuarioServiceImpl implements UserDetailsService {
 
         return new UsuarioService(Optional.of(usuario));
     }
-
 }
