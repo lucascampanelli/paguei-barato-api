@@ -26,6 +26,7 @@ import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Ramo;
 import com.pagueibaratoapi.models.responses.ResponseRamo;
 import com.pagueibaratoapi.repository.RamoRepository;
+import com.pagueibaratoapi.utils.EditaRecurso;
 import com.pagueibaratoapi.utils.Tratamento;
 
 @RestController
@@ -146,18 +147,15 @@ public class RamoController {
             Tratamento.validarRamo(requestRamo, true);
 
             Ramo ramoAtual = ramoRepository.findById(id).get();
-    
-            if(requestRamo.getNome() != null){
-                if(ramoRepository.existsByNomeIgnoreCase(requestRamo.getNome()))
+            
+            if(ramoRepository.existsByNomeIgnoreCase(requestRamo.getNome()))
                     throw new DadosConflitantesException("ramo_existente");
-
-                ramoAtual.setNome(requestRamo.getNome());
-            }
     
-            if(requestRamo.getDescricao() != null)
-                ramoAtual.setDescricao(requestRamo.getDescricao());
-    
-            ResponseRamo responseRamo = new ResponseRamo(ramoRepository.save(ramoAtual));
+            ResponseRamo responseRamo = new ResponseRamo(
+                                                    ramoRepository.save(
+                                                        EditaRecurso.editarRamo(ramoAtual, requestRamo)
+                                                    )
+                                                );
     
             responseRamo.add(
                 linkTo(
