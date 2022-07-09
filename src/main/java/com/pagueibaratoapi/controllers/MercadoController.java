@@ -1,7 +1,7 @@
 package com.pagueibaratoapi.controllers;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,19 +44,20 @@ import com.pagueibaratoapi.utils.Tratamento;
 @RestController
 @RequestMapping("/mercado")
 public class MercadoController {
-    
+
     private final MercadoRepository mercadoRepository;
     private final RamoRepository ramoRepository;
     private final UsuarioRepository usuarioRepository;
     private final SugestaoRepository sugestaoRepository;
     private final EstoqueRepository estoqueRepository;
 
-    public MercadoController(MercadoRepository mercadoRepository, 
-                             RamoRepository ramoRepository, 
-                             UsuarioRepository usuarioRepository,
-                             SugestaoRepository sugestaoRepository,
-                             EstoqueRepository estoqueRepository) {
-
+    public MercadoController(
+        MercadoRepository mercadoRepository,
+        RamoRepository ramoRepository,
+        UsuarioRepository usuarioRepository,
+        SugestaoRepository sugestaoRepository,
+        EstoqueRepository estoqueRepository
+    ) {
         this.mercadoRepository = mercadoRepository;
         this.ramoRepository = ramoRepository;
         this.usuarioRepository = usuarioRepository;
@@ -65,7 +66,7 @@ public class MercadoController {
     }
 
     @PostMapping
-    public ResponseMercado criar(@RequestBody Mercado requestMercado){
+    public ResponseMercado criar(@RequestBody Mercado requestMercado) {
         try {
 
             Tratamento.validarMercado(requestMercado, false);
@@ -79,18 +80,26 @@ public class MercadoController {
             if(mercadoRepository.existsByNomeIgnoreCase(requestMercado.getNome()))
                 throw new DadosConflitantesException("mercado_existente");
 
-            if(mercadoRepository.findByEndereco(requestMercado.getLogradouro(), requestMercado.getNumero(), requestMercado.getComplemento(), requestMercado.getBairro(), requestMercado.getCidade(), requestMercado.getUf(), requestMercado.getCep()) != null)
+            if(mercadoRepository.findByEndereco(
+                requestMercado.getLogradouro(), 
+                requestMercado.getNumero(),
+                requestMercado.getComplemento(), 
+                requestMercado.getBairro(), 
+                requestMercado.getCidade(),
+                requestMercado.getUf(), 
+                requestMercado.getCep()) != null
+            )
                 throw new DadosConflitantesException("mercado_existente");
 
             ResponseMercado responseMercado = new ResponseMercado(mercadoRepository.save(requestMercado));
-    
+
             responseMercado.add(
                 linkTo(
                     methodOn(MercadoController.class).ler(responseMercado.getId())
                 )
                 .withSelfRel()
             );
-    
+
             return responseMercado;
 
         } catch (DadosConflitantesException e) {
@@ -107,12 +116,12 @@ public class MercadoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseMercado ler(@PathVariable(value = "id") Integer id){
+    public ResponseMercado ler(@PathVariable("id") Integer id) {
         try {
 
             ResponseMercado responseMercado = new ResponseMercado(mercadoRepository.findById(id).get());
-    
-            if(responseMercado != null){
+
+            if(responseMercado != null) {
                 responseMercado.add(
                     linkTo(
                         methodOn(MercadoController.class).listar(new Mercado())
@@ -120,9 +129,9 @@ public class MercadoController {
                     .withRel("collection")
                 );
             }
-    
+
             return responseMercado;
-            
+
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(404, "nao_encontrado", e);
         } catch (Exception e) {
@@ -131,13 +140,18 @@ public class MercadoController {
     }
 
     @GetMapping("/{id}/produto/{produtoId}")
-    public List<ResponseSugestao> ler(@PathVariable(value = "id") Integer id, @PathVariable(value = "produtoId") Integer produtoId){
+    public List<ResponseSugestao> ler(
+        @PathVariable("id") Integer id,
+        @PathVariable(value = "produtoId") Integer produtoId
+    ) {
         try {
+
             List<ResponseSugestao> responseSugestao = new ArrayList<ResponseSugestao>();
 
-            // Buscando o registro do estoque do mercado, que associa o produto ao estoque do mercado
+            // Buscando o registro do estoque do mercado, que associa o produto ao estoque
+            // do mercado
             Estoque estoque = estoqueRepository.findByProdutoIdAndMercadoId(produtoId, id);
-            
+
             if(estoque == null)
                 throw new NoSuchElementException("estoque_nao_encontrado");
 
@@ -147,11 +161,11 @@ public class MercadoController {
             if(sugestoes == null)
                 throw new NoSuchElementException("sugestao_nao_encontrado");
 
-            for(Sugestao sugestao : sugestoes){
+            for(Sugestao sugestao : sugestoes) {
                 responseSugestao.add(new ResponseSugestao(sugestao));
             }
 
-            for(ResponseSugestao sugestao : responseSugestao){
+            for(ResponseSugestao sugestao : responseSugestao) {
                 sugestao.setPreco(sugestao.getPreco() / 100);
 
                 sugestao.add(
@@ -189,9 +203,9 @@ public class MercadoController {
                     .withRel("estoque")
                 );
             }
-    
+
             return responseSugestao;
-            
+
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(404, e.getMessage(), e);
         } catch (Exception e) {
@@ -200,25 +214,29 @@ public class MercadoController {
     }
 
     @GetMapping
-    public List<ResponseMercado> listar(Mercado requestMercado){
+    public List<ResponseMercado> listar(Mercado requestMercado) {
         try {
 
             Tratamento.validarMercado(requestMercado, true);
 
             List<Mercado> mercados = mercadoRepository.findAll(
-                                                Example.of(requestMercado, ExampleMatcher
-                                                                    .matching()
-                                                                    .withIgnoreCase()
-                                                                    .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
-            
+                Example.of(
+                    requestMercado, 
+                    ExampleMatcher
+                        .matching()
+                        .withIgnoreCase()
+                        .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                )
+            );
+
             List<ResponseMercado> responseMercado = new ArrayList<ResponseMercado>();
-    
-            for(Mercado mercado : mercados){
+
+            for(Mercado mercado : mercados) {
                 responseMercado.add(new ResponseMercado(mercado));
             }
-    
-            if(!responseMercado.isEmpty()){
-                for(ResponseMercado mercado : responseMercado){
+
+            if(!responseMercado.isEmpty()) {
+                for(ResponseMercado mercado : responseMercado) {
                     mercado.add(
                         linkTo(
                             methodOn(MercadoController.class).ler(mercado.getId())
@@ -227,75 +245,83 @@ public class MercadoController {
                     );
                 }
             }
-            
+
             return responseMercado;
 
-        } catch(DadosInvalidosException e) {
+        } catch (DadosInvalidosException e) {
             throw new ResponseStatusException(400, e.getMessage(), e);
-        } catch(NullPointerException  e) {
+        } catch (NullPointerException e) {
             throw new ResponseStatusException(404, "nao_encontrado", e);
-        } catch(UnsupportedOperationException e) {
+        } catch (UnsupportedOperationException e) {
             throw new ResponseStatusException(500, "erro_inesperado", e);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new ResponseStatusException(500, "erro_inesperado", e);
         }
     }
 
-    @GetMapping(params = {"pagina", "limite"})
-    public ResponsePagina listar(Mercado requestMercado, @RequestParam(required = false, defaultValue = "0") Integer pagina, @RequestParam(required = false, defaultValue = "10") Integer limite){
+    @GetMapping(params = { "pagina", "limite" })
+    public ResponsePagina listar(
+        Mercado requestMercado,
+        @RequestParam(required = false, defaultValue = "0") Integer pagina,
+        @RequestParam(required = false, defaultValue = "10") Integer limite
+    ) {
         try {
 
             Tratamento.validarMercado(requestMercado, true);
 
             Page<Mercado> paginaMercado = mercadoRepository.findAll(
-                                                                Example.of(requestMercado, ExampleMatcher
-                                                                                    .matching()
-                                                                                    .withIgnoreCase()
-                                                                                    .withStringMatcher(
-                                                                                        ExampleMatcher.StringMatcher.CONTAINING)), 
-                                                                                        PageRequest.of(pagina, limite));
-    
-            
+                Example.of(
+                    requestMercado, 
+                    ExampleMatcher
+                        .matching()
+                        .withIgnoreCase()
+                        .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                ),
+                PageRequest.of(pagina, limite)
+            );
+
             List<ResponseMercado> mercados = new ArrayList<ResponseMercado>();
-    
-            for(Mercado mercado : paginaMercado.getContent()){
+
+            for(Mercado mercado : paginaMercado.getContent()) {
                 mercados.add(new ResponseMercado(mercado));
             }
-    
+
             ResponsePagina responseMercado = PaginaUtils.criarResposta(pagina, limite, paginaMercado, mercados);
-    
+
             responseMercado.add(
                 linkTo(
                     methodOn(MercadoController.class).listar(requestMercado, 0, limite)
                 )
                 .withRel("first")
             );
-    
-            if(!paginaMercado.isEmpty()){
-                if(pagina > 0){
+
+            if(!paginaMercado.isEmpty()) {
+                if(pagina > 0) {
                     responseMercado.add(
                         linkTo(
-                            methodOn(MercadoController.class).listar(requestMercado, pagina-1, limite)
+                            methodOn(MercadoController.class).listar(requestMercado, pagina - 1, limite)
                         )
                         .withRel("previous")
                     );
                 }
-                if(pagina < paginaMercado.getTotalPages()-1){
+
+                if(pagina < paginaMercado.getTotalPages() - 1) {
                     responseMercado.add(
                         linkTo(
-                            methodOn(MercadoController.class).listar(requestMercado, pagina+1, limite)
+                            methodOn(MercadoController.class).listar(requestMercado, pagina + 1, limite)
                         )
                         .withRel("next")
                     );
                 }
+
                 responseMercado.add(
                     linkTo(
-                        methodOn(MercadoController.class).listar(requestMercado, paginaMercado.getTotalPages()-1, limite)
+                        methodOn(MercadoController.class).listar(requestMercado, paginaMercado.getTotalPages() - 1, limite)
                     )
                     .withRel("last")
                 );
-    
-                for(ResponseMercado mercado : mercados){
+
+                for(ResponseMercado mercado : mercados) {
                     mercado.add(
                         linkTo(
                             methodOn(MercadoController.class).ler(mercado.getId())
@@ -304,7 +330,7 @@ public class MercadoController {
                     );
                 }
             }
-            
+
             return responseMercado;
 
         } catch (DadosInvalidosException e) {
@@ -319,35 +345,46 @@ public class MercadoController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseMercado editar(@PathVariable int id, @RequestBody Mercado requestMercado){
+    public ResponseMercado editar(@PathVariable int id, @RequestBody Mercado requestMercado) {
         try {
 
             Tratamento.validarMercado(requestMercado, true);
 
-            if(mercadoRepository.findByEndereco(requestMercado.getLogradouro(), requestMercado.getNumero(), requestMercado.getComplemento(), requestMercado.getBairro(), requestMercado.getCidade(), requestMercado.getUf(), requestMercado.getCep()) != null)
+            if(mercadoRepository.findByEndereco(
+                requestMercado.getLogradouro(), 
+                requestMercado.getNumero(),
+                requestMercado.getComplemento(), 
+                requestMercado.getBairro(), 
+                requestMercado.getCidade(),
+                requestMercado.getUf(), 
+                requestMercado.getCep()) != null
+            )
                 throw new DadosConflitantesException("mercado_existente");
 
             Mercado mercadoAtual = mercadoRepository.findById(id).get();
-            
+
             if(!ramoRepository.existsById(requestMercado.getRamoId()))
-                    throw new DadosInvalidosException("ramo_nao_encontrado");
+                throw new DadosInvalidosException("ramo_nao_encontrado");
 
             if(mercadoRepository.existsByNomeIgnoreCase(requestMercado.getNome()))
                 throw new DadosConflitantesException("mercado_existente");
-    
+
             ResponseMercado responseMercado = new ResponseMercado(
-                                                            mercadoRepository.save(
-                                                                EditaRecurso.editarMercado(mercadoAtual, requestMercado)
-                                                            )
-                                                        );
-            
+                mercadoRepository.save(
+                    EditaRecurso.editarMercado(
+                        mercadoAtual, 
+                        requestMercado
+                    )
+                )
+            );
+
             responseMercado.add(
                 linkTo(
                     methodOn(MercadoController.class).ler(responseMercado.getId())
                 )
                 .withSelfRel()
             );
-    
+
             return responseMercado;
 
         } catch (DadosConflitantesException e) {
@@ -366,7 +403,7 @@ public class MercadoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseMercado atualizar(@PathVariable int id, @RequestBody Mercado requestMercado){
+    public ResponseMercado atualizar(@PathVariable int id, @RequestBody Mercado requestMercado) {
         try {
 
             Tratamento.validarMercado(requestMercado, false);
@@ -383,20 +420,28 @@ public class MercadoController {
             if(mercadoRepository.existsByNomeIgnoreCase(requestMercado.getNome()))
                 throw new DadosConflitantesException("mercado_existente");
 
-            if(mercadoRepository.findByEndereco(requestMercado.getLogradouro(), requestMercado.getNumero(), requestMercado.getComplemento(), requestMercado.getBairro(), requestMercado.getCidade(), requestMercado.getUf(), requestMercado.getCep()) != null)
+            if(mercadoRepository.findByEndereco(
+                requestMercado.getLogradouro(), 
+                requestMercado.getNumero(),
+                requestMercado.getComplemento(), 
+                requestMercado.getBairro(), 
+                requestMercado.getCidade(),
+                requestMercado.getUf(), 
+                requestMercado.getCep()) != null
+            )
                 throw new DadosConflitantesException("mercado_existente");
 
             requestMercado.setId(id);
 
             ResponseMercado responseMercado = new ResponseMercado(mercadoRepository.save(requestMercado));
-            
+
             responseMercado.add(
                 linkTo(
                     methodOn(MercadoController.class).ler(responseMercado.getId())
                 )
                 .withSelfRel()
             );
-    
+
             return responseMercado;
 
         } catch (DadosConflitantesException e) {
@@ -415,14 +460,14 @@ public class MercadoController {
     }
 
     @DeleteMapping("/{id}")
-    public Object remover(@PathVariable int id){
+    public Object remover(@PathVariable int id) {
         try {
-            
+
             if(!mercadoRepository.existsById(id))
-                throw new NoSuchElementException( "nao_encontrado");
+                throw new NoSuchElementException("nao_encontrado");
 
             mercadoRepository.deleteById(id);
-    
+
             return linkTo(
                         methodOn(MercadoController.class).listar(new Mercado())
                     )

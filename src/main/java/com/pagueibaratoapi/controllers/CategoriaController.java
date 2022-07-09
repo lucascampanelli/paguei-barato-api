@@ -1,7 +1,7 @@
 package com.pagueibaratoapi.controllers;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ import com.pagueibaratoapi.utils.Tratamento;
 @RestController
 @RequestMapping("/categoria")
 public class CategoriaController {
-    
+
     private final CategoriaRepository categoriaRepository;
 
     public CategoriaController(CategoriaRepository categoriaRepository) {
@@ -40,13 +40,14 @@ public class CategoriaController {
     @PostMapping
     public ResponseCategoria criar(@RequestBody Categoria requestCategoria) {
         try {
+
             Tratamento.validarCategoria(requestCategoria, false);
 
             if(categoriaRepository.existsByNomeIgnoreCase(requestCategoria.getNome()))
                 throw new DadosConflitantesException("nome_existente");
 
             ResponseCategoria responseCategoria = new ResponseCategoria(categoriaRepository.save(requestCategoria));
-    
+
             responseCategoria.add(
                 linkTo(
                     methodOn(CategoriaController.class).ler(responseCategoria.getId())
@@ -70,12 +71,12 @@ public class CategoriaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseCategoria ler(@PathVariable(value = "id") Integer id){
+    public ResponseCategoria ler(@PathVariable("id") Integer id) {
         try {
-            
+
             ResponseCategoria responseCategoria = new ResponseCategoria(categoriaRepository.findById(id).get());
-    
-            if(responseCategoria != null){
+
+            if(responseCategoria != null) {
                 responseCategoria.add(
                     linkTo(
                         methodOn(CategoriaController.class).listar()
@@ -83,7 +84,7 @@ public class CategoriaController {
                     .withRel("collection")
                 );
             }
-    
+
             return responseCategoria;
 
         } catch (NoSuchElementException e) {
@@ -99,13 +100,13 @@ public class CategoriaController {
 
             List<Categoria> categorias = categoriaRepository.findAll();
             List<ResponseCategoria> responseCategoria = new ArrayList<ResponseCategoria>();
-    
-            for(Categoria categoria : categorias){
+
+            for(Categoria categoria : categorias) {
                 responseCategoria.add(
                     new ResponseCategoria(categoria)
                 );
             }
-    
+
             if(!responseCategoria.isEmpty()) {
                 for(ResponseCategoria categoria : responseCategoria) {
                     categoria.add(
@@ -116,14 +117,14 @@ public class CategoriaController {
                     );
                 }
             }
-    
+
             return responseCategoria;
 
-        } catch(NullPointerException  e) {
+        } catch (NullPointerException e) {
             throw new ResponseStatusException(404, "nao_encontrado", e);
-        } catch(UnsupportedOperationException e) {
+        } catch (UnsupportedOperationException e) {
             throw new ResponseStatusException(500, "erro_inesperado", e);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new ResponseStatusException(500, "erro_inesperado", e);
         }
     }
@@ -131,6 +132,7 @@ public class CategoriaController {
     @PatchMapping("/{id}")
     public ResponseCategoria editar(@PathVariable int id, @RequestBody Categoria requestCategoria) {
         try {
+
             Tratamento.validarCategoria(requestCategoria, true);
 
             if(categoriaRepository.existsByNomeIgnoreCase(requestCategoria.getNome()))
@@ -139,21 +141,21 @@ public class CategoriaController {
             Categoria categoriaAtual = categoriaRepository.findById(id).get();
 
             ResponseCategoria responseCategoria = new ResponseCategoria(
-                                                                categoriaRepository.save(
-                                                                    EditaRecurso.editarCategoria(
-                                                                        categoriaAtual, 
-                                                                        requestCategoria
-                                                                    )
-                                                                )
-                                                        );
-    
+                categoriaRepository.save(
+                    EditaRecurso.editarCategoria(
+                        categoriaAtual,
+                        requestCategoria
+                    )
+                )
+            );
+
             responseCategoria.add(
                 linkTo(
                     methodOn(CategoriaController.class).ler(responseCategoria.getId())
                 )
                 .withSelfRel()
             );
-    
+
             return responseCategoria;
 
         } catch (DadosConflitantesException e) {
@@ -172,28 +174,28 @@ public class CategoriaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseCategoria atualizar(@PathVariable int id, @RequestBody Categoria requestCategoria){
+    public ResponseCategoria atualizar(@PathVariable int id, @RequestBody Categoria requestCategoria) {
         try {
 
             if(categoriaRepository.existsByNomeIgnoreCase(requestCategoria.getNome()))
                 throw new DadosConflitantesException("nome_existente");
-            
+
             Tratamento.validarCategoria(requestCategoria, false);
 
             if(!categoriaRepository.existsById(id))
                 throw new NoSuchElementException("nao_encontrado");
-    
+
             requestCategoria.setId(id);
-    
+
             ResponseCategoria responseCategoria = new ResponseCategoria(categoriaRepository.save(requestCategoria));
-    
+
             responseCategoria.add(
                 linkTo(
                     methodOn(CategoriaController.class).ler(responseCategoria.getId())
                 )
                 .withSelfRel()
             );
-    
+
             return responseCategoria;
 
         } catch (DadosConflitantesException e) {
@@ -212,14 +214,14 @@ public class CategoriaController {
     }
 
     @DeleteMapping("/{id}")
-    public Object remover(@PathVariable int id){
+    public Object remover(@PathVariable int id) {
         try {
-            
+
             if(!categoriaRepository.existsById(id))
                 throw new NoSuchElementException("nao_encontrado");
 
             categoriaRepository.deleteById(id);
-    
+
             return linkTo(
                         methodOn(CategoriaController.class).listar()
                     )

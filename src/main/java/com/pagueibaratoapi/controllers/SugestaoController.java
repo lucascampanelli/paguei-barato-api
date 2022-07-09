@@ -1,5 +1,8 @@
 package com.pagueibaratoapi.controllers;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -21,9 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-
 import com.pagueibaratoapi.models.responses.ResponsePagina;
 import com.pagueibaratoapi.models.responses.ResponseSugestao;
 import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
@@ -37,15 +37,16 @@ import com.pagueibaratoapi.utils.Tratamento;
 @RestController
 @RequestMapping("/sugestao")
 public class SugestaoController {
-    
+
     private final EstoqueRepository estoqueRepository;
     private final SugestaoRepository sugestaoRepository;
     private final UsuarioRepository usuarioRepository;
 
-    public SugestaoController(  EstoqueRepository estoqueRepository,
-                                SugestaoRepository sugestaoRepository,
-                                UsuarioRepository usuarioRepository) {
-
+    public SugestaoController(
+        EstoqueRepository estoqueRepository,
+        SugestaoRepository sugestaoRepository,
+        UsuarioRepository usuarioRepository
+    ) {
         this.estoqueRepository = estoqueRepository;
         this.sugestaoRepository = sugestaoRepository;
         this.usuarioRepository = usuarioRepository;
@@ -64,18 +65,18 @@ public class SugestaoController {
                 throw new DadosInvalidosException("usuario_nao_encontrado");
 
             requestSugestao.setPreco(requestSugestao.getPreco() * 100);
-    
+
             ResponseSugestao responseSugestao = new ResponseSugestao(sugestaoRepository.save(requestSugestao));
-    
+
             responseSugestao.add(
                 linkTo(
                     methodOn(SugestaoController.class).ler(responseSugestao.getId())
                 )
                 .withSelfRel()
             );
-    
+
             responseSugestao.setPreco(responseSugestao.getPreco() / 100);
-    
+
             return responseSugestao;
 
         } catch (DadosInvalidosException e) {
@@ -90,12 +91,12 @@ public class SugestaoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseSugestao ler(@PathVariable(value = "id") Integer id){
+    public ResponseSugestao ler(@PathVariable(value = "id") Integer id) {
         try {
 
             ResponseSugestao responseSugestao = new ResponseSugestao(sugestaoRepository.findById(id).get());
-    
-            if(responseSugestao != null){
+
+            if(responseSugestao != null) {
                 responseSugestao.setPreco(responseSugestao.getPreco() / 100);
                 responseSugestao.add(
                     linkTo(
@@ -104,7 +105,7 @@ public class SugestaoController {
                     .withRel("collection")
                 );
             }
-    
+
             return responseSugestao;
 
         } catch (NoSuchElementException e) {
@@ -121,18 +122,22 @@ public class SugestaoController {
             Tratamento.validarSugestao(requestSugestao, true);
 
             List<Sugestao> sugestoes = sugestaoRepository.findAll(
-                Example.of(requestSugestao, ExampleMatcher
-                                    .matching()
-                                    .withIgnoreCase()
-                                    .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
-    
+                Example.of(
+                    requestSugestao, 
+                    ExampleMatcher
+                        .matching()
+                        .withIgnoreCase()
+                        .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                )
+            );
+
             List<ResponseSugestao> responseSugestao = new ArrayList<ResponseSugestao>();
-    
-            for(Sugestao sugestao : sugestoes){
+
+            for(Sugestao sugestao : sugestoes) {
                 responseSugestao.add(new ResponseSugestao(sugestao));
             }
-    
-            if(!responseSugestao.isEmpty()){
+
+            if(!responseSugestao.isEmpty()) {
                 for(ResponseSugestao sugestao : responseSugestao) {
                     sugestao.setPreco(sugestao.getPreco() / 100);
                     sugestao.add(
@@ -143,73 +148,83 @@ public class SugestaoController {
                     );
                 }
             }
-    
+
             return responseSugestao;
 
-        } catch(DadosInvalidosException e) {
+        } catch (DadosInvalidosException e) {
             throw new ResponseStatusException(400, e.getMessage(), e);
-        } catch(NullPointerException  e) {
+        } catch (NullPointerException e) {
             throw new ResponseStatusException(404, "nao_encontrado", e);
-        } catch(UnsupportedOperationException e) {
+        } catch (UnsupportedOperationException e) {
             throw new ResponseStatusException(500, "erro_inesperado", e);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new ResponseStatusException(500, "erro_inesperado", e);
         }
     }
 
-    @GetMapping(params = {"pagina", "limite"})
-    public ResponsePagina listar(Sugestao requestSugestao, @RequestParam(required = false, defaultValue = "0") Integer pagina, @RequestParam(required = false, defaultValue = "10") Integer limite) {
+    @GetMapping(params = { "pagina", "limite" })
+    public ResponsePagina listar(
+        Sugestao requestSugestao,
+        @RequestParam(required = false, defaultValue = "0") Integer pagina,
+        @RequestParam(required = false, defaultValue = "10") Integer limite
+    ) {
         try {
-            
+
             Tratamento.validarSugestao(requestSugestao, true);
 
             Page<Sugestao> paginaSugestao = sugestaoRepository.findAll(
-                Example.of(requestSugestao, ExampleMatcher
-                                    .matching()
-                                    .withIgnoreCase()
-                                    .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)), 
-                PageRequest.of(pagina, limite));
-    
+                Example.of(
+                    requestSugestao, 
+                    ExampleMatcher
+                        .matching()
+                        .withIgnoreCase()
+                        .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                ),
+                PageRequest.of(pagina, limite)
+            );
+
             List<ResponseSugestao> sugestoes = new ArrayList<ResponseSugestao>();
-    
+
             ResponsePagina responsePagina = PaginaUtils.criarResposta(pagina, limite, paginaSugestao, sugestoes);
-    
-            for(Sugestao sugestao : paginaSugestao.getContent()){
+
+            for(Sugestao sugestao : paginaSugestao.getContent()) {
                 sugestoes.add(new ResponseSugestao(sugestao));
             }
-    
+
             responsePagina.add(
                 linkTo(
                     methodOn(SugestaoController.class).listar(requestSugestao, 0, limite)
                 )
                 .withRel("first")
             );
-    
-            if(!paginaSugestao.isEmpty()){
-                if(pagina > 0){
+
+            if(!paginaSugestao.isEmpty()) {
+                if(pagina > 0) {
                     responsePagina.add(
                         linkTo(
-                            methodOn(SugestaoController.class).listar(requestSugestao, pagina-1, limite)
+                            methodOn(SugestaoController.class).listar(requestSugestao, pagina - 1, limite)
                         )
                         .withRel("previous")
                     );
                 }
-                if(pagina < paginaSugestao.getTotalPages()-1){
+
+                if(pagina < paginaSugestao.getTotalPages() - 1) {
                     responsePagina.add(
                         linkTo(
-                            methodOn(SugestaoController.class).listar(requestSugestao, pagina+1, limite)
+                            methodOn(SugestaoController.class).listar(requestSugestao, pagina + 1, limite)
                         )
                         .withRel("next")
                     );
                 }
+
                 responsePagina.add(
                     linkTo(
-                        methodOn(SugestaoController.class).listar(requestSugestao, paginaSugestao.getTotalPages()-1, limite)
+                        methodOn(SugestaoController.class).listar(requestSugestao, paginaSugestao.getTotalPages() - 1, limite)
                     )
                     .withRel("last")
                 );
-    
-                for(ResponseSugestao sugestao : sugestoes){
+
+                for(ResponseSugestao sugestao : sugestoes) {
                     sugestao.setPreco(sugestao.getPreco() / 100);
                     sugestao.add(
                         linkTo(
@@ -219,7 +234,7 @@ public class SugestaoController {
                     );
                 }
             }
-    
+
             return responsePagina;
 
         } catch (DadosInvalidosException e) {
@@ -234,16 +249,16 @@ public class SugestaoController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseSugestao editar(@PathVariable int id, @RequestBody Sugestao requestSugestao){
+    public ResponseSugestao editar(@PathVariable int id, @RequestBody Sugestao requestSugestao) {
         try {
 
             Tratamento.validarSugestao(requestSugestao, true);
 
             Sugestao sugestaoAtual = sugestaoRepository.findById(id).get();
-    
+
             if(requestSugestao.getPreco() != null)
                 sugestaoAtual.setPreco(requestSugestao.getPreco() * 100);
-    
+
             ResponseSugestao responseSugestao = new ResponseSugestao(sugestaoRepository.save(sugestaoAtual));
 
             responseSugestao.add(
@@ -252,9 +267,9 @@ public class SugestaoController {
                 )
                 .withSelfRel()
             );
-            
+
             responseSugestao.setPreco(responseSugestao.getPreco() / 100);
-    
+
             return responseSugestao;
 
         } catch (DadosInvalidosException e) {
@@ -271,7 +286,7 @@ public class SugestaoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseSugestao atualizar(@PathVariable int id, @RequestBody Sugestao requestSugestao){
+    public ResponseSugestao atualizar(@PathVariable int id, @RequestBody Sugestao requestSugestao) {
         try {
 
             Tratamento.validarSugestao(requestSugestao, true);
@@ -284,18 +299,18 @@ public class SugestaoController {
 
             requestSugestao.setId(id);
             requestSugestao.setPreco(requestSugestao.getPreco() * 100);
-    
+
             ResponseSugestao responseSugestao = new ResponseSugestao(sugestaoRepository.save(requestSugestao));
-    
+
             responseSugestao.add(
                 linkTo(
                     methodOn(SugestaoController.class).ler(responseSugestao.getId())
                 )
                 .withSelfRel()
             );
-            
+
             responseSugestao.setPreco(responseSugestao.getPreco() / 100);
-    
+
             return responseSugestao;
 
         } catch (DadosInvalidosException e) {
@@ -312,17 +327,18 @@ public class SugestaoController {
     }
 
     @DeleteMapping("/{id}")
-    public Object remover(@PathVariable int id){
+    public Object remover(@PathVariable int id) {
         try {
 
             if(!sugestaoRepository.existsById(id))
                 throw new NoSuchElementException("nao_encontrado");
 
             sugestaoRepository.deleteById(id);
-    
+
             return linkTo(
                         methodOn(SugestaoController.class).listar(new Sugestao())
-                    ).withRel("collection");
+                    )
+                    .withRel("collection");
 
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(404, e.getMessage(), e);

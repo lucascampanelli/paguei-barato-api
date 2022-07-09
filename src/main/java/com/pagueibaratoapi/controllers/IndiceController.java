@@ -1,5 +1,8 @@
 package com.pagueibaratoapi.controllers;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,15 +17,12 @@ import com.pagueibaratoapi.models.requests.Produto;
 import com.pagueibaratoapi.models.requests.Ramo;
 import com.pagueibaratoapi.models.requests.Sugestao;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-
 @RestController
 @RequestMapping("/")
 public class IndiceController {
     
     @GetMapping
-    public List<Object> listar(){
+    public List<Object> listar() {
         try {
             
             List<Object> responseLinks = new ArrayList<Object>();
@@ -79,7 +79,7 @@ public class IndiceController {
             return responseLinks;
 
         } catch (Exception e) {
-            throw new ResponseStatusException(500,"erro_interno", e);
+            throw new ResponseStatusException(500, "erro_interno", e);
         }
     }
 }

@@ -1,5 +1,8 @@
 package com.pagueibaratoapi.controllers;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -18,9 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-
 import com.pagueibaratoapi.models.exceptions.DadosConflitantesException;
 import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Ramo;
@@ -31,7 +31,7 @@ import com.pagueibaratoapi.utils.Tratamento;
 @RestController
 @RequestMapping("/ramo")
 public class RamoController {
-    
+
     private final RamoRepository ramoRepository;
 
     public RamoController(RamoRepository ramoRepository) {
@@ -39,7 +39,7 @@ public class RamoController {
     }
 
     @PostMapping
-    public ResponseRamo criar(@RequestBody Ramo requestRamo){
+    public ResponseRamo criar(@RequestBody Ramo requestRamo) {
         try {
 
             Tratamento.validarRamo(requestRamo, false);
@@ -48,14 +48,14 @@ public class RamoController {
                 throw new DadosConflitantesException("ramo_existente");
 
             ResponseRamo responseRamo = new ResponseRamo(ramoRepository.save(requestRamo));
-    
+
             responseRamo.add(
                 linkTo(
                     methodOn(RamoController.class).ler(responseRamo.getId())
                 )
                 .withSelfRel()
             );
-            
+
             return responseRamo;
 
         } catch (DadosConflitantesException e) {
@@ -72,20 +72,20 @@ public class RamoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseRamo ler(@PathVariable(value = "id") Integer id){
+    public ResponseRamo ler(@PathVariable("id") Integer id) {
         try {
-        
+
             ResponseRamo responseRamo = new ResponseRamo(ramoRepository.findById(id).get());
-    
+
             responseRamo.add(
                 linkTo(
                     methodOn(RamoController.class).listar(new Ramo())
                 )
                 .withRel("collection")
             );
-    
+
             return responseRamo;
-            
+
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(404, "nao_encontrado", e);
         } catch (Exception e) {
@@ -94,29 +94,29 @@ public class RamoController {
     }
 
     @GetMapping
-    public List<ResponseRamo> listar(Ramo requestRamo){
+    public List<ResponseRamo> listar(Ramo requestRamo) {
         try {
 
             Tratamento.validarRamo(requestRamo, true);
 
             List<Ramo> ramos = ramoRepository.findAll(
-                                                        Example.of(requestRamo, ExampleMatcher
-                                                                                    .matching()
-                                                                                    .withIgnoreCase()
-                                                                                    .withStringMatcher(
-                                                                                        ExampleMatcher.StringMatcher.CONTAINING
-                                                                                    )
-                                                                )
-                                                            );
-    
+                Example.of(
+                    requestRamo, 
+                    ExampleMatcher
+                        .matching()
+                        .withIgnoreCase()
+                        .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                )
+            );
+
             List<ResponseRamo> responseRamo = new ArrayList<ResponseRamo>();
-    
-            for(Ramo ramo : ramos){
+
+            for(Ramo ramo : ramos) {
                 responseRamo.add(new ResponseRamo(ramo));
             }
-    
-            if(!responseRamo.isEmpty()){
-                for(ResponseRamo ramo : responseRamo){
+
+            if(!responseRamo.isEmpty()) {
+                for(ResponseRamo ramo : responseRamo) {
                     ramo.add(
                         linkTo(
                             methodOn(RamoController.class).ler(ramo.getId())
@@ -125,47 +125,47 @@ public class RamoController {
                     );
                 }
             }
-    
+
             return responseRamo;
 
-        } catch(DadosInvalidosException e) {
+        } catch (DadosInvalidosException e) {
             throw new ResponseStatusException(400, e.getMessage(), e);
-        } catch(NullPointerException  e) {
+        } catch (NullPointerException e) {
             throw new ResponseStatusException(404, "nao_encontrado", e);
-        } catch(UnsupportedOperationException e) {
+        } catch (UnsupportedOperationException e) {
             throw new ResponseStatusException(500, "erro_inesperado", e);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new ResponseStatusException(500, "erro_inesperado", e);
         }
     }
 
     @PatchMapping("/{id}")
-    public ResponseRamo editar(@PathVariable(value = "id") Integer id, @RequestBody Ramo requestRamo){
+    public ResponseRamo editar(@PathVariable("id") Integer id, @RequestBody Ramo requestRamo) {
         try {
 
             Tratamento.validarRamo(requestRamo, true);
 
             Ramo ramoAtual = ramoRepository.findById(id).get();
-    
-            if(requestRamo.getNome() != null){
+
+            if(requestRamo.getNome() != null) {
                 if(ramoRepository.existsByNomeIgnoreCase(requestRamo.getNome()))
                     throw new DadosConflitantesException("ramo_existente");
 
                 ramoAtual.setNome(requestRamo.getNome());
             }
-    
+
             if(requestRamo.getDescricao() != null)
                 ramoAtual.setDescricao(requestRamo.getDescricao());
-    
+
             ResponseRamo responseRamo = new ResponseRamo(ramoRepository.save(ramoAtual));
-    
+
             responseRamo.add(
                 linkTo(
                     methodOn(RamoController.class).ler(responseRamo.getId())
                 )
                 .withSelfRel()
             );
-    
+
             return responseRamo;
 
         } catch (DadosConflitantesException e) {
@@ -184,7 +184,7 @@ public class RamoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseRamo atualizar(@PathVariable(value = "id") Integer id, @RequestBody Ramo requestRamo){
+    public ResponseRamo atualizar(@PathVariable("id") Integer id, @RequestBody Ramo requestRamo) {
         try {
 
             Tratamento.validarRamo(requestRamo, false);
@@ -193,16 +193,16 @@ public class RamoController {
                 throw new DadosConflitantesException("ramo_existente");
 
             requestRamo.setId(id);
-    
+
             ResponseRamo responseRamo = new ResponseRamo(ramoRepository.save(requestRamo));
-    
+
             responseRamo.add(
                 linkTo(
                     methodOn(RamoController.class).ler(responseRamo.getId())
                 )
                 .withSelfRel()
             );
-    
+
             return responseRamo;
 
         } catch (DadosConflitantesException e) {
@@ -221,18 +221,18 @@ public class RamoController {
     }
 
     @DeleteMapping("/{id}")
-    public Object remover(@PathVariable int id){
+    public Object remover(@PathVariable int id) {
         try {
 
             if(!ramoRepository.existsById(id))
                 throw new NoSuchElementException("nao_encontrado");
 
             ramoRepository.deleteById(id);
-            
+
             return linkTo(
                         methodOn(RamoController.class).listar(new Ramo())
                     )
-                    .withRel("collection"); 
+                    .withRel("collection");
 
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(404, e.getMessage(), e);

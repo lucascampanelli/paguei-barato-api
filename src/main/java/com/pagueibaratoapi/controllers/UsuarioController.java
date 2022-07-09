@@ -1,5 +1,8 @@
 package com.pagueibaratoapi.controllers;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -16,9 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-
 import com.pagueibaratoapi.models.exceptions.DadosConflitantesException;
 import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Usuario;
@@ -31,32 +31,33 @@ import com.pagueibaratoapi.utils.Tratamento;
 @RestController
 @RequestMapping("/usuario")
 public class UsuarioController {
-    
+
     private final UsuarioRepository usuarioRepository;
 
-    public UsuarioController(UsuarioRepository usuarioRepository){
+    public UsuarioController(UsuarioRepository usuarioRepository) {
         this.usuarioRepository = usuarioRepository;
     }
 
     @PostMapping
-    public ResponseUsuario criar(@RequestBody Usuario requestUsuario){
+    public ResponseUsuario criar(@RequestBody Usuario requestUsuario) {
         try {
 
             Tratamento.validarUsuario(requestUsuario, false);
 
             if(usuarioRepository.findByEmail(requestUsuario.getEmail()) != null)
                 throw new DadosConflitantesException("email_em_uso");
-    
+
             requestUsuario.setSenha(Senha.encriptar(requestUsuario.getSenha()));
-    
+
             ResponseUsuario responseUsuario = new ResponseUsuario(usuarioRepository.save(requestUsuario));
-    
+
             responseUsuario.add(
                 linkTo(
                     methodOn(UsuarioController.class).ler(responseUsuario.getId())
-                ).withSelfRel()
+                )
+                .withSelfRel()
             );
-    
+
             return responseUsuario;
 
         } catch (DadosConflitantesException e) {
@@ -73,12 +74,12 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}")
-    public ResponseUsuario ler(@PathVariable(value = "id") Integer id){
+    public ResponseUsuario ler(@PathVariable("id") Integer id) {
         try {
 
             ResponseUsuario responseUsuario = new ResponseUsuario(usuarioRepository.findById(id).get());
-    
-            if(responseUsuario != null){
+
+            if(responseUsuario != null) {
                 responseUsuario.add(
                     linkTo(
                         methodOn(UsuarioController.class).listar()
@@ -86,7 +87,7 @@ public class UsuarioController {
                     .withRel("collection")
                 );
             }
-    
+
             return responseUsuario;
 
         } catch (NoSuchElementException e) {
@@ -97,19 +98,19 @@ public class UsuarioController {
     }
 
     @GetMapping
-    public List<ResponseUsuario> listar(){
+    public List<ResponseUsuario> listar() {
         try {
 
             List<Usuario> usuarios = usuarioRepository.findAll();
-    
+
             List<ResponseUsuario> responseUsuario = new ArrayList<ResponseUsuario>();
-    
-            for(Usuario usuario : usuarios){
+
+            for(Usuario usuario : usuarios) {
                 responseUsuario.add(new ResponseUsuario(usuario));
             }
-    
-            if(!responseUsuario.isEmpty()){
-                for(ResponseUsuario usuario : responseUsuario){
+
+            if(!responseUsuario.isEmpty()) {
+                for(ResponseUsuario usuario : responseUsuario) {
                     usuario.add(
                         linkTo(
                             methodOn(UsuarioController.class).ler(usuario.getId())
@@ -118,20 +119,20 @@ public class UsuarioController {
                     );
                 }
             }
-    
+
             return responseUsuario;
 
-        } catch(NullPointerException e) {
+        } catch (NullPointerException e) {
             throw new ResponseStatusException(404, "nao_encontrado", e);
-        } catch(UnsupportedOperationException e) {
+        } catch (UnsupportedOperationException e) {
             throw new ResponseStatusException(500, "erro_inesperado", e);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new ResponseStatusException(500, "erro_inesperado", e);
         }
     }
 
     @PatchMapping("/{id}")
-    public ResponseUsuario editar(@PathVariable(value = "id") Integer id, @RequestBody Usuario requestUsuario){
+    public ResponseUsuario editar(@PathVariable("id") Integer id, @RequestBody Usuario requestUsuario) {
         try {
 
             Tratamento.validarUsuario(requestUsuario, true);
@@ -140,16 +141,23 @@ public class UsuarioController {
                 throw new DadosConflitantesException("email_em_uso");
 
             Usuario usuarioAtual = usuarioRepository.findById(id).get();
-            
-            ResponseUsuario responseUsuario = new ResponseUsuario(usuarioRepository.save(EditaRecurso.editarUsuario(usuarioAtual, requestUsuario)));
-    
+
+            ResponseUsuario responseUsuario = new ResponseUsuario(
+                usuarioRepository.save(
+                    EditaRecurso.editarUsuario(
+                        usuarioAtual, 
+                        requestUsuario
+                    )
+                )
+            );
+
             responseUsuario.add(
                 linkTo(
                     methodOn(UsuarioController.class).ler(responseUsuario.getId())
                 )
                 .withSelfRel()
             );
-    
+
             return responseUsuario;
 
         } catch (DadosConflitantesException e) {
@@ -168,27 +176,27 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    public ResponseUsuario atualizar(@PathVariable(value = "id") Integer id, @RequestBody Usuario requestUsuario){
+    public ResponseUsuario atualizar(@PathVariable("id") Integer id, @RequestBody Usuario requestUsuario) {
         try {
 
             Tratamento.validarUsuario(requestUsuario, false);
 
             if(usuarioRepository.findByEmail(requestUsuario.getEmail()) != null)
                 throw new DadosConflitantesException("email_em_uso");
-    
+
             requestUsuario.setId(id);
-    
+
             requestUsuario.setSenha(Senha.encriptar(requestUsuario.getSenha()));
-    
+
             ResponseUsuario responseUsuario = new ResponseUsuario(usuarioRepository.save(requestUsuario));
-    
+
             responseUsuario.add(
                 linkTo(
                     methodOn(UsuarioController.class).ler(responseUsuario.getId())
                 )
                 .withSelfRel()
             );
-    
+
             return responseUsuario;
 
         } catch (DadosConflitantesException e) {
@@ -207,11 +215,11 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
-    public Object remover(@PathVariable int id){
+    public Object remover(@PathVariable int id) {
         try {
 
             Usuario usuarioDeletado = usuarioRepository.findById(id).get();
-    
+
             usuarioDeletado.setId(id);
             usuarioDeletado.setNome("");
             usuarioDeletado.setEmail("");
@@ -223,12 +231,13 @@ public class UsuarioController {
             usuarioDeletado.setCidade("");
             usuarioDeletado.setUf("--");
             usuarioDeletado.setCep("00000-000");
-    
+
             usuarioRepository.save(usuarioDeletado);
-    
+
             return linkTo(
                         methodOn(UsuarioController.class).listar()
-                    ).withRel("collection");
+                    )
+                    .withRel("collection");
 
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(404, e.getMessage(), e);
