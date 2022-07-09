@@ -62,5 +62,4 @@ public class ResponseLevantamentoProduto extends ResponseProduto {
     public void setDataUltimaSugestao(Calendar dataUltimaSugestao) {
         this.dataUltimaSugestao = dataUltimaSugestao;
     }
-    
 }

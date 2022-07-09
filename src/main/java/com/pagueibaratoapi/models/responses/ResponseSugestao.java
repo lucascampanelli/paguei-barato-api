@@ -9,6 +9,7 @@ import com.pagueibaratoapi.models.requests.Sugestao;
 public class ResponseSugestao extends RepresentationModel<ResponseSugestao> {
     
     private Integer id;
+
     private Float preco;
     private Calendar timestamp;
 
@@ -52,5 +53,4 @@ public class ResponseSugestao extends RepresentationModel<ResponseSugestao> {
     public void setEstoqueId(Integer estoqueId) {
         this.estoqueId = estoqueId;
     }
-    
 }

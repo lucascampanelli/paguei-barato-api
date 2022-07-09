@@ -7,6 +7,7 @@ import com.pagueibaratoapi.models.requests.Categoria;
 public class ResponseCategoria extends RepresentationModel<ResponseCategoria> {
 
     private Integer id;
+    
     private String nome;
     private String descricao;
 

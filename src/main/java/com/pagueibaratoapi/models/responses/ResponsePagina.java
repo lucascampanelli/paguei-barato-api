@@ -11,6 +11,7 @@ public class ResponsePagina extends RepresentationModel<ResponsePagina> {
     private Integer paginaAtual;
     private Integer totalPaginas;
     private Long totalRegistros;
+    
     private List<?> itens;
 
     public Integer getContagem() {

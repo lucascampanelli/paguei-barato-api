@@ -7,6 +7,7 @@ import com.pagueibaratoapi.models.requests.Ramo;
 public class ResponseRamo extends RepresentationModel<ResponseRamo> {
     
     private Integer id;
+    
     private String nome;
     private String descricao;
 

@@ -7,6 +7,7 @@ import com.pagueibaratoapi.models.requests.Usuario;
 public class ResponseUsuario extends RepresentationModel<ResponseUsuario> {
     
     private Integer id;
+
     private String nome;
     private String email;
     private String senha;
@@ -119,5 +120,4 @@ public class ResponseUsuario extends RepresentationModel<ResponseUsuario> {
     public void setCep(String cep) {
         this.cep = cep;
     }
-
 }

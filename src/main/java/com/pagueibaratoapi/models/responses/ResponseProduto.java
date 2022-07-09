@@ -7,6 +7,7 @@ import com.pagueibaratoapi.models.requests.Produto;
 public class ResponseProduto extends RepresentationModel<ResponseProduto> {
     
     private Integer id;
+    
     private String nome;
     private String marca;
     private String tamanho;
@@ -71,5 +72,4 @@ public class ResponseProduto extends RepresentationModel<ResponseProduto> {
     public void setCategoriaId(Integer categoriaId) {
         this.categoriaId = categoriaId;
     }
-    
 }

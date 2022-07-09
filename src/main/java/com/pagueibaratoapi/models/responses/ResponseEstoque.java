@@ -50,5 +50,4 @@ public class ResponseEstoque extends RepresentationModel<ResponseEstoque> {
     public void setMercadoId(Integer mercadoId) {
         this.mercadoId = mercadoId;
     }
-    
 }

@@ -5,9 +5,9 @@ import org.springframework.hateoas.RepresentationModel;
 import com.pagueibaratoapi.models.requests.Mercado;
 
 public class ResponseMercado extends RepresentationModel<ResponseMercado> {
-    
+
     private Integer id;
-    
+
     private String nome;
     private String logradouro;
     private Integer numero;
@@ -46,14 +46,6 @@ public class ResponseMercado extends RepresentationModel<ResponseMercado> {
 
     public void setNome(String nome) {
         this.nome = nome.trim();
-    }
-
-    public Integer getRamoId() {
-        return ramoId;
-    }
-
-    public void setRamoId(Integer ramoId) {
-        this.ramoId = ramoId;
     }
 
     public String getLogradouro() {
@@ -113,5 +105,13 @@ public class ResponseMercado extends RepresentationModel<ResponseMercado> {
 
     public void setCep(String cep) {
         this.cep = cep.trim().replaceAll("[^0-9-]", "");
+    }
+
+    public Integer getRamoId() {
+        return ramoId;
+    }
+
+    public void setRamoId(Integer ramoId) {
+        this.ramoId = ramoId;
     }
 }
