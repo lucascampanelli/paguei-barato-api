@@ -1,6 +1,7 @@
-package com.pagueibaratoapi.utils;
+package com.pagueibaratoapi.utils.patches;
 
 import com.pagueibaratoapi.models.requests.Usuario;
+import com.pagueibaratoapi.utils.Senha;
 
 public class PatchUsuario {
 

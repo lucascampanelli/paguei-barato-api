@@ -1,4 +1,4 @@
-package com.pagueibaratoapi.utils;
+package com.pagueibaratoapi.utils.tratamentos;
 
 import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Categoria;

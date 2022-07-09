@@ -8,6 +8,13 @@ import com.pagueibaratoapi.models.requests.Produto;
 import com.pagueibaratoapi.models.requests.Ramo;
 import com.pagueibaratoapi.models.requests.Sugestao;
 import com.pagueibaratoapi.models.requests.Usuario;
+import com.pagueibaratoapi.utils.tratamentos.TratamentoCategoria;
+import com.pagueibaratoapi.utils.tratamentos.TratamentoEstoque;
+import com.pagueibaratoapi.utils.tratamentos.TratamentoMercado;
+import com.pagueibaratoapi.utils.tratamentos.TratamentoProduto;
+import com.pagueibaratoapi.utils.tratamentos.TratamentoRamo;
+import com.pagueibaratoapi.utils.tratamentos.TratamentoSugestao;
+import com.pagueibaratoapi.utils.tratamentos.TratamentoUsuario;
 
 public class Tratamento {
     

@@ -6,6 +6,12 @@ import com.pagueibaratoapi.models.requests.Produto;
 import com.pagueibaratoapi.models.requests.Ramo;
 import com.pagueibaratoapi.models.requests.Sugestao;
 import com.pagueibaratoapi.models.requests.Usuario;
+import com.pagueibaratoapi.utils.patches.PatchCategoria;
+import com.pagueibaratoapi.utils.patches.PatchMercado;
+import com.pagueibaratoapi.utils.patches.PatchProduto;
+import com.pagueibaratoapi.utils.patches.PatchRamo;
+import com.pagueibaratoapi.utils.patches.PatchSugestao;
+import com.pagueibaratoapi.utils.patches.PatchUsuario;
 
 public class EditaRecurso {
     

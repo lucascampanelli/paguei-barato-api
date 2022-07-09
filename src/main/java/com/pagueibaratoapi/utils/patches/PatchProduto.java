@@ -1,4 +1,4 @@
-package com.pagueibaratoapi.utils;
+package com.pagueibaratoapi.utils.patches;
 
 import com.pagueibaratoapi.models.requests.Produto;
 
