@@ -15,28 +15,27 @@ import com.pagueibaratoapi.utils.patches.PatchUsuario;
 
 public class EditaRecurso {
     
-    public static Categoria editarCategoria(Categoria categoriaAtual, Categoria categoriaEditada){
+    public static Categoria editarCategoria(Categoria categoriaAtual, Categoria categoriaEditada) {
         return PatchCategoria.edita(categoriaAtual, categoriaEditada);
     }
 
-    public static Mercado editarMercado(Mercado mercadoAtual, Mercado mercadoEditado){
+    public static Mercado editarMercado(Mercado mercadoAtual, Mercado mercadoEditado) {
         return PatchMercado.edita(mercadoAtual, mercadoEditado);
     }
 
-    public static Produto editarProduto(Produto produtoAtual, Produto produtoEditado){
+    public static Produto editarProduto(Produto produtoAtual, Produto produtoEditado) {
         return PatchProduto.edita(produtoAtual, produtoEditado);
     }
 
-    public static Ramo editarRamo(Ramo ramoAtual, Ramo ramoEditado){
+    public static Ramo editarRamo(Ramo ramoAtual, Ramo ramoEditado) {
         return PatchRamo.edita(ramoAtual, ramoEditado);
     }
 
-    public static Sugestao editarSugestao(Sugestao sugestaoAtual, Sugestao sugestaoEditada){
+    public static Sugestao editarSugestao(Sugestao sugestaoAtual, Sugestao sugestaoEditada) {
         return PatchSugestao.edita(sugestaoAtual, sugestaoEditada);
     }
 
-    public static Usuario editarUsuario(Usuario usuarioAtual, Usuario usuarioEditado){
+    public static Usuario editarUsuario(Usuario usuarioAtual, Usuario usuarioEditado) {
         return PatchUsuario.edita(usuarioAtual, usuarioEditado);
     }
-    
 }

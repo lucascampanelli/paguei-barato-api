@@ -30,7 +30,5 @@ public class PaginaUtils {
         responsePagina.setItens(itens);
 
         return responsePagina;
-
     }
-
 }

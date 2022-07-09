@@ -8,7 +8,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
  */
 public class Senha {
 
-
     // Valor do salt inicial para a senha, definido no arquivo application.properties
     @Value("${pagueibarato.config.salt.start}")
     private static String SALT_START;
@@ -17,14 +16,12 @@ public class Senha {
     @Value("${pagueibarato.config.salt.end}")
     private static String SALT_END;
 
-
-
     /**
      * Método responsável por <b>salgar</b> uma senha
      * @param senha - Senha a ser salgada
      * @return String - Senha salgada
     */ 
-    public static String salgar(String senha){
+    public static String salgar(String senha) {
         // Adiciona um salt fixo no início e outro no fim da senha informada
         return SALT_START + senha + SALT_END;
     }
@@ -34,7 +31,7 @@ public class Senha {
      * @param senha - Senha limpa a ser encriptada
      * @return String - Senha criptografada
      */
-    public static String encriptar(String senha){
+    public static String encriptar(String senha) {
         // Cria um novo objeto do tipo BCryptPasswordEncoder
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -48,7 +45,7 @@ public class Senha {
      * @param senhaCriptografada - Senha criptografada
      * @return boolean - true se a senha for igual a senha criptografada, false se não for
      */
-    public static boolean validar(String senha, String senhaCriptografada){
+    public static boolean validar(String senha, String senhaCriptografada) {
         // Cria um novo objeto do tipo BCryptPasswordEncoder
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
