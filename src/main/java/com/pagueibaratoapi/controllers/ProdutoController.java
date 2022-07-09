@@ -34,6 +34,7 @@ import com.pagueibaratoapi.repository.EstoqueRepository;
 import com.pagueibaratoapi.repository.ProdutoRepository;
 import com.pagueibaratoapi.repository.SugestaoRepository;
 import com.pagueibaratoapi.repository.UsuarioRepository;
+import com.pagueibaratoapi.utils.EditaRecurso;
 import com.pagueibaratoapi.utils.PaginaUtils;
 import com.pagueibaratoapi.utils.Tratamento;
 
@@ -343,31 +344,15 @@ public class ProdutoController {
                 throw new DadosConflitantesException("produto_existente");
 
             Produto produtoAtual = produtoRepository.findById(id).get();
-    
-            if(requestProduto.getNome() != null)
-                produtoAtual.setNome(requestProduto.getNome());
-    
-            if(requestProduto.getMarca() != null)
-                produtoAtual.setMarca(requestProduto.getMarca());
             
-            if(requestProduto.getTamanho() != null)
-                produtoAtual.setTamanho(requestProduto.getTamanho());
-    
-            if(requestProduto.getCor() != null){
-                if(requestProduto.getCor() == "")
-                    produtoAtual.setCor(null);
-                else
-                    produtoAtual.setCor(requestProduto.getCor());
-            }
-    
-            if(requestProduto.getCategoriaId() != null){
-                if(!categoriaRepository.existsById(requestProduto.getCategoriaId()))
-                    throw new DadosInvalidosException("categoria_nao_encontrado");
+            if(!categoriaRepository.existsById(requestProduto.getCategoriaId()))
+                throw new DadosInvalidosException("categoria_nao_encontrado");
 
-                produtoAtual.setCategoriaId(requestProduto.getCategoriaId());
-            }
-    
-            ResponseProduto responseProduto = new ResponseProduto(produtoRepository.save(produtoAtual));
+            ResponseProduto responseProduto = new ResponseProduto(
+                                                                produtoRepository.save(
+                                                                    EditaRecurso.editarProduto(produtoAtual, requestProduto)
+                                                                )
+                                                            );
     
             responseProduto.add(
                 linkTo(

@@ -2,6 +2,7 @@ package com.pagueibaratoapi.utils;
 
 import com.pagueibaratoapi.models.requests.Categoria;
 import com.pagueibaratoapi.models.requests.Mercado;
+import com.pagueibaratoapi.models.requests.Produto;
 import com.pagueibaratoapi.models.requests.Usuario;
 
 public class EditaRecurso {
@@ -12,6 +13,10 @@ public class EditaRecurso {
 
     public static Mercado editarMercado(Mercado mercadoAtual, Mercado mercadoEditado){
         return PatchMercado.edita(mercadoAtual, mercadoEditado);
+    }
+
+    public static Produto editarProduto(Produto produtoAtual, Produto produtoEditado){
+        return PatchProduto.edita(produtoAtual, produtoEditado);
     }
 
     public static Usuario editarUsuario(Usuario usuarioAtual, Usuario usuarioEditado){
