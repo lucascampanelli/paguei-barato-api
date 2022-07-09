@@ -141,7 +141,11 @@ public class UsuarioController {
 
             Usuario usuarioAtual = usuarioRepository.findById(id).get();
             
-            ResponseUsuario responseUsuario = new ResponseUsuario(usuarioRepository.save(EditaRecurso.editarUsuario(usuarioAtual, requestUsuario)));
+            ResponseUsuario responseUsuario = new ResponseUsuario(
+                                                                usuarioRepository.save(
+                                                                    EditaRecurso.editarUsuario(usuarioAtual, requestUsuario)
+                                                                )
+                                                            );
     
             responseUsuario.add(
                 linkTo(

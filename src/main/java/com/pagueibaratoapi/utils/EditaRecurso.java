@@ -4,6 +4,7 @@ import com.pagueibaratoapi.models.requests.Categoria;
 import com.pagueibaratoapi.models.requests.Mercado;
 import com.pagueibaratoapi.models.requests.Produto;
 import com.pagueibaratoapi.models.requests.Ramo;
+import com.pagueibaratoapi.models.requests.Sugestao;
 import com.pagueibaratoapi.models.requests.Usuario;
 
 public class EditaRecurso {
@@ -22,6 +23,10 @@ public class EditaRecurso {
 
     public static Ramo editarRamo(Ramo ramoAtual, Ramo ramoEditado){
         return PatchRamo.edita(ramoAtual, ramoEditado);
+    }
+
+    public static Sugestao editarSugestao(Sugestao sugestaoAtual, Sugestao sugestaoEditada){
+        return PatchSugestao.edita(sugestaoAtual, sugestaoEditada);
     }
 
     public static Usuario editarUsuario(Usuario usuarioAtual, Usuario usuarioEditado){
