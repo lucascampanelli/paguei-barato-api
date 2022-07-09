@@ -23,6 +23,7 @@ public class Produto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
     private String nome;
     private String marca;
     private String tamanho;
@@ -30,20 +31,21 @@ public class Produto {
 
     @Column(name = "\"criadoPor\"")
     private Integer criadoPor;
+
     @Column(name = "\"categoriaId\"")
     private Integer categoriaId;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "produto", orphanRemoval = true)
-    @JsonIgnore
-    private List<Estoque> estoques = new ArrayList<Estoque>();;
+    private List<Estoque> estoques = new ArrayList<Estoque>();
 
-    @ManyToOne
     @JsonIgnore
+    @ManyToOne
     @JoinColumn(name = "\"criadoPor\"", updatable = false, insertable = false)
     private Usuario usuario;
 
-    @ManyToOne
     @JsonIgnore
+    @ManyToOne
     @JoinColumn(name = "\"categoriaId\"", updatable = false, insertable = false)
     private Categoria categoria;
 
@@ -56,7 +58,6 @@ public class Produto {
     }
 
     public String getNome() {
-       
         return nome;
     }
 
@@ -127,5 +128,4 @@ public class Produto {
     public void setCategoria(Categoria categoria) {
         this.categoria = categoria;
     }
-    
 }

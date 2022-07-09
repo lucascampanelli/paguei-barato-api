@@ -18,11 +18,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 @Table(name = "mercado")
 public class Mercado {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    
+
     private String nome;
     private String logradouro;
     private Integer numero;
@@ -38,19 +38,19 @@ public class Mercado {
     @Column(name = "\"ramoId\"")
     private Integer ramoId;
 
-    @ManyToOne
     @JsonIgnore
+    @ManyToOne
     @JoinColumn(name = "\"criadoPor\"", updatable = false, insertable = false)
     private Usuario usuario;
 
-    @ManyToOne
     @JsonIgnore
+    @ManyToOne
     @JoinColumn(name = "\"ramoId\"", updatable = false, insertable = false)
     private Ramo ramo;
 
-    @OneToMany(mappedBy = "mercado", orphanRemoval = true)
     @JsonIgnore
-    private List<Estoque> estoques = new ArrayList<Estoque>();;
+    @OneToMany(mappedBy = "mercado", orphanRemoval = true)
+    private List<Estoque> estoques = new ArrayList<Estoque>();
 
     public Integer getId() {
         return id;
@@ -60,28 +60,12 @@ public class Mercado {
         this.id = id;
     }
 
-    public Integer getCriadoPor() {
-        return criadoPor;
-    }
-
-    public void setCriadoPor(Integer criadoPor) {
-        this.criadoPor = criadoPor;
-    }
-
     public String getNome() {
         return nome;
     }
 
     public void setNome(String nome) {
         this.nome = nome.trim();
-    }
-
-    public Integer getRamoId() {
-        return ramoId;
-    }
-
-    public void setRamoId(Integer ramoId) {
-        this.ramoId = ramoId;
     }
 
     public String getLogradouro() {
@@ -105,7 +89,7 @@ public class Mercado {
     }
 
     public void setComplemento(String complemento) {
-        if(complemento != null)
+        if (complemento != null)
             this.complemento = complemento.trim();
         else
             this.complemento = null;
@@ -141,5 +125,21 @@ public class Mercado {
 
     public void setCep(String cep) {
         this.cep = cep.trim().replaceAll("[^0-9-]", "");
+    }
+
+    public Integer getCriadoPor() {
+        return criadoPor;
+    }
+
+    public void setCriadoPor(Integer criadoPor) {
+        this.criadoPor = criadoPor;
+    }
+
+    public Integer getRamoId() {
+        return ramoId;
+    }
+
+    public void setRamoId(Integer ramoId) {
+        this.ramoId = ramoId;
     }
 }

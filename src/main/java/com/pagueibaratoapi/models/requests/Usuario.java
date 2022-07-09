@@ -19,6 +19,7 @@ public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
     private String nome;
     private String email;
     private String senha;
@@ -30,21 +31,21 @@ public class Usuario {
     private String uf;
     private String cep;
 
-    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
     @JsonIgnore
-    private List<Produto> produtos = new ArrayList<Produto>();;
+    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
+    private List<Produto> produtos = new ArrayList<Produto>();
 
-    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
     @JsonIgnore
-    private List<Mercado> mercados = new ArrayList<Mercado>();;
+    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
+    private List<Mercado> mercados = new ArrayList<Mercado>();
 
-    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
     @JsonIgnore
-    private List<Estoque> estoques = new ArrayList<Estoque>();;
+    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
+    private List<Estoque> estoques = new ArrayList<Estoque>();
 
-    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
     @JsonIgnore
-    private List<Sugestao> sugestoes = new ArrayList<Sugestao>();;
+    @OneToMany(mappedBy = "usuario", orphanRemoval = true)
+    private List<Sugestao> sugestoes = new ArrayList<Sugestao>();
 
     public Integer getId() {
         return id;
@@ -165,5 +166,4 @@ public class Usuario {
     public void setSugestoes(List<Sugestao> sugestoes) {
         this.sugestoes = sugestoes;
     }
-
 }

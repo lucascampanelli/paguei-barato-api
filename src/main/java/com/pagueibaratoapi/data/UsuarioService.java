@@ -10,14 +10,14 @@ import org.springframework.stereotype.Component;
 import com.pagueibaratoapi.models.requests.Usuario;
 
 @Component
-public class UsuarioService implements UserDetails{
+public class UsuarioService implements UserDetails {
 
     private final Optional<Usuario> usuario;
 
     public UsuarioService(Optional<Usuario> usuario) {
         this.usuario = usuario;
     }
-    
+
     // Autorizações do usuário
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -55,5 +55,4 @@ public class UsuarioService implements UserDetails{
     public boolean isEnabled() {
         return true;
     }
-    
 }

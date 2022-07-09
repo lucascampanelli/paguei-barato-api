@@ -18,35 +18,37 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 @Table(name = "estoque")
 public class Estoque {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "\"criadoPor\"")
     private Integer criadoPor;
+    
     @Column(name = "\"produtoId\"")
     private Integer produtoId;
+
     @Column(name = "\"mercadoId\"")
     private Integer mercadoId;
 
-    @OneToMany(mappedBy = "estoque", orphanRemoval = true)
     @JsonIgnore
-    private List<Sugestao> sugestoes = new ArrayList<Sugestao>();;
+    @OneToMany(mappedBy = "estoque", orphanRemoval = true)
+    private List<Sugestao> sugestoes = new ArrayList<Sugestao>();
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "\"criadoPor\"", updatable = false, insertable = false)
-    @JsonIgnore
     private Usuario usuario;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "\"produtoId\"", updatable = false, insertable = false)
-    @JsonIgnore
     private Produto produto;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "\"mercadoId\"", updatable = false, insertable = false)
-    @JsonIgnore
     private Mercado mercado;
 
     public Integer getId() {
@@ -80,5 +82,4 @@ public class Estoque {
     public void setMercadoId(Integer mercadoId) {
         this.mercadoId = mercadoId;
     }
-    
 }

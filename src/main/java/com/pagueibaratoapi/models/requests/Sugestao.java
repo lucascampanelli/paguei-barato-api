@@ -18,10 +18,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 @Table(name = "sugestao")
 public class Sugestao {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
     private Float preco;
 
     @UpdateTimestamp
@@ -33,13 +34,13 @@ public class Sugestao {
     @Column(name = "\"estoqueId\"")
     private Integer estoqueId;
 
-    @ManyToOne
     @JsonIgnore
+    @ManyToOne
     @JoinColumn(name = "\"estoqueId\"", updatable = false, insertable = false)
     private Estoque estoque;
 
-    @ManyToOne
     @JsonIgnore
+    @ManyToOne
     @JoinColumn(name = "\"criadoPor\"", updatable = false, insertable = false)
     private Usuario usuario;
 
@@ -82,5 +83,4 @@ public class Sugestao {
     public void setEstoqueId(Integer estoqueId) {
         this.estoqueId = estoqueId;
     }
-    
 }

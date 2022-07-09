@@ -19,12 +19,13 @@ public class Ramo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
     private String nome;
     private String descricao;
 
-    @OneToMany(mappedBy = "ramo", orphanRemoval = true)
     @JsonIgnore
-    private List<Mercado> mercados = new ArrayList<Mercado>();;
+    @OneToMany(mappedBy = "ramo", orphanRemoval = true)
+    private List<Mercado> mercados = new ArrayList<Mercado>();
 
     public Integer getId() {
         return id;
