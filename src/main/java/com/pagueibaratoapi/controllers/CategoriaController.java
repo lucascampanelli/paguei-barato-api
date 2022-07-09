@@ -24,6 +24,7 @@ import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Categoria;
 import com.pagueibaratoapi.models.responses.ResponseCategoria;
 import com.pagueibaratoapi.repository.CategoriaRepository;
+import com.pagueibaratoapi.utils.EditaRecurso;
 import com.pagueibaratoapi.utils.Tratamento;
 
 @RestController
@@ -136,14 +137,15 @@ public class CategoriaController {
                 throw new DadosConflitantesException("nome_existente");
 
             Categoria categoriaAtual = categoriaRepository.findById(id).get();
-            
-            if(requestCategoria.getNome() != null)
-                categoriaAtual.setNome(requestCategoria.getNome());
-    
-            if(requestCategoria.getDescricao() != null)
-                categoriaAtual.setNome(requestCategoria.getNome());
 
-            ResponseCategoria responseCategoria = new ResponseCategoria(categoriaRepository.save(categoriaAtual));
+            ResponseCategoria responseCategoria = new ResponseCategoria(
+                                                                categoriaRepository.save(
+                                                                    EditaRecurso.editarCategoria(
+                                                                        categoriaAtual, 
+                                                                        requestCategoria
+                                                                    )
+                                                                )
+                                                        );
     
             responseCategoria.add(
                 linkTo(
