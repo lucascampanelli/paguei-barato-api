@@ -35,14 +35,19 @@ import com.pagueibaratoapi.utils.EditaRecurso;
 import com.pagueibaratoapi.utils.PaginaUtils;
 import com.pagueibaratoapi.utils.Tratamento;
 
+/**
+ * Classe responsável por controlar as requisições de sugestões.
+ */
 @RestController
 @RequestMapping("/sugestao")
 public class SugestaoController {
 
+    // Repositórios responsável pelos métodos JPA dp banco de dados.
     private final EstoqueRepository estoqueRepository;
     private final SugestaoRepository sugestaoRepository;
     private final UsuarioRepository usuarioRepository;
 
+    // Construtor.
     public SugestaoController(
         EstoqueRepository estoqueRepository,
         SugestaoRepository sugestaoRepository,
@@ -53,22 +58,35 @@ public class SugestaoController {
         this.usuarioRepository = usuarioRepository;
     }
 
+    /**
+     * Método responsável por criar uma nova sugestão.
+     * @param sugestao - Dados da sugestão a ser criada.
+     * @return Dados e id da sugestão criada.
+     */
     @PostMapping
     public ResponseSugestao criar(@RequestBody Sugestao requestSugestao) {
         try {
 
+            // Valida os dados fornecidos.
             Tratamento.validarSugestao(requestSugestao, false);
 
+            // Se o estoque informado não existir,
             if(!estoqueRepository.existsById(requestSugestao.getEstoqueId()))
+                // Retorna erro.
                 throw new DadosInvalidosException("estoque_nao_encontrado");
 
+            // Se o usuário informado não existir,
             if(!usuarioRepository.existsById(requestSugestao.getCriadoPor()))
+                // Retorna erro.
                 throw new DadosInvalidosException("usuario_nao_encontrado");
 
+            // Elimina os decimais do preço multiplicando por 100.
             requestSugestao.setPreco(requestSugestao.getPreco() * 100);
-
+            
+            // Insere a sugestão e transforma os dados obtidos em modelo de resposta.
             ResponseSugestao responseSugestao = new ResponseSugestao(sugestaoRepository.save(requestSugestao));
 
+            // Adiciona o link para a sugestão.
             responseSugestao.add(
                 linkTo(
                     methodOn(SugestaoController.class).ler(responseSugestao.getId())
@@ -76,8 +94,10 @@ public class SugestaoController {
                 .withSelfRel()
             );
 
+            // Divide o preço por 100 para obter os centavos.
             responseSugestao.setPreco(responseSugestao.getPreco() / 100);
 
+            // Retorna a sugestão criada.
             return responseSugestao;
 
         } catch (DadosInvalidosException e) {
@@ -91,13 +111,21 @@ public class SugestaoController {
         }
     }
 
+    /**
+     * Método responsável por ler uma sugestão.
+     * @param id - Id da sugestão a ser lida.
+     * @return Dados da sugestão lida.
+     */
     @GetMapping("/{id}")
     public ResponseSugestao ler(@PathVariable(value = "id") Integer id) {
         try {
 
+            // Busca a sugestão no banco e transforma os dados obtidos em modelo de resposta.
             ResponseSugestao responseSugestao = new ResponseSugestao(sugestaoRepository.findById(id).get());
 
+            // Adiciona o link para a rota de listagem de sugestões.
             if(responseSugestao != null) {
+                // Divide o preço por 100 para obter os centavos.
                 responseSugestao.setPreco(responseSugestao.getPreco() / 100);
                 responseSugestao.add(
                     linkTo(
@@ -107,6 +135,7 @@ public class SugestaoController {
                 );
             }
 
+            // Retorna a sugestão.
             return responseSugestao;
 
         } catch (NoSuchElementException e) {
@@ -116,12 +145,20 @@ public class SugestaoController {
         }
     }
 
+    /**
+     * Método responsável por listar as sugestões.
+     * @param requestSugestao - Dados de pesquisa para filtragem.
+     * @return Lista de sugestões.
+     */
     @GetMapping
     public List<ResponseSugestao> listar(Sugestao requestSugestao) {
         try {
 
+            // Valida os dados fornecidos.
             Tratamento.validarSugestao(requestSugestao, true);
 
+            // Busca as sugestões no banco semelhantes aos dados de pesquisa.
+            // Se não houver dados de pesquisa, busca todas as sugestões.
             List<Sugestao> sugestoes = sugestaoRepository.findAll(
                 Example.of(
                     requestSugestao, 
@@ -132,15 +169,21 @@ public class SugestaoController {
                 )
             );
 
+            // Lista de sugestões que será retornada.
             List<ResponseSugestao> responseSugestao = new ArrayList<ResponseSugestao>();
 
+            // Adiciona as sugestões a lista de sugestões.
             for(Sugestao sugestao : sugestoes) {
                 responseSugestao.add(new ResponseSugestao(sugestao));
             }
 
+            // Se houver sugestões,
             if(!responseSugestao.isEmpty()) {
+                // Percorre as sugestões,
                 for(ResponseSugestao sugestao : responseSugestao) {
+                    // Divide o preço da sugestão atual por 100 para obter os centavos.
                     sugestao.setPreco(sugestao.getPreco() / 100);
+                    // Adiciona o link para detalhamento da sugestão.
                     sugestao.add(
                         linkTo(
                             methodOn(SugestaoController.class).ler(sugestao.getId())
@@ -150,6 +193,7 @@ public class SugestaoController {
                 }
             }
 
+            // Retorna as sugestões.
             return responseSugestao;
 
         } catch (DadosInvalidosException e) {
@@ -163,6 +207,13 @@ public class SugestaoController {
         }
     }
 
+    /**
+     * Rota responsável por listar sugestões.
+     * @param requestSugestao - Dados de pesquisa para filtragem.
+     * @param pagina - Numero da página a ser mostrada.
+     * @param limite - Limite de registros por página.
+     * @return Lista de sugestões com dados da página.
+     */
     @GetMapping(params = { "pagina", "limite" })
     public ResponsePagina listar(
         Sugestao requestSugestao,
@@ -171,8 +222,13 @@ public class SugestaoController {
     ) {
         try {
 
+            // Valida os dados fornecidos.
             Tratamento.validarSugestao(requestSugestao, true);
 
+            // Busca as sugestões no banco semelhantes aos dados de pesquisa.
+            // Se não houver dados de pesquisa, busca todas as sugestões.
+            // Informa os dados de paginação.
+            // Se não houver paginação, busca todas as sugestões.
             Page<Sugestao> paginaSugestao = sugestaoRepository.findAll(
                 Example.of(
                     requestSugestao, 
@@ -184,14 +240,18 @@ public class SugestaoController {
                 PageRequest.of(pagina, limite)
             );
 
+            // Lista de sugestões que será retornada.
             List<ResponseSugestao> sugestoes = new ArrayList<ResponseSugestao>();
 
+            // Formata a resposta com os dados obtidos.
             ResponsePagina responsePagina = PaginaUtils.criarResposta(pagina, limite, paginaSugestao, sugestoes);
 
+            // Adiciona as sugestões a lista.
             for(Sugestao sugestao : paginaSugestao.getContent()) {
                 sugestoes.add(new ResponseSugestao(sugestao));
             }
 
+            // Adiciona o link para a primeira página de sugestões.
             responsePagina.add(
                 linkTo(
                     methodOn(SugestaoController.class).listar(requestSugestao, 0, limite)
@@ -199,8 +259,11 @@ public class SugestaoController {
                 .withRel("first")
             );
 
+            // Se houver sugestões,
             if(!paginaSugestao.isEmpty()) {
+                // Se a página atual não for a primeira,
                 if(pagina > 0) {
+                    // Adiciona o link para a página anterior.
                     responsePagina.add(
                         linkTo(
                             methodOn(SugestaoController.class).listar(requestSugestao, pagina - 1, limite)
@@ -209,7 +272,9 @@ public class SugestaoController {
                     );
                 }
 
+                // Se a página atual não for a última,
                 if(pagina < paginaSugestao.getTotalPages() - 1) {
+                    // Adiciona o link para a página seguinte.
                     responsePagina.add(
                         linkTo(
                             methodOn(SugestaoController.class).listar(requestSugestao, pagina + 1, limite)
@@ -218,6 +283,7 @@ public class SugestaoController {
                     );
                 }
 
+                // Adiciona o link para a última página de sugestões.
                 responsePagina.add(
                     linkTo(
                         methodOn(SugestaoController.class).listar(requestSugestao, paginaSugestao.getTotalPages() - 1, limite)
@@ -225,8 +291,11 @@ public class SugestaoController {
                     .withRel("last")
                 );
 
+                // Percorre as sugestões,
                 for(ResponseSugestao sugestao : sugestoes) {
+                    // Divide o preço da sugestão atual por 100 para obter os centavos.
                     sugestao.setPreco(sugestao.getPreco() / 100);
+                    // Adiciona o link para detalhamento da sugestão.
                     sugestao.add(
                         linkTo(
                             methodOn(SugestaoController.class).ler(sugestao.getId())
@@ -236,6 +305,7 @@ public class SugestaoController {
                 }
             }
 
+            // Retorna as sugestões.
             return responsePagina;
 
         } catch (DadosInvalidosException e) {
@@ -249,14 +319,25 @@ public class SugestaoController {
         }
     }
 
+    /**
+     * Rota responsável por editar uma sugestão.
+     * @param id - Id da sugestão a ser editada.
+     * @param requestSugestao - Dados modificados da sugestão.
+     * @return Dados novos da sugestão editada.
+     */
     @PatchMapping("/{id}")
     public ResponseSugestao editar(@PathVariable int id, @RequestBody Sugestao requestSugestao) {
         try {
 
+            // Valida os dados fornecidos.
             Tratamento.validarSugestao(requestSugestao, true);
 
+            // Obtém a sugestão a ser editada.
             Sugestao sugestaoAtual = sugestaoRepository.findById(id).get();
     
+            // Chama o recurso de tratamento para editar a sugestão.
+            // Insere os dados modificados no banco.
+            // Transforma os dados obtidos em modelo de resposta.
             ResponseSugestao responseSugestao = new ResponseSugestao(
                 sugestaoRepository.save(
                     EditaRecurso.editarSugestao(
@@ -266,6 +347,7 @@ public class SugestaoController {
                 )
             );
 
+            // Adiciona o link para detalhamento da sugestão.
             responseSugestao.add(
                 linkTo(
                     methodOn(SugestaoController.class).ler(responseSugestao.getId())
@@ -273,8 +355,10 @@ public class SugestaoController {
                 .withSelfRel()
             );
 
+            // Divide o preço por 100 para obter os centavos.
             responseSugestao.setPreco(responseSugestao.getPreco() / 100);
 
+            // Retorna a sugestão editada.
             return responseSugestao;
 
         } catch (DadosInvalidosException e) {
@@ -290,23 +374,38 @@ public class SugestaoController {
         }
     }
 
+    /**
+     * Rota responsável por substituir uma sugestão.
+     * @param id - Id da sugestão a ser substituída.
+     * @param requestSugestao - Dados da nova sugestão.
+     * @return Dados da nova sugestão.
+     */
     @PutMapping("/{id}")
     public ResponseSugestao atualizar(@PathVariable int id, @RequestBody Sugestao requestSugestao) {
         try {
 
+            // Valida os dados fornecidos.
             Tratamento.validarSugestao(requestSugestao, true);
 
+            // Se o estoque fornecido não existir.
             if(!estoqueRepository.existsById(requestSugestao.getEstoqueId()))
+                // Retorna erro.
                 throw new DadosInvalidosException("estoque_nao_encontrado");
 
+            // Se o usuário fornecido não existir.
             if(!usuarioRepository.existsById(requestSugestao.getCriadoPor()))
+            // Retorna erro.
                 throw new DadosInvalidosException("usuario_nao_encontrado");
 
+            // Define o id da sugestão a ser substituída.
             requestSugestao.setId(id);
+            // Multiplica o preço por 100 para eliminar o decimal.
             requestSugestao.setPreco(requestSugestao.getPreco() * 100);
 
+            // Insere a nova sugestão no banco e transforma os dados obtidos em modelo de resposta.
             ResponseSugestao responseSugestao = new ResponseSugestao(sugestaoRepository.save(requestSugestao));
 
+            // Adiciona o link para detalhamento da sugestão.
             responseSugestao.add(
                 linkTo(
                     methodOn(SugestaoController.class).ler(responseSugestao.getId())
@@ -314,8 +413,10 @@ public class SugestaoController {
                 .withSelfRel()
             );
 
+            // Divide o preço por 100 para obter os centavos.
             responseSugestao.setPreco(responseSugestao.getPreco() / 100);
 
+            // Retorna a nova sugestão.
             return responseSugestao;
 
         } catch (DadosInvalidosException e) {
@@ -331,15 +432,23 @@ public class SugestaoController {
         }
     }
 
+    /**
+     * Rota responsável por excluir uma sugestão.
+     * @param id - Id da sugestão a ser excluída.
+     */
     @DeleteMapping("/{id}")
     public Object remover(@PathVariable int id) {
         try {
 
+            // Se a sugestão fornecida não existir.
             if(!sugestaoRepository.existsById(id))
+            // Retorna erro.
                 throw new NoSuchElementException("nao_encontrado");
 
+            // Exclui a sugestão do banco.
             sugestaoRepository.deleteById(id);
 
+            // Retorna o link para listagem de sugestões.
             return linkTo(
                         methodOn(SugestaoController.class).listar(new Sugestao())
                     )

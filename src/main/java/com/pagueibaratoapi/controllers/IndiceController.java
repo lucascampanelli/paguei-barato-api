@@ -17,16 +17,25 @@ import com.pagueibaratoapi.models.requests.Produto;
 import com.pagueibaratoapi.models.requests.Ramo;
 import com.pagueibaratoapi.models.requests.Sugestao;
 
+/**
+ * Classe responsável por controlar as requisições de estoque.
+ */
 @RestController
 @RequestMapping("/")
 public class IndiceController {
     
+    /**
+     * Método responsável por listar todas as rotas.
+     * @return - Lista com todas as rotas.
+     */
     @GetMapping
     public List<Object> listar() {
         try {
             
+            // Lista de objetos para adicionar links.
             List<Object> responseLinks = new ArrayList<Object>();
     
+            // Adiciona link para listar categorias.
             responseLinks.add(
                 linkTo(
                     methodOn(CategoriaController.class).listar()
@@ -34,6 +43,7 @@ public class IndiceController {
                 .withRel("categoria")
             );
     
+            // Adiciona link para listar estoques.
             responseLinks.add(
                 linkTo(
                     methodOn(EstoqueController.class).listar(new Estoque())
@@ -41,6 +51,7 @@ public class IndiceController {
                 .withRel("estoque")
             );
     
+            // Adiciona link para listar mercados.
             responseLinks.add(
                 linkTo(
                     methodOn(MercadoController.class).listar(new Mercado())
@@ -48,6 +59,7 @@ public class IndiceController {
                 .withRel("mercado")
             );
     
+            // Adiciona link para listar produtos.
             responseLinks.add(
                 linkTo(
                     methodOn(ProdutoController.class).listar(new Produto())
@@ -55,6 +67,7 @@ public class IndiceController {
                 .withRel("produto")
             );
     
+            // Adiciona link para listar ramos.
             responseLinks.add(
                 linkTo(
                     methodOn(RamoController.class).listar(new Ramo())
@@ -62,6 +75,7 @@ public class IndiceController {
                 .withRel("ramo")
             );
     
+            // Adiciona link para listar sugestões.
             responseLinks.add(
                 linkTo(
                     methodOn(SugestaoController.class).listar(new Sugestao())
@@ -69,6 +83,7 @@ public class IndiceController {
                 .withRel("sugestao")
             );
     
+            // Adiciona link para listar usuários.
             responseLinks.add(
                 linkTo(
                     methodOn(UsuarioController.class).listar()
@@ -76,6 +91,7 @@ public class IndiceController {
                 .withRel("usuario")
             );
     
+            // Retorna lista de links.
             return responseLinks;
 
         } catch (Exception e) {

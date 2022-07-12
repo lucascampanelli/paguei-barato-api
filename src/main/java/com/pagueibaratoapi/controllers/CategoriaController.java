@@ -34,7 +34,7 @@ import com.pagueibaratoapi.utils.Tratamento;
 @RequestMapping("/categoria")
 public class CategoriaController {
 
-    // Respository da categoria, responsável pelos comandos JPA no banco.
+    // Repositório da categoria, responsável pelos métodos JPA no banco.
     private final CategoriaRepository categoriaRepository;
 
     // Construtor
