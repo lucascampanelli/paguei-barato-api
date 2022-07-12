@@ -25,26 +25,38 @@ import com.pagueibaratoapi.data.UsuarioService;
 import com.pagueibaratoapi.models.requests.Usuario;
 import com.pagueibaratoapi.utils.Senha;
 
+/**
+ * Filtro de autenticação para o JWT.
+ */
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
+    // Tempo de expiração do token.
     @Value("${pagueibarato.config.token.expiration}")
     private long EXPIRA_EM = 2592000000L;
 
+    // Chave secreta para gerar o token.
     @Value("${pagueibarato.config.token.secret.key}")
     private String SEGREDO = "shhh";
 
+    // Gerenciador de autenticação.
     private final AuthenticationManager authenticationManager;
 
+    // Construtor.
     public JWTAuthenticationFilter(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
     }
 
+    // Método chamado para realizar autenticação ao acessar a rota /login.
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         try {
 
+            // Lê o corpo da requisição e transforma em modelo de usuário.
             Usuario usuario = new ObjectMapper().readValue(request.getInputStream(), Usuario.class);
 
+            // Realiza o tempeiro da senha,
+            // Cria um token com a senha tempeirada e email do usuário,
+            // Tenta realizar autenticação com o token por meio do authenticationManager.
             return authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                     usuario.getEmail(),
@@ -66,6 +78,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         }
     }
 
+    // Método chamado quando a autenticação é bem-sucedida.
     @Override
     protected void successfulAuthentication(
         HttpServletRequest request,
@@ -74,13 +87,16 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         Authentication authResult
     ) throws IOException, ServletException {
 
+        // Obtém o objeto com as credenciais do usuário autenticado e converte para o serviço do usuário.
         UsuarioService usuarioService = (UsuarioService) authResult.getPrincipal();
 
+        // Gera um token JWT com o email do usuário e o tempo de expiração.
         String token = JWT.create()
             .withSubject(usuarioService.getUsername())
             .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRA_EM))
             .sign(Algorithm.HMAC512(SEGREDO));
 
+        // Escreve o token na resposta e envia.
         response.getWriter().write(token);
         response.getWriter().flush();
     }
