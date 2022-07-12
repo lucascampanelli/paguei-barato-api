@@ -2,9 +2,19 @@ package com.pagueibaratoapi.utils.tratamentos;
 
 import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Usuario;
+import com.pagueibaratoapi.utils.Tratamento;
 
+/**
+ * Classe responsável por tratar os dados de usuário.
+ */
 public class TratamentoUsuario {
     
+    /**
+     * Método responsável por validar os dados de um usuário. Lança um <code>DadosInvalidosException</code> caso os dados não sejam válidos e interrompe a execução.
+     * @param usuario - Objeto do usuário a ser validado.
+     * @param opcional - Indica se os dados do usuário podem ser opcionais.
+     * @throws DadosInvalidosException Lançada caso os dados do usuário sejam inválidos.
+     */
     public static void validar(Usuario usuario, boolean opcional) throws DadosInvalidosException {
         if(usuario == null)
             throw new DadosInvalidosException("corpo_nulo");
@@ -37,7 +47,7 @@ public class TratamentoUsuario {
             else if(usuario.getCidade() == null || usuario.getCidade().isEmpty() || usuario.getCidade().length() > 30 || usuario.getCidade().length() < 5) {
                 throw new DadosInvalidosException("cidade_invalido");
             }
-            else if(usuario.getUf() == null || usuario.getUf().isEmpty() || !validarUf(usuario.getUf())) {
+            else if(usuario.getUf() == null || usuario.getUf().isEmpty() || !Tratamento.validarUf(usuario.getUf())) {
                 throw new DadosInvalidosException("uf_invalido");
             }
             else if(usuario.getCep() == null || usuario.getCep().isEmpty() || usuario.getCep().length() != 9 || usuario.getCep().matches("[a-zA-Z]+$") || !usuario.getCep().contains("-")) {
@@ -66,24 +76,12 @@ public class TratamentoUsuario {
             else if(usuario.getCidade() != null && (usuario.getCidade().isEmpty() || usuario.getCidade().length() > 30 || usuario.getCidade().length() < 5)) {
                 throw new DadosInvalidosException("cidade_invalido");
             }
-            else if(usuario.getUf() != null && (usuario.getUf().isEmpty() || !validarUf(usuario.getUf()))) {
+            else if(usuario.getUf() != null && (usuario.getUf().isEmpty() || !Tratamento.validarUf(usuario.getUf()))) {
                 throw new DadosInvalidosException("uf_invalido");
             }
             else if(usuario.getCep() != null && (usuario.getCep().isEmpty() || usuario.getCep().length() != 9 || usuario.getCep().matches("[a-zA-Z]+$") || !usuario.getCep().contains("-"))) {
                 throw new DadosInvalidosException("cep_invalido");
             }
         }
-    }
-
-    private static boolean validarUf(String uf) {
-
-        String[] ufs = {"AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"};
-
-        for(String ufValida : ufs) {
-            if(ufValida.equals(uf.toUpperCase()))
-                return true;
-        }
-
-        return false;
     }
 }

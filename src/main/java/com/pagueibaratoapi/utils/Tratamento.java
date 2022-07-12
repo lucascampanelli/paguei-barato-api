@@ -73,4 +73,16 @@ public class Tratamento {
             throw new DadosInvalidosException(e.getMessage());
         }
     }
+
+    public static boolean validarUf(String uf) {
+
+        String[] ufs = {"AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"};
+
+        for(String ufValida : ufs) {
+            if(ufValida.equals(uf.toUpperCase()))
+                return true;
+        }
+
+        return false;
+    }
 }
