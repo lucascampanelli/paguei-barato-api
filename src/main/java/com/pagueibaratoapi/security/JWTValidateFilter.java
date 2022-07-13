@@ -20,12 +20,15 @@ import com.auth0.jwt.algorithms.Algorithm;
 public class JWTValidateFilter extends BasicAuthenticationFilter {
 
     // Chave secreta para gerar o token.
-    @Value("${pagueibarato.config.token.secret.key}")
-    private static String SEGREDO = "shhh";
+    private final String SEGREDO;
 
     // Construtor.
-    public JWTValidateFilter(AuthenticationManager authenticationManager) {
+    public JWTValidateFilter(
+        @Value("${pagueibarato.config.token.secret.key}") String segredo,
+        AuthenticationManager authenticationManager
+    ) {
         super(authenticationManager);
+        this.SEGREDO = segredo;
     }
 
     // Inclui uma etapa na cadeia de eventos de autenticação.

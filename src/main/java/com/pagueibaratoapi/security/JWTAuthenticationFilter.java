@@ -31,18 +31,22 @@ import com.pagueibaratoapi.utils.Senha;
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     // Tempo de expiração do token.
-    @Value("${pagueibarato.config.token.expiration}")
-    private long EXPIRA_EM = 2592000000L;
+    private final long EXPIRA_EM;
 
     // Chave secreta para gerar o token.
-    @Value("${pagueibarato.config.token.secret.key}")
-    private String SEGREDO = "shhh";
+    private final String SEGREDO;
 
     // Gerenciador de autenticação.
     private final AuthenticationManager authenticationManager;
 
     // Construtor.
-    public JWTAuthenticationFilter(AuthenticationManager authenticationManager) {
+    public JWTAuthenticationFilter(
+        @Value("${pagueibarato.config.token.expiration}") long expiraEm,
+        @Value("${pagueibarato.config.token.secret.key}") String segredo,
+        AuthenticationManager authenticationManager
+    ) {
+        this.EXPIRA_EM = expiraEm;
+        this.SEGREDO = segredo;
         this.authenticationManager = authenticationManager;
     }
 

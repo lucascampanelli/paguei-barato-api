@@ -1,5 +1,6 @@
 package com.pagueibaratoapi.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,13 +26,26 @@ import com.pagueibaratoapi.services.UsuarioServiceImpl;
 @EnableWebSecurity
 public class JWTConfig {
 
+    // Tempo de expiração do token.
+    private final long EXPIRA_EM;
+
+    // Chave secreta para gerar o token.
+    private final String SEGREDO;
+
     // Serviço do usuário.
     private final UsuarioServiceImpl usuarioServiceImpl;
+
     // Gerenciador de autenticação.
     private AuthenticationManager authenticationManager;
 
     // Construtor.
-    public JWTConfig(UsuarioServiceImpl usuarioServiceImpl) {
+    public JWTConfig(
+        @Value("${pagueibarato.config.token.expiration}") long expiraEm,
+        @Value("${pagueibarato.config.token.secret.key}") String segredo,
+        UsuarioServiceImpl usuarioServiceImpl
+    ) {
+        this.EXPIRA_EM = expiraEm;
+        this.SEGREDO = segredo;
         this.usuarioServiceImpl = usuarioServiceImpl;
     }
 
@@ -82,8 +96,15 @@ public class JWTConfig {
             .authenticationManager(authenticationManager)
 
             // Filtra e valida o token
-            .addFilter(new JWTAuthenticationFilter(authenticationManager))
-            .addFilter(new JWTValidateFilter(authenticationManager))
+            .addFilter(new JWTAuthenticationFilter(
+                EXPIRA_EM,
+                SEGREDO,
+                authenticationManager
+            ))
+            .addFilter(new JWTValidateFilter(
+                SEGREDO,
+                authenticationManager
+            ))
 
             // Obtém o gerenciador de sessão.
             .sessionManagement()
