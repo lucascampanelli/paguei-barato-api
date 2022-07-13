@@ -504,7 +504,7 @@ public class ProdutoController {
             return responseProduto;
 
         } catch (DadosConflitantesException e) {
-            throw new ResponseStatusException(400, e.getMessage(), e);
+            throw new ResponseStatusException(409, e.getMessage(), e);
         } catch (DadosInvalidosException e) {
             throw new ResponseStatusException(400, e.getMessage(), e);
         } catch (DataIntegrityViolationException e) {
@@ -569,7 +569,7 @@ public class ProdutoController {
             return responseProduto;
 
         } catch (DadosConflitantesException e) {
-            throw new ResponseStatusException(400, e.getMessage(), e);
+            throw new ResponseStatusException(409, e.getMessage(), e);
         } catch (DadosInvalidosException e) {
             throw new ResponseStatusException(400, e.getMessage(), e);
         } catch (NoSuchElementException e) {
