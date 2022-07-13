@@ -13,15 +13,17 @@ public class PaginaUtils {
     
     /**
      * Método responsável por criar um objeto ResponsePagina com os dados da páginação
-     * @param numeroPagina Número da página que será retornada.
-     * @param limite Quantidade de itens por página.
-     * @param pagina Objeto de iteração retornado pelo JPA contendo os registros da pesquisa.
+     * @param numeroPagina - Número da página que será retornada.
+     * @param limite - Quantidade de itens por página.
+     * @param pagina - Objeto de iteração retornado pelo JPA contendo os registros da pesquisa.
      * @return
      */
     public static ResponsePagina criarResposta(Integer numeroPagina, Integer limite, Page<?> pagina, List<?> itens) {
 
+        // Cria o objeto de resposta.
         ResponsePagina responsePagina = new ResponsePagina();
         
+        // Define os dados recebidos.
         responsePagina.setContagem((limite * (numeroPagina + 1)) - (limite - 1));
         responsePagina.setItensPorPagina(limite);
         responsePagina.setPaginaAtual(numeroPagina);
@@ -29,6 +31,7 @@ public class PaginaUtils {
         responsePagina.setTotalRegistros(pagina.getTotalElements());
         responsePagina.setItens(itens);
 
+        // Retorna a página.
         return responsePagina;
     }
 }

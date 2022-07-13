@@ -16,8 +16,17 @@ import com.pagueibaratoapi.utils.tratamentos.TratamentoRamo;
 import com.pagueibaratoapi.utils.tratamentos.TratamentoSugestao;
 import com.pagueibaratoapi.utils.tratamentos.TratamentoUsuario;
 
+/**
+ * Classe de tratamento de dados.
+ */
 public class Tratamento {
     
+    /**
+     * Trata os dados da categoria.
+     * @param categoria - Categoria a ser tratada.
+     * @param opcional - Se os dados da categoria podem ser opcionais.
+     * @throws DadosInvalidosException Caso algum dos dados da categoria for inválido ou não for preenchido.
+     */
     public static void validarCategoria(Categoria categoria, boolean opcional) throws DadosInvalidosException {
         try{
             TratamentoCategoria.validar(categoria, opcional);
@@ -26,6 +35,12 @@ public class Tratamento {
         }
     }
     
+    /**
+     * Trata os dados do estoque.
+     * @param estoque - Estoque a ser tratado.
+     * @param opcional - Se os dados do estoque podem ser opcionais.
+     * @throws DadosInvalidosException Caso algum dos dados do estoque for inválido ou não for preenchido.
+     */
     public static void validarEstoque(Estoque estoque, boolean opcional) throws DadosInvalidosException {
         try{
             TratamentoEstoque.validar(estoque, opcional);
@@ -34,6 +49,12 @@ public class Tratamento {
         }
     }
     
+    /**
+     * Trata os dados do mercado.
+     * @param mercado - Mercado a ser tratado.
+     * @param opcional - Se os dados do mercado podem ser opcionais.
+     * @throws DadosInvalidosException Caso algum dos dados do mercado for inválido ou não for preenchido.
+     */
     public static void validarMercado(Mercado mercado, boolean opcional) throws DadosInvalidosException {
         try{
             TratamentoMercado.validar(mercado, opcional);
@@ -42,6 +63,12 @@ public class Tratamento {
         }
     }
     
+    /**
+     * Trata os dados do produto.
+     * @param produto - Produto a ser tratado.
+     * @param opcional - Se os dados do produto podem ser opcionais.
+     * @throws DadosInvalidosException Caso algum dos dados do produto for inválido ou não for preenchido.
+     */
     public static void validarProduto(Produto produto, boolean opcional) throws DadosInvalidosException {
         try{
             TratamentoProduto.validar(produto, opcional);
@@ -50,6 +77,12 @@ public class Tratamento {
         }
     }
     
+    /**
+     * Trata os dados do ramo.
+     * @param ramo - Ramo a ser tratado.
+     * @param opcional - Se os dados do ramo podem ser opcionais.
+     * @throws DadosInvalidosException Caso algum dos dados do ramo for inválido ou não for preenchido.
+     */
     public static void validarRamo(Ramo ramo, boolean opcional) throws DadosInvalidosException {
         try{
             TratamentoRamo.validar(ramo, opcional);
@@ -58,6 +91,12 @@ public class Tratamento {
         }
     }
     
+    /**
+     * Trata os dados da sugestão.
+     * @param sugestao - Sugestão a ser tratada.
+     * @param opcional - Se os dados da sugestão podem ser opcionais.
+     * @throws DadosInvalidosException Caso algum dos dados da sugestão for inválido ou não for preenchido.
+     */
     public static void validarSugestao(Sugestao sugestao, boolean opcional) throws DadosInvalidosException {
         try{
             TratamentoSugestao.validar(sugestao, opcional);
@@ -66,6 +105,12 @@ public class Tratamento {
         }
     }
     
+    /**
+     * Trata os dados do usuário.
+     * @param usuario - Usuário a ser tratado.
+     * @param opcional - Se os dados do usuário podem ser opcionais.
+     * @throws DadosInvalidosException Caso algum dos dados do usuário for inválido ou não for preenchido.
+     */
     public static void validarUsuario(Usuario usuario, boolean opcional) throws DadosInvalidosException {
         try{
             TratamentoUsuario.validar(usuario, opcional);
@@ -74,6 +119,11 @@ public class Tratamento {
         }
     }
 
+    /**
+     * Verifica se o UF informado é um dos UFs brasileiros válidos. Este método é case insensitive, o valor passado como parâmetro é transformado em maiúsculas antes de ser verificado.
+     * @param uf - String de 2 caracteres contendo o UF a ser verificado.
+     * @return <b>true</b> se o UF for válido, <b>false</b> caso contrário.
+     */
     public static boolean validarUf(String uf) {
 
         String[] ufs = {"AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"};
