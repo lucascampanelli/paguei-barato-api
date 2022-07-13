@@ -2,9 +2,19 @@ package com.pagueibaratoapi.utils.tratamentos;
 
 import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Mercado;
+import com.pagueibaratoapi.utils.Tratamento;
 
+/**
+ * Classe responsável por tratar os dados do mercado.
+ */
 public class TratamentoMercado {
     
+    /**
+     * Método responsável por validar os dados do mercado. Lança um <code>DadosInvalidosException</code> caso os dados não sejam válidos e interrompe a execução.
+     * @param mercado - Objeto do mercado a ser validado.
+     * @param opcional - Indica se os dados do mercado podem ser opcionais.
+     * @throws DadosInvalidosException Lançada caso os dados do mercado sejam inválidos.
+     */
     public static void validar(Mercado mercado, boolean opcional) throws DadosInvalidosException {
         if(mercado == null)
             throw new DadosInvalidosException("corpo_nulo");
@@ -31,7 +41,7 @@ public class TratamentoMercado {
             else if(mercado.getCidade() == null || mercado.getCidade().isEmpty() || mercado.getCidade().length() > 30 || mercado.getCidade().length() < 3) {
                 throw new DadosInvalidosException("cidade_invalido");
             }
-            else if(mercado.getUf() == null || mercado.getUf().isEmpty() || !validarUf(mercado.getUf())) {
+            else if(mercado.getUf() == null || mercado.getUf().isEmpty() || !Tratamento.validarUf(mercado.getUf())) {
                 throw new DadosInvalidosException("uf_invalido");
             }
             else if(mercado.getCep() == null || mercado.getCep().isEmpty() || mercado.getCep().length() != 9 || mercado.getCep().matches("[a-zA-Z]+$") || !mercado.getCep().contains("-")) {
@@ -60,7 +70,7 @@ public class TratamentoMercado {
             else if(mercado.getCidade() != null && (mercado.getCidade().isEmpty() || mercado.getCidade().length() > 30 || mercado.getCidade().length() < 3)) {
                 throw new DadosInvalidosException("cidade_invalido");
             }
-            else if(mercado.getUf() != null && (mercado.getUf().isEmpty() || !validarUf(mercado.getUf()))) {
+            else if(mercado.getUf() != null && (mercado.getUf().isEmpty() || !Tratamento.validarUf(mercado.getUf()))) {
                 throw new DadosInvalidosException("uf_invalido");
             }
             else if(mercado.getCep() != null && (mercado.getCep().isEmpty() || mercado.getCep().length() != 9 || mercado.getCep().matches("[a-zA-Z]+$") || !mercado.getCep().contains("-"))) {
@@ -73,17 +83,5 @@ public class TratamentoMercado {
                 throw new DadosInvalidosException("ramo_invalido");
             }
         }
-    }
-
-    private static boolean validarUf(String uf) {
-
-        String[] ufs = {"AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"};
-
-        for(String ufValida : ufs) {
-            if(ufValida.equals(uf.toUpperCase()))
-                return true;
-        }
-
-        return false;
     }
 }

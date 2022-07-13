@@ -3,8 +3,17 @@ package com.pagueibaratoapi.utils.tratamentos;
 import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Sugestao;
 
+/**
+ * Classe responsável por tratar as sugestões.
+ */
 public class TratamentoSugestao {
     
+    /**
+     * Método responsável por validar os dados da sugestão. Lança um <code>DadosInvalidosException</code> caso os dados não sejam válidos e interrompe a execução.
+     * @param ramo - Objeto da sugestão a ser validado.
+     * @param opcional - Indica se os dados da sugestão podem ser opcionais.
+     * @throws DadosInvalidosException Lançada caso os dados da sugestão sejam inválidos.
+     */
     public static void validar(Sugestao sugestao, boolean opcional) throws DadosInvalidosException {
         if(sugestao == null)
             throw new DadosInvalidosException("corpo_nulo");

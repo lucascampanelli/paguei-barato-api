@@ -208,7 +208,7 @@ public class CategoriaController {
             return responseCategoria;
 
         } catch (DadosConflitantesException e) {
-            throw new ResponseStatusException(400, e.getMessage(), e);
+            throw new ResponseStatusException(409, e.getMessage(), e);
         } catch (DadosInvalidosException e) {
             throw new ResponseStatusException(400, e.getMessage(), e);
         } catch (DataIntegrityViolationException e) {
@@ -263,7 +263,7 @@ public class CategoriaController {
             return responseCategoria;
 
         } catch (DadosConflitantesException e) {
-            throw new ResponseStatusException(400, e.getMessage(), e);
+            throw new ResponseStatusException(409, e.getMessage(), e);
         } catch (DadosInvalidosException e) {
             throw new ResponseStatusException(400, e.getMessage(), e);
         } catch (NoSuchElementException e) {

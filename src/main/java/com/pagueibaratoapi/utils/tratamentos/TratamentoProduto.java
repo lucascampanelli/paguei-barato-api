@@ -3,8 +3,17 @@ package com.pagueibaratoapi.utils.tratamentos;
 import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Produto;
 
+/**
+ * Classe responsável por tratar os dados de produto.
+ */
 public class TratamentoProduto {
     
+    /**
+     * Método responsável por validar os dados do produto. Lança um <code>DadosInvalidosException</code> caso os dados não sejam válidos e interrompe a execução.
+     * @param produto - Objeto do produto a ser validado.
+     * @param opcional - Indica se os dados do produto podem ser opcionais.
+     * @throws DadosInvalidosException Lançada caso os dados do produto sejam inválidos.
+     */
     public static void validar(Produto produto, boolean opcional) throws DadosInvalidosException {
         if(produto == null)
             throw new DadosInvalidosException("corpo_nulo");
