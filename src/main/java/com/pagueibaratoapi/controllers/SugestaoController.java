@@ -42,7 +42,7 @@ import com.pagueibaratoapi.utils.Tratamento;
 @RequestMapping("/sugestao")
 public class SugestaoController {
 
-    // Repositórios responsável pelos métodos JPA dp banco de dados.
+    // Repositórios responsáveis pelos métodos JPA do banco de dados.
     private final EstoqueRepository estoqueRepository;
     private final SugestaoRepository sugestaoRepository;
     private final UsuarioRepository usuarioRepository;

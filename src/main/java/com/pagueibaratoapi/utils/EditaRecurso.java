@@ -69,7 +69,7 @@ public class EditaRecurso {
     }
 
     /**
-     * Método para atribuir novos dados à um usuário a fim de editá-lo.
+     * Método para atribuir novos dados a um usuário a fim de editá-lo.
      * @param usuarioAtual - Usuário que será editado, com os dados originais.
      * @param usuarioEditado - Objeto de usuário com os dados novos.
      * @return Objeto de usuário com os dados atualizados.
