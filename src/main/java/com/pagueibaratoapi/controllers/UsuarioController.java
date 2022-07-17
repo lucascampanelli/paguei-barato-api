@@ -208,6 +208,11 @@ public class UsuarioController {
             // Buscando o estado atual usuário com o id informado e armazenando no objeto de resposta ResponseUsuario.
             Usuario usuarioAtual = usuarioRepository.findById(id).get();
 
+            // Verificando se o usuário encontrado foi removido.
+            if(!Tratamento.usuarioExiste(usuarioAtual))
+                // Lançando exceção informando que o usuário não existe.
+                throw new NoSuchElementException("usuario_nao_encontrado");
+
             // Atualizando o usuário e armazenando num objeto de resposta ResponseUsuario.
             ResponseUsuario responseUsuario = new ResponseUsuario(
                 usuarioRepository.save(
