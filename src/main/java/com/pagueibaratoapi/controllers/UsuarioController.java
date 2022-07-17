@@ -277,6 +277,11 @@ public class UsuarioController {
             // Adicionando ao corpo da requisição o id do recurso que será atualizado.
             requestUsuario.setId(id);
 
+            // Verificando se o usuário com o id informado não foi removido.
+            if(!Tratamento.usuarioExiste(usuarioRepository.findById(id).get()))
+                // Lançando uma exceção informando que o usuário não existe.
+                throw new NoSuchElementException("usuario_nao_encontrado");
+
             // Setando a senha que será atualizada como a senha enviada pelo cliente com a criptografia.
             requestUsuario.setSenha(Senha.encriptar(requestUsuario.getSenha()));
 
