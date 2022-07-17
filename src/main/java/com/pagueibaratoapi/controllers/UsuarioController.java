@@ -332,6 +332,11 @@ public class UsuarioController {
             // Buscando o usuário que será removido e armazenando numa instância de usuário.
             Usuario usuarioDeletado = usuarioRepository.findById(id).get();
 
+            // Verificando se o usuário com o id informado não foi removido.
+            if(!Tratamento.usuarioExiste(usuarioDeletado))
+                // Lançando uma exceção informando que o usuário não existe.
+                throw new NoSuchElementException("usuario_nao_encontrado");
+
             /* 
             * Setando todos os atributos do usuário como vazio,
             * haja vista que o usuário será mantido para manter integridade de outros recursos atrelados ao usuário,

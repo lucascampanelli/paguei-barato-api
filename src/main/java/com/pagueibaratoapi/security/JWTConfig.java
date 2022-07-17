@@ -77,7 +77,7 @@ public class JWTConfig {
             .authorizeRequests()
 
             // Permite as seguintes requisições nas seguintes rotas.
-            .antMatchers(HttpMethod.POST, "/usuario/").permitAll()
+            .antMatchers(HttpMethod.POST, "/usuario").permitAll()
             .antMatchers(HttpMethod.POST, "/login").permitAll()
             .antMatchers(HttpMethod.GET, "/categoria/**").permitAll()
             .antMatchers(HttpMethod.GET, "/estoque/**").permitAll()
