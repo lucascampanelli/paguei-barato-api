@@ -103,8 +103,17 @@ public class UsuarioController {
     public ResponseUsuario ler(@PathVariable("id") Integer id) {
         try {
 
-            // Buscando o usuário com o id informado e armazenando no objeto de resposta ResponseUsuario.
-            ResponseUsuario responseUsuario = new ResponseUsuario(usuarioRepository.findById(id).get());
+            // Buscando o usuário com o id informado.
+            Usuario usuarioEncontrado = usuarioRepository.findById(id).get();
+
+            // Verificando se o usuário encontrado não foi removido.
+            // Quando um usuário é removido, ele tem seus atributos setados como vazio (aspas vazias).
+            if(!Tratamento.usuarioExiste(usuarioEncontrado))
+                // Se o usuário não existe, lançando exceção informando que o usuário não existe.
+                throw new NoSuchElementException("usuario_nao_encontrado");
+
+            // Armazenando o usuário encontrado no objeto de resposta ResponseUsuario.
+            ResponseUsuario responseUsuario = new ResponseUsuario(usuarioEncontrado);
 
             // Adicionando à resposta o link para listagem usuário criado.
             if(responseUsuario != null) {
@@ -121,7 +130,7 @@ public class UsuarioController {
 
         } catch (NoSuchElementException e) {
             // Lançando exceção informando que o usuário não foi encontrado.
-            throw new ResponseStatusException(404, "nao_encontrado", e);
+            throw new ResponseStatusException(404, "usuario_nao_encontrado", e);
         } catch (Exception e) {
             // Lançando exceção informando que há um erro inesperado.
             throw new ResponseStatusException(500, "erro_inesperado", e);

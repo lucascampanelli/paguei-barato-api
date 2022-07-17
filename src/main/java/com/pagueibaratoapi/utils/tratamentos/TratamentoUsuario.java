@@ -84,4 +84,21 @@ public class TratamentoUsuario {
             }
         }
     }
+
+    /**
+     * Método responsável por verificar e retornar se um dado usuário foi removido ou não.
+     * Quando um usuário é deletado, ele não é removido completamente do banco de dados,
+     * apenas tem seus atributos removidos, de modo que outras entidades criadas por ele
+     * continuem existindo com um histórico íntegro para eventuais auditorias.
+     * @param usuario - Usuário a ser verificado.
+     * @return boolean - Retorna true se o usuário existe, false caso contrário.
+     */
+    public static boolean existe(Usuario usuario){
+        // Se o email do usuário recebido não existir (for igual a aspas vazias), ele foi deletado.
+        if(usuario.getEmail().trim().equals(""))
+            return false;
+        // Caso contrário, ele existe.
+        else
+            return true;
+    }
 }

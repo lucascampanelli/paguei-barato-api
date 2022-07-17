@@ -120,6 +120,15 @@ public class Tratamento {
     }
 
     /**
+     * Método responsável por verificar se um dado usuário foi removido ou não.
+     * @param usuario - Usuário a ser verificado.
+     * @return boolean - Retorna true caso o usuário exista, caso contrário, retorna false.
+     */
+    public static boolean usuarioExiste(Usuario usuario) {
+        return TratamentoUsuario.existe(usuario);
+    }
+
+    /**
      * Verifica se o UF informado é um dos UFs brasileiros válidos. Este método é case insensitive, o valor passado como parâmetro é transformado em maiúsculas antes de ser verificado.
      * @param uf - String de 2 caracteres contendo o UF a ser verificado.
      * @return <b>true</b> se o UF for válido, <b>false</b> caso contrário.
