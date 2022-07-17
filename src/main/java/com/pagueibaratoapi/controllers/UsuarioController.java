@@ -152,8 +152,10 @@ public class UsuarioController {
 
             // Para cada usuário da lista de usuarios
             for(Usuario usuario : usuarios) {
-                // Convertendo o usuário para um objeto de resposta ResponseUsuario e adicionando à lista de resposta.
-                responseUsuario.add(new ResponseUsuario(usuario));
+                // Se o usuário não foi removido
+                if(Tratamento.usuarioExiste(usuario))
+                    // Convertendo o usuário para um objeto de resposta ResponseUsuario e adicionando à lista de resposta.
+                    responseUsuario.add(new ResponseUsuario(usuario));
             }
 
             // Se a lista de resposta possuir algum usuário
