@@ -29,6 +29,7 @@ import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Estoque;
 import com.pagueibaratoapi.models.requests.Produto;
 import com.pagueibaratoapi.models.requests.Sugestao;
+import com.pagueibaratoapi.models.requests.Usuario;
 import com.pagueibaratoapi.models.responses.ResponseLevantamentoProduto;
 import com.pagueibaratoapi.models.responses.ResponsePagina;
 import com.pagueibaratoapi.models.responses.ResponseProduto;
@@ -86,7 +87,7 @@ public class ProdutoController {
             if(!usuarioRepository.existsById(requestProduto.getCriadoPor()))
                 // Retorna um erro.
                 throw new DadosInvalidosException("usuario_nao_encontrado");
-
+            
             // Se a categoria fornecida não existir,
             if(!categoriaRepository.existsById(requestProduto.getCategoriaId()))
                 // Retorna um erro.
@@ -101,6 +102,14 @@ public class ProdutoController {
             )
                 // Retorna um erro.
                 throw new DadosConflitantesException("produto_existente");
+
+            // Buscando o usuário informado como criador do produto.
+            Usuario usuario = usuarioRepository.findById(requestProduto.getCriadoPor()).get();
+
+            // Verifica se o usuário informado como criador não foi deletado anteriormente.
+            if(!Tratamento.usuarioExiste(usuario))
+                // Retorna um erro.
+                throw new NoSuchElementException("usuario_nao_encontrado");
 
             // Criando uma nova instância do produto para tratar o nome dele e criá-lo no banco.
             Produto produtoTratado = requestProduto;
@@ -144,6 +153,8 @@ public class ProdutoController {
 
         } catch (DadosConflitantesException e) {
             throw new ResponseStatusException(409, e.getMessage(), e);
+        } catch(NoSuchElementException e) {
+            throw new ResponseStatusException(404, e.getMessage(), e);
         } catch (DadosInvalidosException e) {
             throw new ResponseStatusException(400, e.getMessage(), e);
         } catch (DataIntegrityViolationException e) {

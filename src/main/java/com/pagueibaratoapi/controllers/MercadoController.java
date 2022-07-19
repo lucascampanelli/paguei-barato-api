@@ -93,7 +93,7 @@ public class MercadoController {
             // Verificando se o usuário informado não foi deletado.
             if(!Tratamento.usuarioExiste(usuario))
                 // Se o usuário foi deletado, lança exceção com mensagem de erro.
-                throw new DadosInvalidosException("usuario_nao_encontrado");
+                throw new NoSuchElementException("usuario_nao_encontrado");
 
             // Verificando se o ramo informado existe.
             if(!ramoRepository.existsById(requestMercado.getRamoId()))
@@ -135,6 +135,9 @@ public class MercadoController {
         } catch (DadosConflitantesException e) {
             // Lança uma exceção informando que os dados estão em conflito com outros dados no banco de dados.
             throw new ResponseStatusException(409, e.getMessage(), e);
+        } catch(NoSuchElementException e) {
+            // Lança uma exceção informando que algum registro informado não existe.
+            throw new ResponseStatusException(404, e.getMessage(), e);
         } catch (DadosInvalidosException e) {
             // Lança uma exceção informando que os dados enviados pelo cliente são inválidos.
             throw new ResponseStatusException(400, e.getMessage(), e);
@@ -482,7 +485,7 @@ public class MercadoController {
             )
                 // Lança uma exceção informando que o endereço já existe.
                 throw new DadosConflitantesException("mercado_existente");
-
+            
             // Buscando o mercado que será atualizado e guardando seu estado atual.
             Mercado mercadoAtual = mercadoRepository.findById(id).get();
 
@@ -585,8 +588,13 @@ public class MercadoController {
                 // Lança uma exceção informando que o endereço já existe.
                 throw new DadosConflitantesException("mercado_existente");
 
+            Mercado mercado = mercadoRepository.findById(id).get();
+
             // Adiciona ao objeto da requisição o Id informado pelo cliente.
             requestMercado.setId(id);
+
+            // Adiciona ao objeto da requisição o Id do usuário que criou o mercado.
+            requestMercado.setCriadoPor(mercado.getCriadoPor());
 
             // Atualizando o mercado com os dados enviados pelo cliente e armazenando no objeto responseMercado.
             ResponseMercado responseMercado = new ResponseMercado(mercadoRepository.save(requestMercado));
