@@ -29,6 +29,7 @@ import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Estoque;
 import com.pagueibaratoapi.models.requests.Mercado;
 import com.pagueibaratoapi.models.requests.Sugestao;
+import com.pagueibaratoapi.models.requests.Usuario;
 import com.pagueibaratoapi.models.responses.ResponseMercado;
 import com.pagueibaratoapi.models.responses.ResponsePagina;
 import com.pagueibaratoapi.models.responses.ResponseSugestao;
@@ -85,6 +86,13 @@ public class MercadoController {
             // Verificando se o usuário informado existe.
             if(!usuarioRepository.existsById(requestMercado.getCriadoPor()))
                 // Se não existir, lança exceção com mensagem de erro.
+                throw new DadosInvalidosException("usuario_nao_encontrado");
+
+            Usuario usuario = usuarioRepository.findById(requestMercado.getCriadoPor()).get();
+
+            // Verificando se o usuário informado não foi deletado.
+            if(!Tratamento.usuarioExiste(usuario))
+                // Se o usuário foi deletado, lança exceção com mensagem de erro.
                 throw new DadosInvalidosException("usuario_nao_encontrado");
 
             // Verificando se o ramo informado existe.
