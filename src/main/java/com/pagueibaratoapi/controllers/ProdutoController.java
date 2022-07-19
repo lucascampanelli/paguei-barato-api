@@ -562,9 +562,15 @@ public class ProdutoController {
                 // Retorna um erro.
                 throw new DadosConflitantesException("produto_existente");
 
+            // Busca o produto a ser substituído.
+            Produto produto = produtoRepository.findById(id).get();
+
             // Define o id do produto como o id fornecido.
             requestProduto.setId(id);
 
+            // Define o id do usuário criador como o id atual do banco dedos, haja vista que não pode ser alterado.
+            requestProduto.setCriadoPor(produto.getCriadoPor());
+            
             // Insere o novo produto e transforma os dados inseridos em resposta.
             ResponseProduto responseProduto = new ResponseProduto(produtoRepository.save(requestProduto));
 
