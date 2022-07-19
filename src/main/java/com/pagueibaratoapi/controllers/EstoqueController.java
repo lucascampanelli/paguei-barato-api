@@ -25,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.pagueibaratoapi.models.exceptions.DadosConflitantesException;
 import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Estoque;
+import com.pagueibaratoapi.models.requests.Usuario;
 import com.pagueibaratoapi.models.responses.ResponseEstoque;
 import com.pagueibaratoapi.models.responses.ResponsePagina;
 import com.pagueibaratoapi.repository.EstoqueRepository;
@@ -77,6 +78,13 @@ public class EstoqueController {
 
             // Verifica se o usuário informado existe. Caso não exista, lança exceção.
             if(!usuarioRepository.existsById(requestEstoque.getCriadoPor()))
+                throw new DadosInvalidosException("usuario_invalido");
+
+            // Obtendo o usuário informado.
+            Usuario usuario = usuarioRepository.findById(requestEstoque.getCriadoPor()).get();
+
+            // Verifica se o usuário informado não foi deletado. Caso tenha sido, lança exceção.
+            if(!Tratamento.usuarioExiste(usuario))
                 throw new DadosInvalidosException("usuario_invalido");
 
             // Verifica se o produto informado existe. Caso não exista, lança exceção.
