@@ -28,6 +28,7 @@ import com.pagueibaratoapi.models.responses.ResponsePagina;
 import com.pagueibaratoapi.models.responses.ResponseSugestao;
 import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Sugestao;
+import com.pagueibaratoapi.models.requests.Usuario;
 import com.pagueibaratoapi.repository.EstoqueRepository;
 import com.pagueibaratoapi.repository.SugestaoRepository;
 import com.pagueibaratoapi.repository.UsuarioRepository;
@@ -80,6 +81,13 @@ public class SugestaoController {
                 // Retorna erro.
                 throw new DadosInvalidosException("usuario_nao_encontrado");
 
+            Usuario usuario = usuarioRepository.findById(requestSugestao.getCriadoPor()).get();
+
+            // Validando se o usuário informado como criador já foi excluído.
+            if(!Tratamento.usuarioExiste(usuario))
+                // Retorna erro.
+                throw new NoSuchElementException("usuario_nao_encontrado");
+
             // Elimina os decimais do preço multiplicando por 100.
             requestSugestao.setPreco(requestSugestao.getPreco() * 100);
             
@@ -102,6 +110,8 @@ public class SugestaoController {
 
         } catch (DadosInvalidosException e) {
             throw new ResponseStatusException(400, e.getMessage(), e);
+        } catch (NoSuchElementException e) {
+            throw new ResponseStatusException(404, e.getMessage(), e);
         } catch (DataIntegrityViolationException e) {
             throw new ResponseStatusException(500, "erro_insercao", e);
         } catch (IllegalArgumentException e) {
