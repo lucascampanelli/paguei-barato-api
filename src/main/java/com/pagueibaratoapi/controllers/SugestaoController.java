@@ -407,7 +407,7 @@ public class SugestaoController {
             // Retorna erro.
                 throw new DadosInvalidosException("usuario_nao_encontrado");
 
-            // Usuário que criou a sugestão.
+            // Sugestão a ser substituída.
             Sugestao sugestao = sugestaoRepository.findById(id).get();
 
             // Define o id da sugestão a ser substituída.
