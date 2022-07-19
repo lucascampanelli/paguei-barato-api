@@ -407,8 +407,15 @@ public class SugestaoController {
             // Retorna erro.
                 throw new DadosInvalidosException("usuario_nao_encontrado");
 
+            // Usuário que criou a sugestão.
+            Sugestao sugestao = sugestaoRepository.findById(id).get();
+
             // Define o id da sugestão a ser substituída.
             requestSugestao.setId(id);
+
+            // Definindo o usuário que criou a sugestão como o usuário que está no banco, haja vista que não pode ser alterado.
+            requestSugestao.setCriadoPor(sugestao.getCriadoPor());
+
             // Multiplica o preço por 100 para eliminar o decimal.
             requestSugestao.setPreco(requestSugestao.getPreco() * 100);
 
