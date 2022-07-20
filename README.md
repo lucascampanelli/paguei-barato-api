@@ -4,7 +4,7 @@ made with ❤ in 🇧🇷
 
 <br>
 
-<img src="https://img.shields.io/github/v/release/lucascampanelli/paguei-barato-api?style=for-the-badge"/>
+<img src="https://img.shields.io/github/v/release/lucascampanelli/paguei-barato-api"/>
 <hr>
 
 <p>O PagueiBarato é uma API RESTful de busca e comparação de preços de produtos em diversos mercados varejistas e atacadistas, desenvolvida com a framework Java Spring Boot. Encontre o melhor preço do produto que desejar, compare preços entre lojas e cadastre ofertas imperdíveis dos estabelecimentos que frequenta.</p>
