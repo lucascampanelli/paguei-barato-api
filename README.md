@@ -118,7 +118,7 @@ made with ❤ in 🇧🇷
     <img width=100 src="https://img.shields.io/badge/apache_maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white"> - Gestão de dependências
 </li>
 <li>
-    <img width=100 src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSON%20web%20tokens&logoColor=white"> - Implementação para o Java do JWT
+    <img width=100 src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSON%20web%20tokens&logoColor=white"> - Implementação do JWT para o Java
 </li>
 <li>
     <img width=100 src="https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=Postman&logoColor=white"> - Cliente teste da API e Documentação
