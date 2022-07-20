@@ -61,17 +61,17 @@ made with ❤ in 🇧🇷
 <p>Exemplo de corpo de requisição para criação de um usuário:</p>
 
 <code>
-{<br>
-    "nome": "John Doe",<br>
-    "email": "john.public-doe@email.com",<br>
-    "senha": "mYP4s5W0Rd1sV3rYS3CR3t!!!",<br>
-    "logradouro": "Rua Brasil",<br>
-    "numero": 12,<br>
-    "complemento": "Apart. 22",<br>
-    "bairro": "Itaquera",<br>
-    "cidade": "São Paulo",<br>
-    "uf": "SP",<br>
-    "cep": "03367-074"<br>
+{
+    "nome": "John Doe",
+    "email": "john.public-doe@email.com",
+    "senha": "mYP4s5W0Rd1sV3rYS3CR3t!!!",
+    "logradouro": "Rua Brasil",
+    "numero": 12,
+    "complemento": "Apart. 22",
+    "bairro": "Itaquera",
+    "cidade": "São Paulo",
+    "uf": "SP",
+    "cep": "03367-074"
 }
 </code>
 
@@ -83,9 +83,9 @@ made with ❤ in 🇧🇷
 <p>Exemplo de corpo de requisição para criação de uma sessão de autenticação:</p>
 
 <code>
-{<br>
-    "email": "root@email.com",<br>
-    "senha": "R0ot!!!123"<br>
+{
+    "email": "john.public-doe@email.com",
+    "senha": "mYP4s5W0Rd1sV3rYS3CR3t!!!"
 }
 </code>
 
@@ -99,7 +99,7 @@ made with ❤ in 🇧🇷
 ## Sugerindo um preço
 <p>Se você quiser indicar o preço de um produto em um mercado, você deverá criar uma sugestão de preço. Para criar uma sugestão, basta fazer uma requisição com o método <strong>POST</strong> para a rota <strong>/sugestao</strong> enviando no <em>corpo</em> o <strong>preço</strong> - com o valor decimal -, o <strong>id do estoque</strong> e o <strong>id do usuário</strong> que está sugerindo o preço.</p>
 
-> <em>OBS: Para criar um estoque é necessário estar autenticado.</em>
+<p><em>OBS: É necessário estar autenticado para criar um estoque.</em></p>
 
 <br>
 
