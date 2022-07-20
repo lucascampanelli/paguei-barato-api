@@ -49,7 +49,7 @@ made with ❤ in 🇧🇷
         <strong>/login</strong> - Concerne à rota para criação de uma sessão, ou seja, para realização de login pelo usuário, de modo que seja possível obter o token de acesso às rotas protegidas;
     </li>
     <li>
-        <strong>/</strong> - Rota inicial onde é obtida todas as rotas possíveis para realizar a manipulação e busca dos recursos.
+        <strong>/</strong> - Rota inicial onde são obtidas todas as rotas possíveis para realizar a manipulação e busca dos recursos.
     </li>
 </ul>
 
