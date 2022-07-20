@@ -91,7 +91,7 @@ made with ❤ in 🇧🇷
 
 <br>
 
-<p>Como resposta, você obterá um token que deverá ser enviado no cabeçalho <strong>Authorization</strong> junto com o prefixo "Bearer". Por exemplo:<p>
+<p>Como resposta, você obterá um token que deverá ser enviado no cabeçalho <strong>Authorization</strong> junto com o prefixo "Bearer" em todas as requisições às rotas protegidas. Por exemplo:<p>
 <p><em><strong>Authorization:</strong> Bearer T0K3Ng3r4d0</em></p>
 
 <br>
