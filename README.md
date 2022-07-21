@@ -115,6 +115,9 @@ made with ❤ in 🇧🇷
     <img width=100 src="https://img.shields.io/badge/Hibernate-59666C?style=for-the-badge&logo=Hibernate&logoColor=white"> - ORM
 </li>
 <li>
+    <img width=100 src="https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=Spring-Security&logoColor=white"> - Segurança
+</li>
+<li>
     <img width=100 src="https://img.shields.io/badge/apache_maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white"> - Gestão de dependências
 </li>
 <li>
