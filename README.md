@@ -118,7 +118,7 @@ made with ❤ in 🇧🇷
 
 <br>
 
-<p>Como resposta, você obterá um token que deverá ser enviado no cabeçalho <strong>Authorization</strong> junto com o prefixo "Bearer" em todas as requisições às rotas protegidas. Por exemplo:<p>
+<p>Como resposta, você obterá um token que deverá ser enviado no cabeçalho <strong>Authorization</strong> junto com o prefixo "Bearer" em todas as requisições às rotas protegidas. Por exemplo:<>
 <p><em><strong>Authorization:</strong> Bearer T0K3Ng3r4d0</em></p>
 
 <br>
@@ -126,7 +126,9 @@ made with ❤ in 🇧🇷
 ## Sugerindo um preço <a name = "sugerindoPreco"></a>
 <p>Se você quiser indicar o preço de um produto em um mercado, você deverá criar uma sugestão de preço. Para criar uma sugestão, basta fazer uma requisição com o método <strong>POST</strong> para a rota <strong>/sugestao</strong> enviando no <em>corpo</em> o <strong>preço</strong> - com o valor decimal -, o <strong>id do estoque</strong> e o <strong>id do usuário</strong> que está sugerindo o preço.</p>
 
-<p><em>OBS: É necessário estar autenticado para criar um estoque.</em></p>
+<br>
+
+> <em>OBS: É necessário estar autenticado para criar um estoque.</em>
 
 <br>
 
