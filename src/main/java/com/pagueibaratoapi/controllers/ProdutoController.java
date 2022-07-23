@@ -27,14 +27,17 @@ import org.springframework.web.server.ResponseStatusException;
 import com.pagueibaratoapi.models.exceptions.DadosConflitantesException;
 import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Estoque;
+import com.pagueibaratoapi.models.requests.Mercado;
 import com.pagueibaratoapi.models.requests.Produto;
 import com.pagueibaratoapi.models.requests.Sugestao;
 import com.pagueibaratoapi.models.requests.Usuario;
 import com.pagueibaratoapi.models.responses.ResponseLevantamentoProduto;
+import com.pagueibaratoapi.models.responses.ResponseMercado;
 import com.pagueibaratoapi.models.responses.ResponsePagina;
 import com.pagueibaratoapi.models.responses.ResponseProduto;
 import com.pagueibaratoapi.repository.CategoriaRepository;
 import com.pagueibaratoapi.repository.EstoqueRepository;
+import com.pagueibaratoapi.repository.MercadoRepository;
 import com.pagueibaratoapi.repository.ProdutoRepository;
 import com.pagueibaratoapi.repository.SugestaoRepository;
 import com.pagueibaratoapi.repository.UsuarioRepository;
@@ -51,22 +54,25 @@ public class ProdutoController {
 
     // Repositórios responsável pelos métodos JPA dp banco de dados.
     private final CategoriaRepository categoriaRepository;
-    private final ProdutoRepository produtoRepository;
     private final EstoqueRepository estoqueRepository;
+    private final MercadoRepository mercadoRepository;
+    private final ProdutoRepository produtoRepository;
     private final SugestaoRepository sugestaoRepository;
     private final UsuarioRepository usuarioRepository;
 
     // Construtor
     public ProdutoController(
         CategoriaRepository categoriaRepository,
-        ProdutoRepository produtoRepository,
         EstoqueRepository estoqueRepository,
+        MercadoRepository mercadoRepository,
+        ProdutoRepository produtoRepository,
         SugestaoRepository sugestaoRepository,
         UsuarioRepository usuarioRepository
     ) {
         this.categoriaRepository = categoriaRepository;
-        this.produtoRepository = produtoRepository;
         this.estoqueRepository = estoqueRepository;
+        this.mercadoRepository = mercadoRepository;
+        this.produtoRepository = produtoRepository;
         this.sugestaoRepository = sugestaoRepository;
         this.usuarioRepository = usuarioRepository;
     }
@@ -190,6 +196,71 @@ public class ProdutoController {
 
             // Retorna os dados do produto.
             return responseProduto;
+
+        } catch (NoSuchElementException e) {
+            throw new ResponseStatusException(404, "nao_encontrado", e);
+        } catch (Exception e) {
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Rota responsável por listar todos os mercados onde o produto pode ser encontrado.
+     * @param id - Id do produto a ser buscado como parâmetro.
+     * @return <b>List< ResponseMercado ></b> - Lista de mercados onde o produto pode ser encontrado.
+     */
+    @GetMapping("/{id}/mercado")
+    public List<ResponseMercado> listarMercados(@PathVariable("id") Integer id) {
+        try {
+
+            // Buscando os estoques que possuem o produto informado e armazenando numa lista.
+            List<Estoque> estoques = estoqueRepository.findByProdutoId(id);
+
+            // Busca o produto no banco e transforma os dados obtidos em modelo de resposta.
+            List<ResponseMercado> responseMercado = new ArrayList<>();
+
+            // Percorrendo cada estoque encontrado
+            for(Estoque estoque : estoques){
+                // Armazenando o mercado do estoque na lista de resposta com os mercados encontrados.
+                responseMercado.add(
+                    // Chamando o construtor da classe ResponseMercado que converte o objeto Mercado em modelo de resposta.
+                    new ResponseMercado(
+                        // Buscando o mercado pelo ID.
+                        mercadoRepository.findById(
+                            // Passando como parâmetro o ID do mercado no estoque atual.
+                            estoque.getMercadoId()
+                        )
+                        .get()
+                    )
+                );
+            }
+
+            // Se não houver nenhum mercado que possua o produto
+            if(responseMercado.isEmpty())
+                // Lança uma exceção informando que não foi encontrado um estoque com o produto informado.
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Para cada mercado da lista de resposta.
+            for(ResponseMercado mercado : responseMercado) {
+                // Adiciona ao mercado o link para a leitura do mesmo.
+                mercado.add(
+                    linkTo(
+                        methodOn(MercadoController.class).ler(mercado.getId())
+                    )
+                    .withSelfRel()
+                );                
+
+                // Adiciona ao mercado o link para a rota de listagem de mercados (coleção).
+                mercado.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listar(new Mercado())
+                    )
+                    .withRel("collection")
+                );
+            }
+
+            // Retorna os dados do produto.
+            return responseMercado;
 
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(404, "nao_encontrado", e);
