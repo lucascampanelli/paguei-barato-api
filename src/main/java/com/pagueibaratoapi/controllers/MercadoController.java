@@ -195,7 +195,7 @@ public class MercadoController {
      * @param produtoId - Id do produto no qual será buscadas as sugestões.
      * @return <b>List < ResponseSugestao ></b> - Lista de sugestões do produto específico no mercado.
      */
-    @GetMapping("/{id}/produto/{produtoId}")
+    @GetMapping("/{id}/produto/{produtoId}/sugestao")
     public List<ResponseSugestao> ler(
         @PathVariable("id") Integer id,
         @PathVariable(value = "produtoId") Integer produtoId

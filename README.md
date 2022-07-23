@@ -38,31 +38,31 @@ made with ❤ in 🇧🇷
 
 <ul>
     <li>
-        <strong>/categoria</strong> - Refere-se às ações realizáveis sobre o recurso da categoria do produto;
+        <code>/categoria</code> - Refere-se às ações realizáveis sobre o recurso da categoria do produto;
     </li>
     <li>
-        <strong>/estoque</strong> - Concerne às ações realizáveis sobre o estoque de um mercado, isto é, a relação entre as chaves primárias de um <em>Mercado</em> e de um <em>Produto</em>;
+        <code>/estoque</code> - Concerne às ações realizáveis sobre o estoque de um mercado, isto é, a relação entre as chaves primárias de um <em>Mercado</em> e de um <em>Produto</em>;
     </li>
     <li>
-        <strong>/mercado</strong> - Rota referente às ações realizáveis sobre o recurso do mercado;
+        <code>/mercado</code> - Rota referente às ações realizáveis sobre o recurso do mercado;
     </li>
     <li>
-        <strong>/produto</strong> - Rota referente às ações realizáveis sobre o recurso do produto;
+        <code>/produto</code> - Rota referente às ações realizáveis sobre o recurso do produto;
     </li>
     <li>
-        <strong>/ramo</strong> - Refere-se às ações realizáveis sobre o recurso do ramo de um mercado;
+        <code>/ramo</code> - Refere-se às ações realizáveis sobre o recurso do ramo de um mercado;
     </li>
     <li>
-        <strong>/sugestao</strong> - Referente às ações realizáveis sobre o recurso da sugestão. A sugestão é uma <em>indicação de preço</em> feita por um usuário acerca de um produto em um determinado mercado;
+        <code>/sugestao</code> - Referente às ações realizáveis sobre o recurso da sugestão. A sugestão é uma <em>indicação de preço</em> feita por um usuário acerca de um produto em um determinado mercado;
     </li>
     <li>
-        <strong>/usuario</strong> - Refere-se às ações realizáveis sobre o recurso do usuário;
+        <code>/usuario</code> - Refere-se às ações realizáveis sobre o recurso do usuário;
     </li>
     </li>
-        <strong>/login</strong> - Concerne à rota para criação de uma sessão, ou seja, para realização de login pelo usuário, de modo que seja possível obter o token de acesso às rotas protegidas;
+        <code>/login</code> - Concerne à rota para criação de uma sessão, ou seja, para realização de login pelo usuário, de modo que seja possível obter o token de acesso às rotas protegidas;
     </li>
     <li>
-        <strong>/</strong> - Rota inicial onde são obtidas todas as rotas possíveis para realizar a manipulação e busca dos recursos.
+        <code>/</code> - Rota inicial onde são obtidas todas as rotas possíveis para realizar a manipulação e busca dos recursos.
     </li>
 </ul>
 
@@ -84,10 +84,10 @@ made with ❤ in 🇧🇷
 
 ## Cadastrando um usuário <a name = "cadastrandoUsuario"></a>
 <p>Para realizar algumas ações, como criação de produtos, mercados e sugestões, é necessário ter um usuário cadastrado e estar autenticado.</p>
-<p>Para cadastrar um novo usuário, é necessário realizar uma requisição com o método <strong>POST</strong> à rota <strong>/usuario</strong> enviando no <em>corpo</em> os dados do usuário. </p>
+<p>Para cadastrar um novo usuário, é necessário realizar uma requisição com o método <strong>POST</strong> à rota <code>/usuario</code> enviando no <em>corpo</em> os dados do usuário. </p>
 <p>Exemplo de corpo de requisição para criação de um usuário:</p>
 
-<code>
+```json
 {
     "nome": "John Doe",
     "email": "john.public-doe@email.com",
@@ -100,31 +100,40 @@ made with ❤ in 🇧🇷
     "uf": "SP",
     "cep": "03367-074"
 }
-</code>
+```
 
 <br>
 
 ## Autenticando <a name = "autenticando"></a>
 <p>Para criar ou obter alguns recursos, é necessário estar com algum usuário autenticado e enviar em cada requisição o token obtido na autenticação.</p>
-<p>Para realizar a Autenticação é necessário fazer uma requisição <strong>POST</strong> na rota <strong>/login</strong> enviando no <em>corpo</em> o <strong>email</strong> e a <strong>senha</strong> do usuário.</p>
+<p>Para realizar a Autenticação é necessário fazer uma requisição <strong>POST</strong> na rota <code>/login</code> enviando no <em>corpo</em> o <strong>email</strong> e a <strong>senha</strong> do usuário.</p>
 <p>Exemplo de corpo de requisição para criação de uma sessão de autenticação:</p>
 
-<code>
+```json
 {
     "email": "john.public-doe@email.com",
     "senha": "mYP4s5W0Rd1sV3rYS3CR3t!!!"
 }
-</code>
+```
 
 <br>
 
-<p>Como resposta, você obterá um token que deverá ser enviado no cabeçalho <strong>Authorization</strong> junto com o prefixo "Bearer" em todas as requisições às rotas protegidas. Por exemplo:<>
+<p>Como resposta, você obterá um token que deverá ser enviado no cabeçalho <strong>Authorization</strong> junto com o prefixo "Bearer" em todas as requisições às rotas protegidas. Por exemplo:
 <p><em><strong>Authorization:</strong> Bearer T0K3Ng3r4d0</em></p>
 
 <br>
 
 ## Sugerindo um preço <a name = "sugerindoPreco"></a>
-<p>Se você quiser indicar o preço de um produto em um mercado, você deverá criar uma sugestão de preço. Para criar uma sugestão, basta fazer uma requisição com o método <strong>POST</strong> para a rota <strong>/sugestao</strong> enviando no <em>corpo</em> o <strong>preço</strong> - com o valor decimal -, o <strong>id do estoque</strong> e o <strong>id do usuário</strong> que está sugerindo o preço.</p>
+<p>Se você quiser indicar o preço de um produto em um mercado, você deverá criar uma sugestão de preço. Para criar uma sugestão, basta fazer uma requisição com o método <strong>POST</strong> para a rota <code>/sugestao</code> enviando no <em>corpo</em> o <strong>preço</strong> - com o valor decimal -, o <strong>id do estoque</strong> e o <strong>id do usuário</strong> que está sugerindo o preço.</p>
+<p>Exemplo de corpo de requisição para criação de uma sugestão para o produto no mercado:</p>
+
+```json
+{
+    "preco": -5.12,
+    "estoqueId": 10,
+    "criadoPor": 10
+}
+```
 
 <br>
 
