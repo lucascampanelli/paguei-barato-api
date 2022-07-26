@@ -129,11 +129,25 @@ made with ❤ in 🇧🇷
 
 ```json
 {
-    "preco": -5.12,
+    "preco": 5.12,
     "estoqueId": 10,
     "criadoPor": 10
 }
 ```
+
+<br>
+
+<p>Existe ainda outra maneira de criar uma sugestão de preço para o produto em um mercado específico: através da rota do mercado.</p>
+<p>Você pode fazer uma requisição com o método <strong>POST</strong> para a rota <code>/mercado/{idMercado}/produto/{idProduto}/sugestao</code>, substituindo o idMercado e o idProduto pelo id do mercado que possui o produto e pelo id do produto que terá o preço sugerido no mercado informado, respectivamente. No corpo da requisição, basta enviar o <strong>preço</strong> da sugestão, com o valor decimal, e o <strong>id do usuário</strong> que está sugerindo o preço.</p>
+<p>Exemplo de corpo de requisição para criação de uma sugestão pela rota do mercado:</p>
+
+```json
+{
+    "criadoPor": 10,
+    "preco": 7.00
+}
+```
+<p>No exemplo acima, o produto com o id {idProduto} do mercado com o id {idMercado} terá o preço de R$ 7.00 sugerido pelo usuário com o id 10.
 
 <br>
 
@@ -179,4 +193,4 @@ made with ❤ in 🇧🇷
 </ul>
 
 <br><br><br>
-🏗🚧 EM CONSTRUÇÃO 🚧🏗
+<center>🏗🚧 EM CONSTRUÇÃO 🚧🏗</center>
