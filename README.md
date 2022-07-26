@@ -71,8 +71,8 @@ made with ❤ in 🇧🇷
 ## Configurando o ambiente <a name = "configurando"></a>
 É necessário definir algumas variáveis de ambiente para rodar a API. Para fazer isso corretamente, siga as seguintes etapas:
 <ol>
-    <li>Acesse o diretório <strong>src > main > resources</strong></li>
-    <li>Renomeie o arquivo <strong>application-example.properties</strong> para <strong>application.properties</strong></li>
+    <li>Acesse o diretório <code>src > main > resources</code></li>
+    <li>Renomeie o arquivo <code>application-example.properties</code> para <code>application.properties</code></li>
     <li>Altere as informações do banco de dados para as informações do seu ambiente, como nome do banco, host, usuário e senha.</li>
 </ol>
 
