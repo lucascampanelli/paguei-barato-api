@@ -28,13 +28,19 @@ import com.pagueibaratoapi.models.exceptions.DadosConflitantesException;
 import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Estoque;
 import com.pagueibaratoapi.models.requests.Mercado;
+import com.pagueibaratoapi.models.requests.Produto;
 import com.pagueibaratoapi.models.requests.Sugestao;
 import com.pagueibaratoapi.models.requests.Usuario;
+import com.pagueibaratoapi.models.responses.ResponseEstoque;
+import com.pagueibaratoapi.models.responses.ResponseEstoqueProduto;
 import com.pagueibaratoapi.models.responses.ResponseMercado;
 import com.pagueibaratoapi.models.responses.ResponsePagina;
+import com.pagueibaratoapi.models.responses.ResponseProduto;
 import com.pagueibaratoapi.models.responses.ResponseSugestao;
+import com.pagueibaratoapi.repository.CategoriaRepository;
 import com.pagueibaratoapi.repository.EstoqueRepository;
 import com.pagueibaratoapi.repository.MercadoRepository;
+import com.pagueibaratoapi.repository.ProdutoRepository;
 import com.pagueibaratoapi.repository.RamoRepository;
 import com.pagueibaratoapi.repository.SugestaoRepository;
 import com.pagueibaratoapi.repository.UsuarioRepository;
@@ -50,25 +56,31 @@ import com.pagueibaratoapi.utils.Tratamento;
 public class MercadoController {
 
     // Iniciando as variáveis de instância dos repositórios.
-    private final MercadoRepository mercadoRepository;
-    private final RamoRepository ramoRepository;
-    private final UsuarioRepository usuarioRepository;
-    private final SugestaoRepository sugestaoRepository;
+    private final CategoriaRepository categoriaRepository;
     private final EstoqueRepository estoqueRepository;
+    private final MercadoRepository mercadoRepository;
+    private final ProdutoRepository produtoRepository;
+    private final RamoRepository ramoRepository;
+    private final SugestaoRepository sugestaoRepository;
+    private final UsuarioRepository usuarioRepository;
 
     // Construtor do controller do estoque, que realiza a injeção de dependência dos repositórios.
     public MercadoController(
+        CategoriaRepository categoriaRepository,
+        EstoqueRepository estoqueRepository,
         MercadoRepository mercadoRepository,
+        ProdutoRepository produtoRepository,
         RamoRepository ramoRepository,
-        UsuarioRepository usuarioRepository,
         SugestaoRepository sugestaoRepository,
-        EstoqueRepository estoqueRepository
+        UsuarioRepository usuarioRepository
     ) {
-        this.mercadoRepository = mercadoRepository;
-        this.ramoRepository = ramoRepository;
-        this.usuarioRepository = usuarioRepository;
-        this.sugestaoRepository = sugestaoRepository;
+        this.categoriaRepository = categoriaRepository;
         this.estoqueRepository = estoqueRepository;
+        this.mercadoRepository = mercadoRepository;
+        this.produtoRepository = produtoRepository;
+        this.ramoRepository = ramoRepository;
+        this.sugestaoRepository = sugestaoRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     /**
@@ -154,6 +166,376 @@ public class MercadoController {
     }
 
     /**
+     * Método responsável por adicionar um produto ao mercado com o id informado.
+     * @param id - Id do mercado que será usado como parâmetro.
+     * @param produtoId - Id do produto no qual será buscadas as sugestões.
+     * @return ResponseEstoque - Objeto do estoque criado.
+     */
+    @PostMapping("/{id}/produto/{produtoId}")
+    public ResponseEstoque criarEstoque(
+        @PathVariable("id") Integer id,
+        @PathVariable(value = "produtoId") Integer produtoId,
+        @RequestBody Estoque requestEstoque
+    ) {
+        try {
+
+            // Validando os dados enviados pelo usuário.
+            Tratamento.validarEstoque(requestEstoque, true);
+
+            // Se o cliente não enviou o id do usuário criador do estoque
+            if(requestEstoque.getCriadoPor() == null)
+                // Lança um erro de usuário não encontrado.
+                throw new DadosInvalidosException("usuario_nao_encontrado");
+
+            // Verifica se o usuário informado existe. Caso não exista, lança exceção.
+            if(!usuarioRepository.existsById(requestEstoque.getCriadoPor()))
+                throw new DadosInvalidosException("usuario_invalido");
+
+            // Obtendo o usuário informado.
+            Usuario usuario = usuarioRepository.findById(requestEstoque.getCriadoPor()).get();
+
+            // Verifica se o usuário informado como criador não foi deletado anteriormente.
+            if(!Tratamento.usuarioExiste(usuario))
+                // Retorna um erro.
+                throw new NoSuchElementException("usuario_nao_encontrado");
+
+            // Verifica se o produto informado existe. Caso não exista, lança exceção.
+            if(!produtoRepository.existsById(produtoId))
+                throw new DadosInvalidosException("produto_invalido");
+
+            // Verifica se o mercado informado existe. Caso não exista, lança exceção.
+            if(!mercadoRepository.existsById(id))
+                throw new DadosInvalidosException("mercado_invalido");
+
+            // Instanciando um objeto do estoque que será utilizado para verificar se o estoque já existe.
+            Estoque estoqueComparar = new Estoque();
+            // Definindo o id do produto informado pelo usuário.
+            estoqueComparar.setProdutoId(produtoId);
+            // Definindo o id do mercado informado pelo usuário.
+            estoqueComparar.setMercadoId(id);
+
+            // Buscando o estoque pelo produto e mercado informados.
+            List<Estoque> estoquesSemelhantes = estoqueRepository.findAll(
+                Example.of(
+                    estoqueComparar, 
+                    ExampleMatcher
+                        .matching()
+                        .withIgnoreCase()
+                        .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                )
+            );
+
+            // Se o estoque já existir, lança exceção.
+            if(estoquesSemelhantes.size() != 0)
+                throw new DadosConflitantesException("estoque_existente");
+
+            // Definindo o id do mercado no objeto do tipo Estoque como o id enviado pela URI.
+            requestEstoque.setMercadoId(id);
+
+            // Definindo o id do produto no objeto do tipo Estoque como o id enviado pela URI.
+            requestEstoque.setProdutoId(produtoId);
+            
+            ResponseEstoque responseEstoque = new ResponseEstoque(estoqueRepository.save(requestEstoque));
+
+            // Adiciona à resposta um link para a leitura do estoque criado.
+            responseEstoque.add(
+                linkTo(
+                    methodOn(EstoqueController.class).ler(responseEstoque.getId())
+                )
+                .withSelfRel()
+            );
+
+            // Adiciona à resposta um link para a listagem de estoques.
+            responseEstoque.add(
+                linkTo(
+                    methodOn(EstoqueController.class).listar(new Estoque())
+                )
+                .withRel("collection")
+            );
+
+            // Adiciona à resposta um link para a leitura do mercado.
+            responseEstoque.add(
+                linkTo(
+                    methodOn(MercadoController.class).ler(responseEstoque.getMercadoId())
+                )
+                .withRel("mercado")
+            );
+
+            // Adiciona à resposta um link para a leitura do produto.
+            responseEstoque.add(
+                linkTo(
+                    methodOn(ProdutoController.class).ler(responseEstoque.getProdutoId())
+                )
+                .withRel("produto")
+            );
+
+            return responseEstoque;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que algum registro não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (DadosInvalidosException e) {
+            // Lança uma exceção informando que há um problema no corpo da requisição.
+            throw new ResponseStatusException(400, e.getMessage(), e);
+        } catch (DadosConflitantesException e) {
+            // Lança uma exceção informando que já existe um recurso igual no banco de dados.
+            throw new ResponseStatusException(409, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Método responsável por criar um produto no mercado com o id informado.
+     * @param id - Id do mercado que será usado como parâmetro.
+     * @return ResponseEstoqueProduto - Objeto do produto criado com o id do estoque criado.
+     */
+    @PostMapping("/{id}/produto")
+    public ResponseEstoqueProduto criarProduto(
+        @PathVariable("id") Integer id,
+        @RequestBody Produto requestProduto
+    ) {
+        try {
+
+            Tratamento.validarProduto(requestProduto, false);
+
+            // Se o usuário fornecido não existir,
+            if(!usuarioRepository.existsById(requestProduto.getCriadoPor()))
+                // Retorna um erro.
+                throw new DadosInvalidosException("usuario_nao_encontrado");
+
+            // Se a categoria fornecida não existir,
+            if(!categoriaRepository.existsById(requestProduto.getCategoriaId()))
+                // Retorna um erro.
+                throw new DadosInvalidosException("categoria_nao_encontrado");
+
+            // Se as características fornecidas pertencer a um produto já existente,
+            if(produtoRepository.findByCaracteristicas(
+                requestProduto.getNome(), 
+                requestProduto.getMarca(),
+                requestProduto.getTamanho(), 
+                requestProduto.getCor()) != null
+            )
+                // Retorna um erro.
+                throw new DadosConflitantesException("produto_existente");
+
+            // Obtendo o usuário informado.
+            Usuario usuario = usuarioRepository.findById(requestProduto.getCriadoPor()).get();
+
+            // Verifica se o usuário informado como criador não foi deletado anteriormente.
+            if(!Tratamento.usuarioExiste(usuario))
+                // Retorna um erro.
+                throw new NoSuchElementException("usuario_nao_encontrado");
+
+            // Verifica se o mercado informado existe. Caso não exista, lança exceção.
+            if(!mercadoRepository.existsById(id))
+                throw new DadosInvalidosException("mercado_invalido");
+
+            // Criando uma nova instância do produto para tratar o nome dele e criá-lo no banco.
+            Produto produtoTratado = requestProduto;
+
+            // Pegando cada palavra do nome do produto em minúsculas separado por espaço.
+            String[] nomeProduto = requestProduto.getNome().toLowerCase().split(" ");
+
+            // Percorrendo cada palavra do nome do produto
+            for(int i = 0; i < nomeProduto.length; i++) {
+                // Transformando a palavra atual em uma array
+                char[] palavraArr = nomeProduto[i].toCharArray();
+
+                // Transformando a primeira letra da palavra em maiúscula
+                palavraArr[0] = nomeProduto[i].toUpperCase().charAt(0);
+
+                // Reescreve a palavra atual com a primeira letra tratada
+                nomeProduto[i] = String.valueOf(palavraArr);
+
+                // Se for a primeira palavra sendo tratada,
+                // substitui o nome do produto pelo nome tratado
+                if(i < 1)
+                    produtoTratado.setNome(nomeProduto[i]);
+                // Se não, concatena a palavra atual ao nome do produto
+                else
+                    produtoTratado.setNome(produtoTratado.getNome() + " " + nomeProduto[i]);
+            }
+
+            // Insere o produto e transforma os dados obtidos em modelo de resposta.
+            ResponseEstoqueProduto responseProduto = new ResponseEstoqueProduto(produtoRepository.save(produtoTratado));
+
+            // Criando uma instância de um objeto de estoque que será adicionado ao banco.
+            Estoque novoEstoque = new Estoque();
+
+            // Definindo o id do mercado no objeto do tipo Estoque como o id do mercado enviado pela URI.
+            novoEstoque.setMercadoId(id);
+
+            // Definindo o id do produto no objeto do tipo Estoque como o id do novo produto criado.
+            novoEstoque.setProdutoId(responseProduto.getId());
+            
+            // Definindo o id do usuário no objeto do tipo Estoque como o id do usuário enviado pelo corpo da requisição.
+            novoEstoque.setCriadoPor(requestProduto.getCriadoPor());
+
+            // Criando o novo estoque no banco de dados.
+            novoEstoque = estoqueRepository.save(novoEstoque);
+
+            // Definindo o id do estoque no objeto do tipo ResponseEstoqueProduto como o id do novo estoque criado.
+            responseProduto.setEstoqueId(novoEstoque.getId());
+
+            // Adiciona à resposta um link para a leitura do produto criado.
+            responseProduto.add(
+                linkTo(
+                    methodOn(ProdutoController.class).ler(responseProduto.getId())
+                )
+                .withSelfRel()
+            );
+
+            // Adiciona à resposta um link para a listagem de produtos.
+            responseProduto.add(
+                linkTo(
+                    methodOn(ProdutoController.class).listar(new Produto())
+                )
+                .withRel("collection")
+            );
+
+            // Adiciona à resposta um link para a leitura do mercado.
+            responseProduto.add(
+                linkTo(
+                    methodOn(MercadoController.class).ler(id)
+                )
+                .withRel("mercado")
+            );
+
+            // Adiciona à resposta um link para a leitura do produto.
+            responseProduto.add(
+                linkTo(
+                    methodOn(ProdutoController.class).ler(responseProduto.getEstoqueId())
+                )
+                .withRel("estoque")
+            );
+
+            return responseProduto;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que algum registro não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (DadosInvalidosException e) {
+            // Lança uma exceção informando que há um problema no corpo da requisição.
+            throw new ResponseStatusException(400, e.getMessage(), e);
+        } catch (DadosConflitantesException e) {
+            // Lança uma exceção informando que já existe um recurso igual no banco de dados.
+            throw new ResponseStatusException(409, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Método responsável por criar uma sugestão em um produto específico no mercado informado.
+     * @param id - Id do mercado que será utilizado como parâmetro.
+     * @param produtoId - Id do produto que terá a sugestão de preço criada.
+     * @return ResponseSugestao - Objeto da sugestão criada.
+     */
+    @PostMapping("/{id}/produto/{produtoId}/sugestao")
+    public ResponseSugestao criarSugestao(
+        @PathVariable("id") Integer id,
+        @PathVariable(value = "produtoId") Integer produtoId,
+        @RequestBody Sugestao requestSugestao
+    ) {
+        try {
+
+            // Validando os dados enviados pelo cliente.
+            Tratamento.validarSugestao(requestSugestao, true);
+
+            // Verifica se o cliente informou o id do usuário criador.
+            if(requestSugestao.getCriadoPor() == null)
+                // Lança exceção informando que o cliente não informou o id do usuário criador.
+                throw new DadosInvalidosException("usuario_invalido");
+
+            // Verifica se o cliente informou o preço da sugestão.
+            if(requestSugestao.getPreco() == null)
+                // Lança exceção informando que o cliente não informou o preço da sugestão.
+                throw new DadosInvalidosException("preco_invalido");
+
+            // Se o usuário informado não existir,
+            if(!usuarioRepository.existsById(requestSugestao.getCriadoPor()))
+                // Retorna erro.
+                throw new DadosInvalidosException("usuario_nao_encontrado");
+
+            Usuario usuario = usuarioRepository.findById(requestSugestao.getCriadoPor()).get();
+
+            // Verifica se o produto informado existe. Caso não exista, lança exceção.
+            if(!produtoRepository.existsById(produtoId))
+                throw new DadosInvalidosException("produto_invalido");
+
+            // Verifica se o mercado informado existe. Caso não exista, lança exceção.
+            if(!mercadoRepository.existsById(id))
+                throw new DadosInvalidosException("mercado_invalido");
+
+            // Validando se o usuário informado como criador já foi excluído.
+            if(!Tratamento.usuarioExiste(usuario))
+                // Retorna erro.
+                throw new NoSuchElementException("usuario_nao_encontrado");
+
+            // Buscando o registro do estoque do mercado, que associa o produto ao estoque
+            // do mercado
+            Estoque estoque = estoqueRepository.findByProdutoIdAndMercadoId(produtoId, id);
+
+            // Se o estoque for nulo
+            if(estoque == null)
+                // Lança uma exceção informando que o produto não está no estoque do mercado.
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Adicionando à sugestão que será criada o id do estoque.
+            requestSugestao.setEstoqueId(estoque.getId());
+
+            // Elimina os decimais do preço multiplicando por 100.
+            requestSugestao.setPreco(requestSugestao.getPreco() * 100);
+
+            // Insere a sugestão e transforma os dados obtidos em modelo de resposta.
+            ResponseSugestao responseSugestao = new ResponseSugestao(sugestaoRepository.save(requestSugestao));
+
+            // Adiciona o link para a leitura da sugestão criada.
+            responseSugestao.add(
+                linkTo(
+                    methodOn(SugestaoController.class).ler(responseSugestao.getId())
+                )
+                .withSelfRel()
+            );
+
+            // Adiciona o link para a listagem de sugestões.
+            responseSugestao.add(
+                linkTo(
+                    methodOn(SugestaoController.class).listar(new Sugestao())
+                )
+                .withRel("collection")
+            );
+
+            // Adiciona o link para a leitura do estoque da sugestão criada.
+            responseSugestao.add(
+                linkTo(
+                    methodOn(EstoqueController.class).ler(responseSugestao.getEstoqueId())
+                )
+                .withRel("estoque")
+            );
+
+            // Divide o preço por 100 para obter os centavos.
+            responseSugestao.setPreco(responseSugestao.getPreco() / 100);
+
+            // Retorna a sugestão criada.
+            return responseSugestao;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que algum registro não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (DadosInvalidosException e) {
+            // Lança uma exceção informando que o corpo da requisição é inválido.
+            throw new ResponseStatusException(400, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
      * Método responsável por ler um mercado com o id informado.
      * @param id - Id do mercado que será lido.
      * @return ResponseMercado - Objeto do tipo ResponseMercado que contém os dados do mercado lido.
@@ -183,6 +565,135 @@ public class MercadoController {
         } catch (NoSuchElementException e) {
             // Lança uma exceção informando que o mercado com o id informado não foi encontrado.
             throw new ResponseStatusException(404, "nao_encontrado", e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Método responsável por listar todos os produtos de um mercado informado.
+     * @param id - Id do mercado que será lido.
+     * @return <b>List < ResponseProduto ></b> - Lista de objetos ResponseProduto que contém todos os produtos do mercado.
+     */
+    @GetMapping("/{id}/produto")
+    public List<ResponseProduto> listarProdutos(@PathVariable("id") Integer id) {
+        try {
+            // Verifica se o mercado informado existe. Caso não exista, lança exceção.
+            if(!mercadoRepository.existsById(id))
+                throw new NoSuchElementException("mercado_nao_encontrado");
+
+            // Busca todos os estoques do mercado com o id informado e os armazena numa lista.
+            List<Estoque> estoques = estoqueRepository.findByMercadoId(id);
+            
+            // Se não houver estoques no mercado
+            if(estoques.isEmpty())
+                // Lança uma exceção informando que o mercado com o id informado não possui nenhum estoque.
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Cria uma lista de objetos ResponseProduto.
+            List<ResponseProduto> responseProduto = new ArrayList<>();
+
+            // Para cada estoque do mercado
+            for(Estoque estoque : estoques){
+                // Pesquisa as informações do produto do estoque atual e adiciona à lista de resposta de produtos.
+                responseProduto.add(new ResponseProduto(produtoRepository.findById(estoque.getProdutoId()).get()));
+            }
+
+            // Para cada produto da lista de resposta
+            for(ResponseProduto produto : responseProduto){
+
+                // Adiciona à resposta um link para a leitura do produto em questão.
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produto.getId())
+                    )
+                    .withSelfRel()
+                );
+
+                // Adiciona à resposta um link para listar todos os produtos.
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).listar(new Produto())
+                    )
+                    .withRel("collection")
+                );
+
+            }
+
+            // Retorna o objeto do tipo ResponseMercado com o mercado lido e o link para a listagem dos mercados
+            return responseProduto;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que o mercado com o id informado não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Método responsável por retornar o estoque do mercado com o produto informado.
+     * @param id - Id do mercado que será buscado como parâmetro.
+     * @return ResponseEstoque - Objeto de resposta do estoque do mercado com o produto informado.
+     */
+    @GetMapping("/{id}/produto/{produtoId}")
+    public ResponseEstoque lerEstoque(
+        @PathVariable("id") Integer id, 
+        @PathVariable(value = "produtoId") Integer produtoId) 
+    {
+        try {
+
+            // Verifica se o mercado informado existe. Caso não exista, lança exceção.
+            if(!mercadoRepository.existsById(id))
+                throw new NoSuchElementException("mercado_nao_encontrado");
+
+            // Verifica se o produto informado existe. Caso não exista, lança exceção.
+            if(!produtoRepository.existsById(produtoId))
+                throw new NoSuchElementException("produto_nao_encontrado");
+
+            // Busca um estoque do mercado com o id do mercado e produto informado
+            ResponseEstoque responseEstoque = new ResponseEstoque(estoqueRepository.findByProdutoIdAndMercadoId(produtoId, id));
+
+            // Adiciona à resposta um link para a leitura do estoque em questão.
+            responseEstoque.add(
+                linkTo(
+                    methodOn(EstoqueController.class).ler(responseEstoque.getId())
+                )
+                .withSelfRel()
+            );
+
+            // Adiciona à resposta um link para listar todos os estoques.
+            responseEstoque.add(
+                linkTo(
+                    methodOn(EstoqueController.class).listar(new Estoque())
+                )
+                .withRel("collection")
+            );
+
+            // Adiciona à resposta um link para a leitura do produto.
+            responseEstoque.add(
+                linkTo(
+                    methodOn(ProdutoController.class).ler(responseEstoque.getProdutoId())
+                )
+                .withRel("produto")
+            );
+
+            // Adiciona à resposta um link para a leitura do mercado.
+            responseEstoque.add(
+                linkTo(
+                    methodOn(MercadoController.class).ler(responseEstoque.getMercadoId())
+                )
+                .withRel("mercado")
+            );
+
+            // Retorna o objeto do tipo ResponseMercado com o mercado lido e o link para a listagem dos mercados
+            return responseEstoque;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que o mercado com o id informado não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
         } catch (Exception e) {
             // Lança uma exceção informando que ocorreu um erro inesperado.
             throw new ResponseStatusException(500, "erro_inesperado", e);

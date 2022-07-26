@@ -86,7 +86,7 @@ public class ProdutoController {
     public ResponseProduto criar(@RequestBody Produto requestProduto) {
         try {
 
-            // Valida os dados fornecitos.
+            // Valida os dados fornecidos.
             Tratamento.validarProduto(requestProduto, false);
 
             // Se o usuário fornecido não existir,

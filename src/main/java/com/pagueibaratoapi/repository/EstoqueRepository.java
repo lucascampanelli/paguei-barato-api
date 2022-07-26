@@ -26,6 +26,13 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Integer> {
     public List<Estoque> findByProdutoId(Integer produtoId);
 
     /**
+     * Busca estoques que possuem o id de mercado informado.
+     * @param mercadoId - Id do mercado para buscar.
+     * @return Lista de estoques.
+     */
+    public List<Estoque> findByMercadoId(Integer mercadoId);
+
+    /**
      * Busca estoques que possuem o id de produto e o id de estoque informados.
      * @param produtoId - Id do produto para buscar.
      * @param mercadoId - Id do mercado para buscar.
