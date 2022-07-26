@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,6 +50,7 @@ public class CategoriaController {
      * @return Dados e id da categoria criada.
      */
     @PostMapping
+    @CacheEvict(value = "categorias", allEntries = true)
     public ResponseCategoria criar(@RequestBody Categoria requestCategoria) {
         try {
 
@@ -123,9 +126,10 @@ public class CategoriaController {
      * @return Lista de categorias.
      */
     @GetMapping
+    @Cacheable("categorias")
     public List<ResponseCategoria> listar() {
         try {
-
+            
             // Busca todas as categorias e cria uma array de resposta.
             List<Categoria> categorias = categoriaRepository.findAll();
             List<ResponseCategoria> responseCategoria = new ArrayList<ResponseCategoria>();
@@ -282,6 +286,7 @@ public class CategoriaController {
      * @param id - Id da categoria a ser excluída.
      */
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "categorias", allEntries = true)
     public Object remover(@PathVariable int id) {
         try {
 

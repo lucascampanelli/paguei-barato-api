@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -83,6 +85,7 @@ public class ProdutoController {
      * @return Dados e id do produto criado.
      */
     @PostMapping
+    @CacheEvict(value = "produtos", allEntries = true)
     public ResponseProduto criar(@RequestBody Produto requestProduto) {
         try {
 
@@ -210,6 +213,7 @@ public class ProdutoController {
      * @return <b>List< ResponseMercado ></b> - Lista de mercados onde o produto pode ser encontrado.
      */
     @GetMapping("/{id}/mercado")
+    @Cacheable("produtoMercados")
     public List<ResponseMercado> listarMercados(@PathVariable("id") Integer id) {
         try {
 
@@ -275,6 +279,7 @@ public class ProdutoController {
      * @return Informações do levantamento e lista de preços.
      */
     @GetMapping("/{id}/levantamento")
+    @Cacheable("produtoLevantamento")
     public ResponseLevantamentoProduto levantamento(@PathVariable("id") Integer id) {
         try {
 
@@ -368,6 +373,7 @@ public class ProdutoController {
      * @return Lista de produtos.
      */
     @GetMapping
+    @Cacheable("produtos")
     public List<ResponseProduto> listar(Produto requestProduto) {
         try {
 
@@ -429,6 +435,7 @@ public class ProdutoController {
      * @return Lista de produtos com os dados da página.
      */
     @GetMapping(params = { "pagina", "limite" })
+    @Cacheable(value = "produtos", key = "#pagina.toString() + '-' + #limite.toString()")
     public ResponsePagina listar(
         Produto requestProduto,
         @RequestParam(required = false, defaultValue = "0") Integer pagina,
@@ -676,6 +683,7 @@ public class ProdutoController {
      * @param id - Id do produto a ser excluído.
      */
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "produtos", allEntries = true)
     public Object remover(@PathVariable int id) {
         try {
 

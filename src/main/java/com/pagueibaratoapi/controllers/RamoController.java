@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -50,6 +52,7 @@ public class RamoController {
      * @return ResponseRamo - Objeto do tipo ResponseRamo com o novo Ramo criado.
      */
     @PostMapping
+    @CacheEvict(value = "ramos", allEntries = true)
     public ResponseRamo criar(@RequestBody Ramo requestRamo) {
         try {
 
@@ -131,6 +134,7 @@ public class RamoController {
      * @return <b>List< ResponseRamo ></b> - Lista de objetos do tipo ResponseRamo com os ramos encontrados.
      */
     @GetMapping
+    @Cacheable("ramos")
     public List<ResponseRamo> listar(Ramo requestRamo) {
         try {
 
@@ -315,6 +319,7 @@ public class RamoController {
      * @return Object - Link para a listagem dos ramos.
      */
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "ramos", allEntries = true)
     public Object remover(@PathVariable int id) {
         try {
 

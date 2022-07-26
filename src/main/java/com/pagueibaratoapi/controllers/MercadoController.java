@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -89,6 +92,7 @@ public class MercadoController {
      * @return ResponseMercado - Objeto do tipo ResponseMercado que contém os dados do novo mercado, já com o Id criado.
      */
     @PostMapping
+    @CacheEvict(value = "mercados", allEntries = true)
     public ResponseMercado criar(@RequestBody Mercado requestMercado) {
         try {
 
@@ -172,6 +176,7 @@ public class MercadoController {
      * @return ResponseEstoque - Objeto do estoque criado.
      */
     @PostMapping("/{id}/produto/{produtoId}")
+    @CacheEvict(value = "estoques", allEntries = true)
     public ResponseEstoque criarEstoque(
         @PathVariable("id") Integer id,
         @PathVariable(value = "produtoId") Integer produtoId,
@@ -292,6 +297,10 @@ public class MercadoController {
      * @return ResponseEstoqueProduto - Objeto do produto criado com o id do estoque criado.
      */
     @PostMapping("/{id}/produto")
+    @Caching(evict = {
+        @CacheEvict(value = "mercadoProdutos", allEntries = true),
+        @CacheEvict(value = "estoques", allEntries = true)
+    })
     public ResponseEstoqueProduto criarProduto(
         @PathVariable("id") Integer id,
         @RequestBody Produto requestProduto
@@ -435,6 +444,7 @@ public class MercadoController {
      * @return ResponseSugestao - Objeto da sugestão criada.
      */
     @PostMapping("/{id}/produto/{produtoId}/sugestao")
+    @CacheEvict(value = "mercadoSugestoes", allEntries = true)
     public ResponseSugestao criarSugestao(
         @PathVariable("id") Integer id,
         @PathVariable(value = "produtoId") Integer produtoId,
@@ -577,6 +587,7 @@ public class MercadoController {
      * @return <b>List < ResponseProduto ></b> - Lista de objetos ResponseProduto que contém todos os produtos do mercado.
      */
     @GetMapping("/{id}/produto")
+    @Cacheable("mercadoProdutos")
     public List<ResponseProduto> listarProdutos(@PathVariable("id") Integer id) {
         try {
             // Verifica se o mercado informado existe. Caso não exista, lança exceção.
@@ -707,6 +718,7 @@ public class MercadoController {
      * @return <b>List < ResponseSugestao ></b> - Lista de sugestões do produto específico no mercado.
      */
     @GetMapping("/{id}/produto/{produtoId}/sugestao")
+    @Cacheable("mercadoSugestoes")
     public List<ResponseSugestao> ler(
         @PathVariable("id") Integer id,
         @PathVariable(value = "produtoId") Integer produtoId
@@ -802,6 +814,7 @@ public class MercadoController {
      * @return <b>List < ResponseMercado ></b> - Lista de mercados.
      */
     @GetMapping
+    @Cacheable("mercados")
     public List<ResponseMercado> listar(Mercado requestMercado) {
         try {
 
@@ -868,6 +881,7 @@ public class MercadoController {
      * @return <b>ResponseMercado</b> - Mercado encontrado.
      */
     @GetMapping(params = { "pagina", "limite" })
+    @Cacheable(value = "mercados", key = "#pagina.toString() + '-' + #limite.toString()")
     public ResponsePagina listar(
         Mercado requestMercado,
         @RequestParam(required = false, defaultValue = "0") Integer pagina,
@@ -1148,6 +1162,7 @@ public class MercadoController {
      * @return Object - Link para a listagem de mercados.
      */
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "mercados", allEntries = true)
     public Object remover(@PathVariable int id) {
         try {
 

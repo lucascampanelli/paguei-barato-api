@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -70,6 +72,7 @@ public class EstoqueController {
      * @throws DadosConflitantesException Lança exceção caso os dados do estoque sejam conflitantes.
      */
     @PostMapping
+    @CacheEvict(value = "estoques", allEntries = true)
     public ResponseEstoque criar(@RequestBody Estoque requestEstoque) {
         try {
 
@@ -193,6 +196,7 @@ public class EstoqueController {
      * @return List< ResponseEstoque > - Lista de objetos do tipo ResponseEstoque que representam os itens do estoque.
      */
     @GetMapping
+    @Cacheable("estoques")
     public List<ResponseEstoque> listar(Estoque requestEstoque) {
         try {
             // Validando o estoque enviado como parâmetro
@@ -261,6 +265,7 @@ public class EstoqueController {
      * @return ResponseEstoque - Objeto com os estoques retornados e as informações da paginação;
      */
     @GetMapping(params = { "pagina", "limite" })
+    @Cacheable(value = "estoques", key = "#pagina.toString() + '-' + #limite.toString()")
     public ResponsePagina listar(
         Estoque requestEstoque,
         @RequestParam(required = false, defaultValue = "0") Integer pagina, 
@@ -370,6 +375,7 @@ public class EstoqueController {
      * @return Object - Link para listar os estoques.
      */
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "estoques", allEntries = true)
     public Object remover(@PathVariable int id) {
         try {
 

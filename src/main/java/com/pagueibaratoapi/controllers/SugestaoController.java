@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -65,6 +67,7 @@ public class SugestaoController {
      * @return Dados e id da sugestão criada.
      */
     @PostMapping
+    @CacheEvict(value = "sugestoes", allEntries = true)
     public ResponseSugestao criar(@RequestBody Sugestao requestSugestao) {
         try {
 
@@ -161,6 +164,7 @@ public class SugestaoController {
      * @return Lista de sugestões.
      */
     @GetMapping
+    @Cacheable("sugestoes")
     public List<ResponseSugestao> listar(Sugestao requestSugestao) {
         try {
 
@@ -225,6 +229,7 @@ public class SugestaoController {
      * @return Lista de sugestões com dados da página.
      */
     @GetMapping(params = { "pagina", "limite" })
+    @Cacheable(value = "sugestoes", key = "#pagina.toString() + '-' + #limite.toString()")
     public ResponsePagina listar(
         Sugestao requestSugestao,
         @RequestParam(required = false, defaultValue = "0") Integer pagina,
@@ -454,6 +459,7 @@ public class SugestaoController {
      * @param id - Id da sugestão a ser excluída.
      */
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "sugestoes", allEntries = true)
     public Object remover(@PathVariable int id) {
         try {
 
