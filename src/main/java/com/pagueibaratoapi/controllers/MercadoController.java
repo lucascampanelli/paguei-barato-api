@@ -4,6 +4,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -645,9 +646,11 @@ public class MercadoController {
     }
 
     /**
-     * Método responsável por listar todos os produtos de um mercado informado.
+     * Sobrecarga do método responsável por listar todos os produtos de um mercado informado. Pode ser paginado.
      * @param id - Id do mercado que será lido.
-     * @return <b>List < ResponseProduto ></b> - Lista de objetos ResponseProduto que contém todos os produtos do mercado.
+     * @param pagina - Número da página que será listada.
+     * @param limite - Número de registros que serão listados por página.
+     * @return <b>List < ResponsePagina ></b> - Objeto da página com as informações de paginação e os itens da página atual.
      */
     @GetMapping(value = "/{id}/produto", params = {"pagina", "limite"})
     @Cacheable("mercadoProdutos")
@@ -677,6 +680,336 @@ public class MercadoController {
                 // Pesquisa as informações do produto do estoque atual e adiciona à lista de resposta de produtos.
                 produtos.add(new ResponseProduto(produtoRepository.findById(estoque.getProdutoId()).get()));
             }
+
+            // Para cada produto da lista de resposta
+            for(ResponseProduto produto : produtos){
+
+                // Adiciona à resposta um link para a leitura do produto em questão.
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produto.getId())
+                    )
+                    .withSelfRel()
+                );
+
+                // Adiciona à resposta um link para listar todos os produtos.
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).listar(new Produto())
+                    )
+                    .withRel("collection")
+                );
+
+            }
+
+            // Produtos que serão mostrados na página atual.
+            // O início da página é a multiplicação do número da página pelo limite de produtos por página.
+            // O fim da página o inicío da página mais o limite de produtos por página.
+            List<ResponseProduto> produtosPagina = produtos.subList(pagina * limite, (pagina * limite) + limite);
+
+            // Representa o total de páginas da pesquisa.
+            // O total de páginas é calculado dividindo o total de produtos pelo limite de produtos por página.
+            // O valor é arredondado para cima porque existe a possibilidade da ultima página não possuir o número limite de produtos.
+            Integer totalPaginas = (int) Math.ceil(produtos.size() / (double) limite);
+
+            // Total de produtos da pesquisa.
+            // Se o tamanho for maior que Integer.MAX_VALUE, o valor é Integer.MAX_VALUE.
+            Integer totalRegistros = produtos.size();
+
+            // Prepara uma resposta em formato de página
+            ResponsePagina responseProduto = PaginaUtils.criarResposta(pagina, limite, totalRegistros, totalPaginas, produtosPagina);
+
+            // Adiciona à resposta um link para a primeira página da listagem de produtos.
+            responseProduto.add(
+                linkTo(
+                    methodOn(MercadoController.class).listarProdutos(id, 0, limite)
+                )
+                .withRel("first")
+            );
+
+            // Se a página de produtos não estiver vazia.
+            if(!produtos.isEmpty()) {
+                // Se a página informada pelo cliente não for a primeira página da listagem de produtos.
+                if(pagina > 0) {
+                    // Adiciona à resposta um link para a página anterior da listagem de produtos.
+                    responseProduto.add(
+                        linkTo(
+                            methodOn(MercadoController.class).listarProdutos(id, pagina - 1, limite)
+                        )
+                        .withRel("previous")
+                    );
+                }
+
+                // Se a página informada pelo cliente não for a última página da listagem de produtos.
+                if(pagina < totalPaginas - 1) {
+                    // Adiciona à resposta um link para a página seguinte da listagem de produtos.
+                    responseProduto.add(
+                        linkTo(
+                            methodOn(MercadoController.class).listarProdutos(id, pagina + 1, limite)
+                        )
+                        .withRel("next")
+                    );
+                }
+
+                // Adiciona à resposta um link para a última página da listagem de produtos.
+                responseProduto.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listarProdutos(id, totalPaginas - 1, limite)
+                    )
+                    .withRel("last")
+                );
+            }
+
+            // Retorna o objeto do tipo ResponseMercado com o mercado lido e o link para a listagem dos mercados
+            return responseProduto;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que o mercado com o id informado não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar todos os produtos de um mercado informado. Pode ser ordenado.
+     * @param id - Id do mercado que será lido.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @return <b>List < ResponseProduto ></b> - Lista ordenada dos produtos do mercado.
+     */
+    @GetMapping(value = "/{id}/produto", params = {"ordenarPor", "ordem"})
+    @Cacheable("mercadoProdutos")
+    public List<ResponseProduto> listarProdutos(
+        @PathVariable("id") Integer id,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem
+    ) {
+        try {
+            // Verifica se o mercado informado existe. Caso não exista, lança exceção.
+            if(!mercadoRepository.existsById(id))
+                throw new NoSuchElementException("mercado_nao_encontrado");
+
+            // Busca todos os estoques do mercado com o id informado e os armazena numa lista.
+            List<Estoque> estoques = estoqueRepository.findByMercadoId(id);
+            
+            // Se não houver estoques no mercado
+            if(estoques.isEmpty())
+                // Lança uma exceção informando que o mercado com o id informado não possui nenhum estoque.
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Cria uma lista de objetos ResponseProduto.
+            List<ResponseProduto> responseProduto = new ArrayList<>();
+
+            // Para cada estoque do mercado
+            for(Estoque estoque : estoques){
+                // Pesquisa as informações do produto do estoque atual e adiciona à lista de resposta de produtos.
+                responseProduto.add(new ResponseProduto(produtoRepository.findById(estoque.getProdutoId()).get()));
+            }
+
+            // Faz a ordenação da lista de produtos.
+            responseProduto.sort((o1, o2) -> {
+
+                switch (ordenarPor) {
+
+                    case "id":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por id ascendente.
+                            return o1.getId().compareTo(o2.getId());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por id descendente.
+                            return o2.getId().compareTo(o1.getId());
+                    
+                    case "nome":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por nome ascendente.
+                            return o1.getNome().compareTo(o2.getNome());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por nome descendente.
+                            return o2.getNome().compareTo(o1.getNome());
+                    
+                    case "marca":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por marca ascendente.
+                            return o1.getMarca().compareTo(o2.getMarca());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por marca descendente.
+                            return o2.getMarca().compareTo(o1.getMarca());
+                    
+                    case "tamanho":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por tamanho ascendente.
+                            return o1.getTamanho().compareTo(o2.getTamanho());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por tamanho descendente.
+                            return o2.getTamanho().compareTo(o1.getTamanho());
+                    
+                    case "cor":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por cor ascendente.
+                            return o1.getCor() != null ? o1.getCor().compareTo(o2.getCor()) : 0;
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por cor descendente.
+                            return o2.getCor() != null ? o2.getCor().compareTo(o1.getCor()) : 0;
+                
+                    default:
+                        return 0;
+                }
+            });
+
+            // Para cada produto da lista de resposta
+            for(ResponseProduto produto : responseProduto){
+
+                // Adiciona à resposta um link para a leitura do produto em questão.
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produto.getId())
+                    )
+                    .withSelfRel()
+                );
+
+                // Adiciona à resposta um link para listar todos os produtos.
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).listar(new Produto())
+                    )
+                    .withRel("collection")
+                );
+
+            }
+
+            // Retorna o objeto do tipo ResponseMercado com o mercado lido e o link para a listagem dos mercados
+            return responseProduto;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que o mercado com o id informado não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar todos os produtos de um mercado informado. Pode ser paginado e ordenado.
+     * @param id - Id do mercado que será lido.
+     * @param pagina - Número da página que será listada.
+     * @param limite - Número de registros que serão listados por página.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @return <b>List < ResponsePagina ></b> - Objeto da página com as informações de paginação e os itens da página atual ordenados.
+     */
+    @GetMapping(value = "/{id}/produto", params = {"pagina", "limite", "ordenarPor", "ordem"})
+    @Cacheable("mercadoProdutos")
+    public ResponsePagina listarProdutos(
+        @PathVariable("id") Integer id,
+        @RequestParam(required = false, defaultValue = "0") Integer pagina,
+        @RequestParam(required = false, defaultValue = "10") Integer limite,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem
+    ) {
+        try {
+            // Verifica se o mercado informado existe. Caso não exista, lança exceção.
+            if(!mercadoRepository.existsById(id))
+                throw new NoSuchElementException("mercado_nao_encontrado");
+
+            // Busca todos os estoques do mercado com o id informado e os armazena numa lista.
+            List<Estoque> estoques = estoqueRepository.findByMercadoId(id);
+            
+            // Se não houver estoques no mercado
+            if(estoques.isEmpty())
+                // Lança uma exceção informando que o mercado com o id informado não possui nenhum estoque.
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Cria uma lista de objetos ResponseProduto.
+            List<ResponseProduto> produtos = new ArrayList<>();
+
+            // Para cada estoque do mercado
+            for(Estoque estoque : estoques){
+                // Pesquisa as informações do produto do estoque atual e adiciona à lista de resposta de produtos.
+                produtos.add(new ResponseProduto(produtoRepository.findById(estoque.getProdutoId()).get()));
+            }
+
+            // Faz a ordenação da lista de produtos.
+            produtos.sort((o1, o2) -> {
+
+                switch (ordenarPor) {
+
+                    case "id":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por id ascendente.
+                            return o1.getId().compareTo(o2.getId());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por id descendente.
+                            return o2.getId().compareTo(o1.getId());
+                    
+                    case "nome":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por nome ascendente.
+                            return o1.getNome().compareTo(o2.getNome());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por nome descendente.
+                            return o2.getNome().compareTo(o1.getNome());
+                    
+                    case "marca":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por marca ascendente.
+                            return o1.getMarca().compareTo(o2.getMarca());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por marca descendente.
+                            return o2.getMarca().compareTo(o1.getMarca());
+                    
+                    case "tamanho":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por tamanho ascendente.
+                            return o1.getTamanho().compareTo(o2.getTamanho());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por tamanho descendente.
+                            return o2.getTamanho().compareTo(o1.getTamanho());
+                    
+                    case "cor":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por cor ascendente.
+                            return o1.getCor() != null ? o1.getCor().compareTo(o2.getCor()) : 0;
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por cor descendente.
+                            return o2.getCor() != null ? o2.getCor().compareTo(o1.getCor()) : 0;
+                
+                    default:
+                        return 0;
+                }
+            });
 
             // Para cada produto da lista de resposta
             for(ResponseProduto produto : produtos){
