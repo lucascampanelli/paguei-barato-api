@@ -645,6 +645,131 @@ public class MercadoController {
     }
 
     /**
+     * Método responsável por listar todos os produtos de um mercado informado.
+     * @param id - Id do mercado que será lido.
+     * @return <b>List < ResponseProduto ></b> - Lista de objetos ResponseProduto que contém todos os produtos do mercado.
+     */
+    @GetMapping(value = "/{id}/produto", params = {"pagina", "limite"})
+    @Cacheable("mercadoProdutos")
+    public ResponsePagina listarProdutos(
+        @PathVariable("id") Integer id,
+        @RequestParam(required = false, defaultValue = "0") Integer pagina,
+        @RequestParam(required = false, defaultValue = "10") Integer limite
+    ) {
+        try {
+            // Verifica se o mercado informado existe. Caso não exista, lança exceção.
+            if(!mercadoRepository.existsById(id))
+                throw new NoSuchElementException("mercado_nao_encontrado");
+
+            // Busca todos os estoques do mercado com o id informado e os armazena numa lista.
+            List<Estoque> estoques = estoqueRepository.findByMercadoId(id);
+            
+            // Se não houver estoques no mercado
+            if(estoques.isEmpty())
+                // Lança uma exceção informando que o mercado com o id informado não possui nenhum estoque.
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Cria uma lista de objetos ResponseProduto.
+            List<ResponseProduto> produtos = new ArrayList<>();
+
+            // Para cada estoque do mercado
+            for(Estoque estoque : estoques){
+                // Pesquisa as informações do produto do estoque atual e adiciona à lista de resposta de produtos.
+                produtos.add(new ResponseProduto(produtoRepository.findById(estoque.getProdutoId()).get()));
+            }
+
+            // Para cada produto da lista de resposta
+            for(ResponseProduto produto : produtos){
+
+                // Adiciona à resposta um link para a leitura do produto em questão.
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produto.getId())
+                    )
+                    .withSelfRel()
+                );
+
+                // Adiciona à resposta um link para listar todos os produtos.
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).listar(new Produto())
+                    )
+                    .withRel("collection")
+                );
+
+            }
+
+            // Produtos que serão mostrados na página atual.
+            // O início da página é a multiplicação do número da página pelo limite de produtos por página.
+            // O fim da página o inicío da página mais o limite de produtos por página.
+            List<ResponseProduto> produtosPagina = produtos.subList(pagina * limite, (pagina * limite) + limite);
+
+            // Representa o total de páginas da pesquisa.
+            // O total de páginas é calculado dividindo o total de produtos pelo limite de produtos por página.
+            // O valor é arredondado para cima porque existe a possibilidade da ultima página não possuir o número limite de produtos.
+            Integer totalPaginas = (int) Math.ceil(produtos.size() / (double) limite);
+
+            // Total de produtos da pesquisa.
+            // Se o tamanho for maior que Integer.MAX_VALUE, o valor é Integer.MAX_VALUE.
+            Integer totalRegistros = produtos.size();
+
+            // Prepara uma resposta em formato de página
+            ResponsePagina responseProduto = PaginaUtils.criarResposta(pagina, limite, totalRegistros, totalPaginas, produtosPagina);
+
+            // Adiciona à resposta um link para a primeira página da listagem de produtos.
+            responseProduto.add(
+                linkTo(
+                    methodOn(MercadoController.class).listarProdutos(id, 0, limite)
+                )
+                .withRel("first")
+            );
+
+            // Se a página de produtos não estiver vazia.
+            if(!produtos.isEmpty()) {
+                // Se a página informada pelo cliente não for a primeira página da listagem de produtos.
+                if(pagina > 0) {
+                    // Adiciona à resposta um link para a página anterior da listagem de produtos.
+                    responseProduto.add(
+                        linkTo(
+                            methodOn(MercadoController.class).listarProdutos(id, pagina - 1, limite)
+                        )
+                        .withRel("previous")
+                    );
+                }
+
+                // Se a página informada pelo cliente não for a última página da listagem de produtos.
+                if(pagina < totalPaginas - 1) {
+                    // Adiciona à resposta um link para a página seguinte da listagem de produtos.
+                    responseProduto.add(
+                        linkTo(
+                            methodOn(MercadoController.class).listarProdutos(id, pagina + 1, limite)
+                        )
+                        .withRel("next")
+                    );
+                }
+
+                // Adiciona à resposta um link para a última página da listagem de produtos.
+                responseProduto.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listarProdutos(id, totalPaginas - 1, limite)
+                    )
+                    .withRel("last")
+                );
+            }
+
+            // Retorna o objeto do tipo ResponseMercado com o mercado lido e o link para a listagem dos mercados
+            return responseProduto;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que o mercado com o id informado não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
      * Método responsável por retornar o estoque do mercado com o produto informado.
      * @param id - Id do mercado que será buscado como parâmetro.
      * @return ResponseEstoque - Objeto de resposta do estoque do mercado com o produto informado.
@@ -881,7 +1006,7 @@ public class MercadoController {
      * @return <b>ResponseMercado</b> - Mercado encontrado.
      */
     @GetMapping(params = { "pagina", "limite" })
-    @Cacheable(value = "mercados", key = "#pagina.toString() + '-' + #limite.toString()")
+    @Cacheable("mercados")
     public ResponsePagina listar(
         Mercado requestMercado,
         @RequestParam(required = false, defaultValue = "0") Integer pagina,

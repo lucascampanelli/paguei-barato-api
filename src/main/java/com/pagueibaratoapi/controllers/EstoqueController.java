@@ -265,7 +265,7 @@ public class EstoqueController {
      * @return ResponseEstoque - Objeto com os estoques retornados e as informações da paginação;
      */
     @GetMapping(params = { "pagina", "limite" })
-    @Cacheable(value = "estoques", key = "#pagina.toString() + '-' + #limite.toString()")
+    @Cacheable("estoques")
     public ResponsePagina listar(
         Estoque requestEstoque,
         @RequestParam(required = false, defaultValue = "0") Integer pagina, 
