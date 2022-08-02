@@ -4,7 +4,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -704,7 +703,7 @@ public class MercadoController {
 
             // Produtos que serão mostrados na página atual.
             // O início da página é a multiplicação do número da página pelo limite de produtos por página.
-            // O fim da página o inicío da página mais o limite de produtos por página.
+            // O fim da página é o inicío da página mais o limite de produtos por página.
             List<ResponseProduto> produtosPagina = produtos.subList(pagina * limite, (pagina * limite) + limite);
 
             // Representa o total de páginas da pesquisa.
@@ -1034,7 +1033,7 @@ public class MercadoController {
 
             // Produtos que serão mostrados na página atual.
             // O início da página é a multiplicação do número da página pelo limite de produtos por página.
-            // O fim da página o inicío da página mais o limite de produtos por página.
+            // O fim da página é o inicío da página mais o limite de produtos por página.
             List<ResponseProduto> produtosPagina = produtos.subList(pagina * limite, (pagina * limite) + limite);
 
             // Representa o total de páginas da pesquisa.
@@ -1252,6 +1251,537 @@ public class MercadoController {
                         methodOn(EstoqueController.class).ler(estoque.getId())
                     )
                     .withRel("estoque")
+                );
+            }
+
+            return responseSugestao;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que algum registro não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar todas as sugestões de um produto específico no mercado. Pode ser paginado.
+     * @param id - Id do mercado que será buscado como parâmetro.
+     * @param produtoId - Id do produto no qual será buscadas as sugestões.
+     * @param pagina - Número da página que será listada.
+     * @param limite - Número de registros que serão listados por página.
+     * @return <b>List < ResponsePagina ></b> - Objeto contendo as informações da página e a lista de sugestões.
+     */
+    @GetMapping(value = "/{id}/produto/{produtoId}/sugestao", params = {"pagina", "limite"})
+    @Cacheable("mercadoSugestoes")
+    public ResponsePagina ler(
+        @PathVariable("id") Integer id,
+        @PathVariable(value = "produtoId") Integer produtoId,
+        @RequestParam(required = false, defaultValue = "0") Integer pagina,
+        @RequestParam(required = false, defaultValue = "10") Integer limite
+    ) {
+        try {
+
+            // Criando uma lista de respostas de sugestões vazia.
+            List<ResponseSugestao> listaSugestoes = new ArrayList<ResponseSugestao>();
+
+            // Buscando o registro do estoque do mercado, que associa o produto ao estoque
+            // do mercado
+            Estoque estoque = estoqueRepository.findByProdutoIdAndMercadoId(produtoId, id);
+
+            // Se o estoque for nulo
+            if(estoque == null)
+                // Lança uma exceção informando que o produto não está no estoque do mercado.
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Buscando todas as sugestões de preço do produto no mercado informado
+            List<Sugestao> sugestoes = sugestaoRepository.findByEstoqueId(estoque.getId());
+
+            // Se não houver sugestões para esse produto
+            if(sugestoes == null)
+                // Lança uma exceção informando que não há sugestões para esse produto.
+                throw new NoSuchElementException("sugestao_nao_encontrado");
+
+            // Para cada sugestão encontrada
+            for(Sugestao sugestao : sugestoes) {
+                // Cria um objeto do tipo ResponseSugestao, convertendo o objeto Sugestao para o objeto ResponseSugestao
+                listaSugestoes.add(new ResponseSugestao(sugestao));
+            }
+
+            // Sugestões que serão mostradas na página atual.
+            // O início da página é a multiplicação do número da página pelo limite de sugestões por página.
+            // O fim da página é o inicío da página mais o limite de sugestões por página.
+            List<ResponseSugestao> sugestoesPagina = listaSugestoes.subList(pagina * limite, (pagina * limite) + limite);
+
+            // Representa o total de páginas da pesquisa.
+            // O total de páginas é calculado dividindo o total de sugestões pelo limite de sugestões por página.
+            // O valor é arredondado para cima porque existe a possibilidade da ultima página não possuir o número limite de sugestões.
+            Integer totalPaginas = (int) Math.ceil(listaSugestoes.size() / (double) limite);
+
+            // Total de sugestões da pesquisa.
+            // Se o tamanho for maior que Integer.MAX_VALUE, o valor é Integer.MAX_VALUE.
+            Integer totalRegistros = listaSugestoes.size();
+
+            // Para cada sugestão da resposta
+            for(ResponseSugestao sugestao : sugestoesPagina) {
+                // Converte o preço da sugestão de int para float para ser exibido no formato de moeda no retorno.
+                sugestao.setPreco(sugestao.getPreco() / 100);
+
+                // Adiciona à resposta um link para a leitura da sugestão em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(SugestaoController.class).ler(sugestao.getId())
+                    )
+                    .withSelfRel()
+                );
+                
+                // Adiciona à resposta um link para a listagem de mercados.
+                sugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listar(new Mercado())
+                    )
+                    .withRel("collection")
+                );
+
+                // Adiciona à resposta um link para a leitura do produto em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produtoId)
+                    )
+                    .withRel("produto")
+                );
+
+                // Adiciona à resposta um link para a leitura da sugestão em questão
+                sugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).ler(id)
+                    )
+                    .withRel("mercado")
+                );
+
+                // Adiciona à resposta um link para a leitura do estoque em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(EstoqueController.class).ler(estoque.getId())
+                    )
+                    .withRel("estoque")
+                );
+            }
+
+            // Prepara uma resposta em formato de página
+            ResponsePagina responseSugestao = PaginaUtils.criarResposta(pagina, limite, totalRegistros, totalPaginas, sugestoesPagina);
+
+            // Adiciona à resposta um link para a primeira página da listagem de sugestoes.
+            responseSugestao.add(
+                linkTo(
+                    methodOn(MercadoController.class).ler(id, produtoId, 0, limite)
+                )
+                .withRel("first")
+            );
+
+            // Se a página de sugestões não estiver vazia.
+            if(!listaSugestoes.isEmpty()) {
+                // Se a página informada pelo cliente não for a primeira página da listagem de sugestões.
+                if(pagina > 0) {
+                    // Adiciona à resposta um link para a página anterior da listagem de sugestões.
+                    responseSugestao.add(
+                        linkTo(
+                            methodOn(MercadoController.class).ler(id, produtoId, pagina - 1, limite)
+                        )
+                        .withRel("previous")
+                    );
+                }
+
+                // Se a página informada pelo cliente não for a última página da listagem de sugestões.
+                if(pagina < totalPaginas - 1) {
+                    // Adiciona à resposta um link para a página seguinte da listagem de sugestões.
+                    responseSugestao.add(
+                        linkTo(
+                            methodOn(MercadoController.class).ler(id, produtoId, pagina + 1, limite)
+                        )
+                        .withRel("next")
+                    );
+                }
+
+                // Adiciona à resposta um link para a última página da listagem de sugestões.
+                responseSugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).ler(id, produtoId, totalPaginas - 1, limite)
+                    )
+                    .withRel("last")
+                );
+            }
+
+            return responseSugestao;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que algum registro não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar todas as sugestões de um produto específico no mercado. Pode ser ordenado.
+     * @param id - Id do mercado que será buscado como parâmetro.
+     * @param produtoId - Id do produto no qual será buscadas as sugestões.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @return <b>List < ResponseSugestao ></b> - Lista de sugestões do produto específico no mercado ordenadas.
+     */
+    @GetMapping(value = "/{id}/produto/{produtoId}/sugestao", params = {"ordenarPor", "ordem"})
+    @Cacheable("mercadoSugestoes")
+    public List<ResponseSugestao> ler(
+        @PathVariable("id") Integer id,
+        @PathVariable(value = "produtoId") Integer produtoId,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem
+    ) {
+        try {
+
+            // Criando uma lista de respostas de sugestões vazia.
+            List<ResponseSugestao> responseSugestao = new ArrayList<ResponseSugestao>();
+
+            // Buscando o registro do estoque do mercado, que associa o produto ao estoque
+            // do mercado
+            Estoque estoque = estoqueRepository.findByProdutoIdAndMercadoId(produtoId, id);
+
+            // Se o estoque for nulo
+            if(estoque == null)
+                // Lança uma exceção informando que o produto não está no estoque do mercado.
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Buscando todas as sugestões de preço do produto no mercado informado
+            List<Sugestao> sugestoes = sugestaoRepository.findByEstoqueId(estoque.getId());
+
+            // Se não houver sugestões para esse produto
+            if(sugestoes == null)
+                // Lança uma exceção informando que não há sugestões para esse produto.
+                throw new NoSuchElementException("sugestao_nao_encontrado");
+
+            // Para cada sugestão encontrada
+            for(Sugestao sugestao : sugestoes) {
+                // Cria um objeto do tipo ResponseSugestao, convertendo o objeto Sugestao para o objeto ResponseSugestao
+                responseSugestao.add(new ResponseSugestao(sugestao));
+            }
+
+            // Para cada sugestão da resposta
+            for(ResponseSugestao sugestao : responseSugestao) {
+                // Converte o preço da sugestão de int para float para ser exibido no formato de moeda no retorno.
+                sugestao.setPreco(sugestao.getPreco() / 100);
+
+                // Adiciona à resposta um link para a leitura da sugestão em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(SugestaoController.class).ler(sugestao.getId())
+                    )
+                    .withSelfRel()
+                );
+                
+                // Adiciona à resposta um link para a listagem de mercados.
+                sugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listar(new Mercado())
+                    )
+                    .withRel("collection")
+                );
+
+                // Adiciona à resposta um link para a leitura do produto em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produtoId)
+                    )
+                    .withRel("produto")
+                );
+
+                // Adiciona à resposta um link para a leitura da sugestão em questão
+                sugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).ler(id)
+                    )
+                    .withRel("mercado")
+                );
+
+                // Adiciona à resposta um link para a leitura do estoque em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(EstoqueController.class).ler(estoque.getId())
+                    )
+                    .withRel("estoque")
+                );
+            }
+
+            // Faz a ordenação da lista de sugestões.
+            responseSugestao.sort((o1, o2) -> {
+
+                switch (ordenarPor) {
+
+                    case "id":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por id ascendente.
+                            return o1.getId().compareTo(o2.getId());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por id descendente.
+                            return o2.getId().compareTo(o1.getId());
+                    
+                    case "preco":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por preco ascendente.
+                            return o1.getPreco().compareTo(o2.getPreco());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por preco descendente.
+                            return o2.getPreco().compareTo(o1.getPreco());
+                    
+                    case "timestamp":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por data ascendente.
+                            return o1.getTimestamp().compareTo(o2.getTimestamp());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por data descendente.
+                            return o2.getTimestamp().compareTo(o1.getTimestamp());
+                    
+                    case "estoqueId":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por id do estoque ascendente.
+                            return o1.getEstoqueId().compareTo(o2.getEstoqueId());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por id do estoque descendente.
+                            return o2.getEstoqueId().compareTo(o1.getEstoqueId());
+                
+                    default:
+                        return 0;
+                }
+            });
+
+            return responseSugestao;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que algum registro não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar todas as sugestões de um produto específico no mercado. Pode ser paginado e ordenado.
+     * @param id - Id do mercado que será buscado como parâmetro.
+     * @param produtoId - Id do produto no qual será buscadas as sugestões.
+     * @param pagina - Número da página que será listada.
+     * @param limite - Número de registros que serão listados por página.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @return <b>List < ResponsePagina ></b> - Objeto contendo as informações da página e a lista de sugestões ordenada.
+     */
+    @GetMapping(value = "/{id}/produto/{produtoId}/sugestao", params = {"pagina", "limite", "ordenarPor", "ordem"})
+    @Cacheable("mercadoSugestoes")
+    public ResponsePagina ler(
+        @PathVariable("id") Integer id,
+        @PathVariable(value = "produtoId") Integer produtoId,
+        @RequestParam(required = false, defaultValue = "0") Integer pagina,
+        @RequestParam(required = false, defaultValue = "10") Integer limite,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem
+    ) {
+        try {
+
+            // Criando uma lista de respostas de sugestões vazia.
+            List<ResponseSugestao> listaSugestoes = new ArrayList<ResponseSugestao>();
+
+            // Buscando o registro do estoque do mercado, que associa o produto ao estoque
+            // do mercado
+            Estoque estoque = estoqueRepository.findByProdutoIdAndMercadoId(produtoId, id);
+
+            // Se o estoque for nulo
+            if(estoque == null)
+                // Lança uma exceção informando que o produto não está no estoque do mercado.
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Buscando todas as sugestões de preço do produto no mercado informado
+            List<Sugestao> sugestoes = sugestaoRepository.findByEstoqueId(estoque.getId());
+
+            // Se não houver sugestões para esse produto
+            if(sugestoes == null)
+                // Lança uma exceção informando que não há sugestões para esse produto.
+                throw new NoSuchElementException("sugestao_nao_encontrado");
+
+            // Para cada sugestão encontrada
+            for(Sugestao sugestao : sugestoes) {
+                // Cria um objeto do tipo ResponseSugestao, convertendo o objeto Sugestao para o objeto ResponseSugestao
+                listaSugestoes.add(new ResponseSugestao(sugestao));
+            }
+
+            // Faz a ordenação da lista de sugestões.
+            listaSugestoes.sort((o1, o2) -> {
+
+                switch (ordenarPor) {
+
+                    case "id":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por id ascendente.
+                            return o1.getId().compareTo(o2.getId());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por id descendente.
+                            return o2.getId().compareTo(o1.getId());
+                    
+                    case "preco":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por preco ascendente.
+                            return o1.getPreco().compareTo(o2.getPreco());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por preco descendente.
+                            return o2.getPreco().compareTo(o1.getPreco());
+                    
+                    case "timestamp":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por data ascendente.
+                            return o1.getTimestamp().compareTo(o2.getTimestamp());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por data descendente.
+                            return o2.getTimestamp().compareTo(o1.getTimestamp());
+                    
+                    case "estoqueId":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por id do estoque ascendente.
+                            return o1.getEstoqueId().compareTo(o2.getEstoqueId());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por id do estoque descendente.
+                            return o2.getEstoqueId().compareTo(o1.getEstoqueId());
+                
+                    default:
+                        return 0;
+                }
+            });
+
+            // Sugestões que serão mostradas na página atual.
+            // O início da página é a multiplicação do número da página pelo limite de sugestões por página.
+            // O fim da página é o inicío da página mais o limite de sugestões por página.
+            List<ResponseSugestao> sugestoesPagina = listaSugestoes.subList(pagina * limite, (pagina * limite) + limite);
+
+            // Representa o total de páginas da pesquisa.
+            // O total de páginas é calculado dividindo o total de sugestões pelo limite de sugestões por página.
+            // O valor é arredondado para cima porque existe a possibilidade da ultima página não possuir o número limite de sugestões.
+            Integer totalPaginas = (int) Math.ceil(listaSugestoes.size() / (double) limite);
+
+            // Total de sugestões da pesquisa.
+            // Se o tamanho for maior que Integer.MAX_VALUE, o valor é Integer.MAX_VALUE.
+            Integer totalRegistros = listaSugestoes.size();
+
+            // Para cada sugestão da resposta
+            for(ResponseSugestao sugestao : sugestoesPagina) {
+                // Converte o preço da sugestão de int para float para ser exibido no formato de moeda no retorno.
+                sugestao.setPreco(sugestao.getPreco() / 100);
+
+                // Adiciona à resposta um link para a leitura da sugestão em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(SugestaoController.class).ler(sugestao.getId())
+                    )
+                    .withSelfRel()
+                );
+                
+                // Adiciona à resposta um link para a listagem de mercados.
+                sugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listar(new Mercado())
+                    )
+                    .withRel("collection")
+                );
+
+                // Adiciona à resposta um link para a leitura do produto em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produtoId)
+                    )
+                    .withRel("produto")
+                );
+
+                // Adiciona à resposta um link para a leitura da sugestão em questão
+                sugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).ler(id)
+                    )
+                    .withRel("mercado")
+                );
+
+                // Adiciona à resposta um link para a leitura do estoque em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(EstoqueController.class).ler(estoque.getId())
+                    )
+                    .withRel("estoque")
+                );
+            }
+
+            // Prepara uma resposta em formato de página
+            ResponsePagina responseSugestao = PaginaUtils.criarResposta(pagina, limite, totalRegistros, totalPaginas, sugestoesPagina);
+
+            // Adiciona à resposta um link para a primeira página da listagem de sugestoes.
+            responseSugestao.add(
+                linkTo(
+                    methodOn(MercadoController.class).ler(id, produtoId, 0, limite)
+                )
+                .withRel("first")
+            );
+
+            // Se a página de sugestões não estiver vazia.
+            if(!listaSugestoes.isEmpty()) {
+                // Se a página informada pelo cliente não for a primeira página da listagem de sugestões.
+                if(pagina > 0) {
+                    // Adiciona à resposta um link para a página anterior da listagem de sugestões.
+                    responseSugestao.add(
+                        linkTo(
+                            methodOn(MercadoController.class).ler(id, produtoId, pagina - 1, limite)
+                        )
+                        .withRel("previous")
+                    );
+                }
+
+                // Se a página informada pelo cliente não for a última página da listagem de sugestões.
+                if(pagina < totalPaginas - 1) {
+                    // Adiciona à resposta um link para a página seguinte da listagem de sugestões.
+                    responseSugestao.add(
+                        linkTo(
+                            methodOn(MercadoController.class).ler(id, produtoId, pagina + 1, limite)
+                        )
+                        .withRel("next")
+                    );
+                }
+
+                // Adiciona à resposta um link para a última página da listagem de sugestões.
+                responseSugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).ler(id, produtoId, totalPaginas - 1, limite)
+                    )
+                    .withRel("last")
                 );
             }
 
