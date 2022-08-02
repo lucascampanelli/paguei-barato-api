@@ -15,6 +15,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -1889,6 +1890,194 @@ public class MercadoController {
                         .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
                 ),
                 PageRequest.of(pagina, limite)
+            );
+
+            // Criando uma lista de resposta de mercados vazia.
+            List<ResponseMercado> mercados = new ArrayList<ResponseMercado>();
+
+            // Para cada mercado encontrado
+            for(Mercado mercado : paginaMercado.getContent()) {
+                // Cria um objeto do tipo ResponseMercado, convertendo o objeto Mercado para o objeto ResponseMercado
+                mercados.add(new ResponseMercado(mercado));
+            }
+
+            // Criando um objeto do tipo ResponsePagina, que será retornado com os mercados e os dados de paginação.
+            ResponsePagina responseMercado = PaginaUtils.criarResposta(pagina, limite, paginaMercado, mercados);
+
+            // Adiciona à resposta um link para a primeira página da listagem de mercados.
+            responseMercado.add(
+                linkTo(
+                    methodOn(MercadoController.class).listar(requestMercado, 0, limite)
+                )
+                .withRel("first")
+            );
+
+            // Se a página de mercados não estiver vazia.
+            if(!paginaMercado.isEmpty()) {
+                // Se a página informada pelo cliente não for a primeira página da listagem de mercados.
+                if(pagina > 0) {
+                    // Adiciona à resposta um link para a página anterior da listagem de mercados.
+                    responseMercado.add(
+                        linkTo(
+                            methodOn(MercadoController.class).listar(requestMercado, pagina - 1, limite)
+                        )
+                        .withRel("previous")
+                    );
+                }
+
+                // Se a página informada pelo cliente não for a última página da listagem de mercados.
+                if(pagina < paginaMercado.getTotalPages() - 1) {
+                    // Adiciona à resposta um link para a página seguinte da listagem de mercados.
+                    responseMercado.add(
+                        linkTo(
+                            methodOn(MercadoController.class).listar(requestMercado, pagina + 1, limite)
+                        )
+                        .withRel("next")
+                    );
+                }
+
+                // Adiciona à resposta um link para a última página da listagem de mercados.
+                responseMercado.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listar(requestMercado, paginaMercado.getTotalPages() - 1, limite)
+                    )
+                    .withRel("last")
+                );
+
+                // Para cada marcado da resposta
+                for(ResponseMercado mercado : mercados) {
+                    // Adiciona à resposta um link para a leitura do marcado em questão.
+                    mercado.add(
+                        linkTo(
+                            methodOn(MercadoController.class).ler(mercado.getId())
+                        )
+                        .withSelfRel()
+                    );
+                }
+            }
+
+            // Retorna a página com os marcados encontrados e as informações da paginação.
+            return responseMercado;
+
+        } catch (DadosInvalidosException e) {
+            // Lança uma exceção informando que os dados enviados pelo cliente são inválidos.
+            throw new ResponseStatusException(400, e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            // Lança uma exceção caso ocorra algum erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        } catch (NullPointerException e) {
+            // Lança uma exceção caso algum registro seja nulo
+            throw new ResponseStatusException(404, "nao_encontrado", e);
+        } catch (Exception e) {
+            // Lança uma exceção caso ocorra algum erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar todos os mercados podendo ser ordenado.
+     * @param mercado - Objeto do tipo Mercado que será usado como parâmetro para filtrar os resultados.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @return <b>List < ResponseMercado ></b> - Lista de mercados ordenados.
+     */
+    @GetMapping(params = { "ordenarPor", "ordem" })
+    @Cacheable("mercados")
+    public List<ResponseMercado> listar(
+        Mercado requestMercado,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem
+    ) {
+        try {
+
+            // Validando o mercado enviado como parâmetro pelo cliente.
+            Tratamento.validarMercado(requestMercado, true);
+
+            // Buscando todos os mercados de acordo com o filtro enviado por parâmetro e salvando na lista de mercados
+            List<Mercado> mercados = mercadoRepository.findAll(
+                Example.of(
+                    requestMercado, 
+                    ExampleMatcher
+                        .matching()
+                        .withIgnoreCase()
+                        .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                ),
+                Sort.by(Sort.Direction.fromString(ordem), ordenarPor)
+            );
+
+            // Criando uma lista de respostas de mercados vazia.
+            List<ResponseMercado> responseMercado = new ArrayList<ResponseMercado>();
+
+            // Para cada mercado encontrado
+            for(Mercado mercado : mercados) {
+                // Cria um objeto do tipo ResponseMercado, convertendo o objeto Mercado para o objeto ResponseMercado
+                responseMercado.add(new ResponseMercado(mercado));
+            }
+
+            // Se a lista de marcados a serem retornados não for vazia
+            if(!responseMercado.isEmpty()) {
+                // Para cada marcado da resposta
+                for(ResponseMercado mercado : responseMercado) {
+                    // Adiciona à resposta um link para a leitura do marcado em questão.
+                    mercado.add(
+                        linkTo(
+                            methodOn(MercadoController.class).ler(mercado.getId())
+                        )
+                        .withSelfRel()
+                    );
+                }
+            }
+
+            // Retorna a lista de marcados encontrados.
+            return responseMercado;
+
+        } catch (DadosInvalidosException e) {
+            // Lança uma exceção informando que os dados enviados pelo cliente são inválidos.
+            throw new ResponseStatusException(400, e.getMessage(), e);
+        } catch (NullPointerException e) {
+            // Lança uma exceção caso algum registro seja nulo
+            throw new ResponseStatusException(404, "nao_encontrado", e);
+        } catch (UnsupportedOperationException e) {
+            // Lança uma exceção caso ocorra algum erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        } catch (Exception e) {
+            // Lança uma exceção caso ocorra algum erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar todos os mercados podendo ser ordenado e paginado.
+     * @param mercado - Objeto do tipo Mercado que será usado como parâmetro para filtrar os resultados.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @param pagina - Número da página que será exibida, contada a partir do 0.
+     * @param limite - Número de registros que serão exibidos por página.
+     * @return <b>ResponsePagina</b> - Lista de mercados ordenados com as infromações de paginação.
+     */
+    @GetMapping(params = { "ordenarPor", "ordem", "pagina", "limite" })
+    //@Cacheable("mercados")
+    public ResponsePagina listar(
+        Mercado requestMercado,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem,
+        @RequestParam(required = false, defaultValue = "0") Integer pagina,
+        @RequestParam(required = false, defaultValue = "10") Integer limite
+    ) {
+        try {
+            // Validando o mercado enviado como parâmetro pelo cliente.
+            Tratamento.validarMercado(requestMercado, true);
+
+            // Buscando todos os mercados de acordo com o filtro enviado por parâmetro e salvando na página de Mercados.
+            Page<Mercado> paginaMercado = mercadoRepository.findAll(
+                Example.of(
+                    requestMercado, 
+                    ExampleMatcher
+                        .matching()
+                        .withIgnoreCase()
+                        .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                ),
+                PageRequest.of(pagina, limite, Sort.by(Sort.Direction.fromString(ordem), ordenarPor))
             );
 
             // Criando uma lista de resposta de mercados vazia.
