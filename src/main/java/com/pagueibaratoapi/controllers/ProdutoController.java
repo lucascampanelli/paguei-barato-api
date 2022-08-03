@@ -14,6 +14,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -1011,7 +1012,7 @@ public class ProdutoController {
      * @return Lista de produtos com os dados da página.
      */
     @GetMapping(params = { "pagina", "limite" })
-    @Cacheable(value = "produtos", key = "#pagina.toString() + '-' + #limite.toString()")
+    @Cacheable("produtos")
     public ResponsePagina listar(
         Produto requestProduto,
         @RequestParam(required = false, defaultValue = "0") Integer pagina,
@@ -1035,6 +1036,188 @@ public class ProdutoController {
                         .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
                 ),
                 PageRequest.of(pagina, limite)
+            );
+
+            // Lista de produtos que será retornada.
+            List<ResponseProduto> produtos = new ArrayList<ResponseProduto>();
+
+            // Formata a resposta com os dados obtidos.
+            ResponsePagina responseProduto = PaginaUtils.criarResposta(pagina, limite, paginaProduto, produtos);
+
+            // Adiciona os prdutos à lista.
+            for(Produto produto : paginaProduto.getContent()) {
+                produtos.add(new ResponseProduto(produto));
+            }
+
+            // Adiciona um link para a primeira página de produtos.
+            responseProduto.add(
+                linkTo(
+                    methodOn(ProdutoController.class).listar(requestProduto, 0, limite)
+                )
+                .withRel("first")
+            );
+
+            // Se houver produtos,
+            if(!paginaProduto.isEmpty()) {
+                // Se a página atual não for a primeira,
+                if(pagina > 0) {
+                    // Adiciona um link para a página anterior de produtos.
+                    responseProduto.add(
+                        linkTo(
+                            methodOn(ProdutoController.class).listar(requestProduto, pagina - 1, limite)
+                        )
+                        .withRel("previous")
+                    );
+                }
+                
+                // Se a página atual não for a última,
+                if(pagina < paginaProduto.getTotalPages() - 1) {
+                    // Adiciona um link para a página seguinte de produtos.
+                    responseProduto.add(
+                        linkTo(
+                            methodOn(ProdutoController.class).listar(requestProduto, pagina + 1, limite)
+                        )
+                        .withRel("next")
+                    );
+                }
+
+                // Adiciona um link para a última página de produtos.
+                responseProduto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).listar(requestProduto, paginaProduto.getTotalPages() - 1, limite)
+                    )
+                    .withRel("last")
+                );
+
+                // Percorre os produtos,
+                for(ResponseProduto produto : produtos) {
+                    // Adiciona o link para a rota de detalhamento de produto.
+                    produto.add(
+                        linkTo(
+                            methodOn(ProdutoController.class).ler(produto.getId())
+                        )
+                        .withSelfRel()
+                    );
+                }
+            }
+
+            // Retorna a resposta.
+            return responseProduto;
+
+        } catch (DadosInvalidosException e) {
+            throw new ResponseStatusException(400, e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        } catch (NullPointerException e) {
+            throw new ResponseStatusException(404, "nao_encontrado", e);
+        } catch (Exception e) {
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar produtos. Pode ser ordenado.
+     * @param requestProduto - Dados de pesquisa para filtragem.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @return Lista de produtos ordenados.
+     */
+    @GetMapping(params = { "ordenarPor", "ordem" })
+    @Cacheable("produtos")
+    public List<ResponseProduto> listar(
+        Produto requestProduto,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem
+    ) {
+        try {
+
+            // Valida os dados de pesquisa.
+            Tratamento.validarProduto(requestProduto, true);
+
+            // Busca os produtos no banco semelhantes aos dados de pesquisa.
+            // Se não houver dados de pesquisa, busca todos os produtos.
+            List<Produto> produtos = produtoRepository.findAll(
+                Example.of(
+                    requestProduto, 
+                    ExampleMatcher
+                        .matching()
+                        .withIgnoreCase()
+                        .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                ),
+                Sort.by(Sort.Direction.fromString(ordem), ordenarPor)
+            );
+
+            // Lista de produtos que será retornada.
+            List<ResponseProduto> responseProduto = new ArrayList<ResponseProduto>();
+
+            // Adiciona os prdutos à lista.
+            for(Produto produto : produtos) {
+                responseProduto.add(new ResponseProduto(produto));
+            }
+
+            // Se houver produtos,
+            if(responseProduto != null) {
+                // Percorre os produtos,
+                for(ResponseProduto produto : responseProduto) {
+                    // Adiciona o link para a rota de detalhamento de produto.
+                    produto.add(
+                        linkTo(
+                            methodOn(ProdutoController.class).ler(produto.getId())
+                        )
+                        .withSelfRel()
+                    );
+                }
+            }
+
+            return responseProduto;
+
+        } catch (DadosInvalidosException e) {
+            throw new ResponseStatusException(400, e.getMessage(), e);
+        } catch (NullPointerException e) {
+            throw new ResponseStatusException(404, "nao_encontrado", e);
+        } catch (UnsupportedOperationException e) {
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        } catch (Exception e) {
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar produtos. Pode ser ordenado e paginado.
+     * @param requestProduto - Dados de pesquisa para filtragem.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @param pagina - Número da página a ser mostrada.
+     * @param limite - Número de registros por página.
+     * @return Lista de produtos ordenados com os dados da página.
+     */
+    @GetMapping(params = { "ordenarPor", "ordem", "pagina", "limite" })
+    @Cacheable("produtos")
+    public ResponsePagina listar(
+        Produto requestProduto,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem,
+        @RequestParam(required = false, defaultValue = "0") Integer pagina,
+        @RequestParam(required = false, defaultValue = "10") Integer limite
+    ) {
+        try {
+
+            // Valida os dados de pesquisa.
+            Tratamento.validarProduto(requestProduto, true);
+
+            // Busca os produtos no banco semelhantes aos dados de pesquisa.
+            // Se não houver dados de pesquisa, busca todos os produtos.
+            // Informa os dados de paginação.
+            // Se não houver paginação, busca todos os produtos.
+            Page<Produto> paginaProduto = produtoRepository.findAll(
+                Example.of(
+                    requestProduto, 
+                    ExampleMatcher
+                        .matching()
+                        .withIgnoreCase()
+                        .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                ),
+                PageRequest.of(pagina, limite, Sort.by(Sort.Direction.fromString(ordem), ordenarPor))
             );
 
             // Lista de produtos que será retornada.
