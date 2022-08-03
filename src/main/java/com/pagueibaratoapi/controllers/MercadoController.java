@@ -15,6 +15,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -645,6 +646,463 @@ public class MercadoController {
     }
 
     /**
+     * Sobrecarga do método responsável por listar todos os produtos de um mercado informado. Pode ser paginado.
+     * @param id - Id do mercado que será lido.
+     * @param pagina - Número da página que será listada.
+     * @param limite - Número de registros que serão listados por página.
+     * @return <b>ResponsePagina</b> - Objeto da página com as informações de paginação e os itens da página atual.
+     */
+    @GetMapping(value = "/{id}/produto", params = {"pagina", "limite"})
+    @Cacheable("mercadoProdutos")
+    public ResponsePagina listarProdutos(
+        @PathVariable("id") Integer id,
+        @RequestParam(required = false, defaultValue = "0") Integer pagina,
+        @RequestParam(required = false, defaultValue = "10") Integer limite
+    ) {
+        try {
+            // Verifica se o mercado informado existe. Caso não exista, lança exceção.
+            if(!mercadoRepository.existsById(id))
+                throw new NoSuchElementException("mercado_nao_encontrado");
+
+            // Busca todos os estoques do mercado com o id informado e os armazena numa lista.
+            List<Estoque> estoques = estoqueRepository.findByMercadoId(id);
+            
+            // Se não houver estoques no mercado
+            if(estoques.isEmpty())
+                // Lança uma exceção informando que o mercado com o id informado não possui nenhum estoque.
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Cria uma lista de objetos ResponseProduto.
+            List<ResponseProduto> produtos = new ArrayList<>();
+
+            // Para cada estoque do mercado
+            for(Estoque estoque : estoques){
+                // Pesquisa as informações do produto do estoque atual e adiciona à lista de resposta de produtos.
+                produtos.add(new ResponseProduto(produtoRepository.findById(estoque.getProdutoId()).get()));
+            }
+
+            // Para cada produto da lista de resposta
+            for(ResponseProduto produto : produtos){
+
+                // Adiciona à resposta um link para a leitura do produto em questão.
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produto.getId())
+                    )
+                    .withSelfRel()
+                );
+
+                // Adiciona à resposta um link para listar todos os produtos.
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).listar(new Produto())
+                    )
+                    .withRel("collection")
+                );
+
+            }
+
+            // Produtos que serão mostrados na página atual.
+            // O início da página é a multiplicação do número da página pelo limite de produtos por página.
+            // O fim da página é o inicío da página mais o limite de produtos por página.
+            List<ResponseProduto> produtosPagina = produtos.subList(pagina * limite, (pagina * limite) + limite);
+
+            // Representa o total de páginas da pesquisa.
+            // O total de páginas é calculado dividindo o total de produtos pelo limite de produtos por página.
+            // O valor é arredondado para cima porque existe a possibilidade da ultima página não possuir o número limite de produtos.
+            Integer totalPaginas = (int) Math.ceil(produtos.size() / (double) limite);
+
+            // Total de produtos da pesquisa.
+            // Se o tamanho for maior que Integer.MAX_VALUE, o valor é Integer.MAX_VALUE.
+            Integer totalRegistros = produtos.size();
+
+            // Prepara uma resposta em formato de página
+            ResponsePagina responseProduto = PaginaUtils.criarResposta(pagina, limite, totalRegistros, totalPaginas, produtosPagina);
+
+            // Adiciona à resposta um link para a primeira página da listagem de produtos.
+            responseProduto.add(
+                linkTo(
+                    methodOn(MercadoController.class).listarProdutos(id, 0, limite)
+                )
+                .withRel("first")
+            );
+
+            // Se a página de produtos não estiver vazia.
+            if(!produtos.isEmpty()) {
+                // Se a página informada pelo cliente não for a primeira página da listagem de produtos.
+                if(pagina > 0) {
+                    // Adiciona à resposta um link para a página anterior da listagem de produtos.
+                    responseProduto.add(
+                        linkTo(
+                            methodOn(MercadoController.class).listarProdutos(id, pagina - 1, limite)
+                        )
+                        .withRel("previous")
+                    );
+                }
+
+                // Se a página informada pelo cliente não for a última página da listagem de produtos.
+                if(pagina < totalPaginas - 1) {
+                    // Adiciona à resposta um link para a página seguinte da listagem de produtos.
+                    responseProduto.add(
+                        linkTo(
+                            methodOn(MercadoController.class).listarProdutos(id, pagina + 1, limite)
+                        )
+                        .withRel("next")
+                    );
+                }
+
+                // Adiciona à resposta um link para a última página da listagem de produtos.
+                responseProduto.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listarProdutos(id, totalPaginas - 1, limite)
+                    )
+                    .withRel("last")
+                );
+            }
+
+            // Retorna o objeto do tipo ResponseMercado com o mercado lido e o link para a listagem dos mercados
+            return responseProduto;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que o mercado com o id informado não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar todos os produtos de um mercado informado. Pode ser ordenado.
+     * @param id - Id do mercado que será lido.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @return <b>List < ResponseProduto ></b> - Lista ordenada dos produtos do mercado.
+     */
+    @GetMapping(value = "/{id}/produto", params = {"ordenarPor", "ordem"})
+    @Cacheable("mercadoProdutos")
+    public List<ResponseProduto> listarProdutos(
+        @PathVariable("id") Integer id,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem
+    ) {
+        try {
+            // Verifica se o mercado informado existe. Caso não exista, lança exceção.
+            if(!mercadoRepository.existsById(id))
+                throw new NoSuchElementException("mercado_nao_encontrado");
+
+            // Busca todos os estoques do mercado com o id informado e os armazena numa lista.
+            List<Estoque> estoques = estoqueRepository.findByMercadoId(id);
+            
+            // Se não houver estoques no mercado
+            if(estoques.isEmpty())
+                // Lança uma exceção informando que o mercado com o id informado não possui nenhum estoque.
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Cria uma lista de objetos ResponseProduto.
+            List<ResponseProduto> responseProduto = new ArrayList<>();
+
+            // Para cada estoque do mercado
+            for(Estoque estoque : estoques){
+                // Pesquisa as informações do produto do estoque atual e adiciona à lista de resposta de produtos.
+                responseProduto.add(new ResponseProduto(produtoRepository.findById(estoque.getProdutoId()).get()));
+            }
+
+            // Faz a ordenação da lista de produtos.
+            responseProduto.sort((o1, o2) -> {
+
+                switch (ordenarPor) {
+
+                    case "id":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por id ascendente.
+                            return o1.getId().compareTo(o2.getId());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por id descendente.
+                            return o2.getId().compareTo(o1.getId());
+                    
+                    case "nome":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por nome ascendente.
+                            return o1.getNome().compareTo(o2.getNome());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por nome descendente.
+                            return o2.getNome().compareTo(o1.getNome());
+                    
+                    case "marca":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por marca ascendente.
+                            return o1.getMarca().compareTo(o2.getMarca());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por marca descendente.
+                            return o2.getMarca().compareTo(o1.getMarca());
+                    
+                    case "tamanho":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por tamanho ascendente.
+                            return o1.getTamanho().compareTo(o2.getTamanho());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por tamanho descendente.
+                            return o2.getTamanho().compareTo(o1.getTamanho());
+                    
+                    case "cor":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por cor ascendente.
+                            return o1.getCor() != null ? o1.getCor().compareTo(o2.getCor()) : 0;
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por cor descendente.
+                            return o2.getCor() != null ? o2.getCor().compareTo(o1.getCor()) : 0;
+                
+                    default:
+                        return 0;
+                }
+            });
+
+            // Para cada produto da lista de resposta
+            for(ResponseProduto produto : responseProduto){
+
+                // Adiciona à resposta um link para a leitura do produto em questão.
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produto.getId())
+                    )
+                    .withSelfRel()
+                );
+
+                // Adiciona à resposta um link para listar todos os produtos.
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).listar(new Produto())
+                    )
+                    .withRel("collection")
+                );
+
+            }
+
+            // Retorna o objeto do tipo ResponseMercado com o mercado lido e o link para a listagem dos mercados
+            return responseProduto;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que o mercado com o id informado não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar todos os produtos de um mercado informado. Pode ser paginado e ordenado.
+     * @param id - Id do mercado que será lido.
+     * @param pagina - Número da página que será listada.
+     * @param limite - Número de registros que serão listados por página.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @return <b>ResponsePagina</b> - Objeto da página com as informações de paginação e os itens da página atual ordenados.
+     */
+    @GetMapping(value = "/{id}/produto", params = {"pagina", "limite", "ordenarPor", "ordem"})
+    @Cacheable("mercadoProdutos")
+    public ResponsePagina listarProdutos(
+        @PathVariable("id") Integer id,
+        @RequestParam(required = false, defaultValue = "0") Integer pagina,
+        @RequestParam(required = false, defaultValue = "10") Integer limite,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem
+    ) {
+        try {
+            // Verifica se o mercado informado existe. Caso não exista, lança exceção.
+            if(!mercadoRepository.existsById(id))
+                throw new NoSuchElementException("mercado_nao_encontrado");
+
+            // Busca todos os estoques do mercado com o id informado e os armazena numa lista.
+            List<Estoque> estoques = estoqueRepository.findByMercadoId(id);
+            
+            // Se não houver estoques no mercado
+            if(estoques.isEmpty())
+                // Lança uma exceção informando que o mercado com o id informado não possui nenhum estoque.
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Cria uma lista de objetos ResponseProduto.
+            List<ResponseProduto> produtos = new ArrayList<>();
+
+            // Para cada estoque do mercado
+            for(Estoque estoque : estoques){
+                // Pesquisa as informações do produto do estoque atual e adiciona à lista de resposta de produtos.
+                produtos.add(new ResponseProduto(produtoRepository.findById(estoque.getProdutoId()).get()));
+            }
+
+            // Faz a ordenação da lista de produtos.
+            produtos.sort((o1, o2) -> {
+
+                switch (ordenarPor) {
+
+                    case "id":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por id ascendente.
+                            return o1.getId().compareTo(o2.getId());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por id descendente.
+                            return o2.getId().compareTo(o1.getId());
+                    
+                    case "nome":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por nome ascendente.
+                            return o1.getNome().compareTo(o2.getNome());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por nome descendente.
+                            return o2.getNome().compareTo(o1.getNome());
+                    
+                    case "marca":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por marca ascendente.
+                            return o1.getMarca().compareTo(o2.getMarca());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por marca descendente.
+                            return o2.getMarca().compareTo(o1.getMarca());
+                    
+                    case "tamanho":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por tamanho ascendente.
+                            return o1.getTamanho().compareTo(o2.getTamanho());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por tamanho descendente.
+                            return o2.getTamanho().compareTo(o1.getTamanho());
+                    
+                    case "cor":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por cor ascendente.
+                            return o1.getCor() != null ? o1.getCor().compareTo(o2.getCor()) : 0;
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por cor descendente.
+                            return o2.getCor() != null ? o2.getCor().compareTo(o1.getCor()) : 0;
+                
+                    default:
+                        return 0;
+                }
+            });
+
+            // Para cada produto da lista de resposta
+            for(ResponseProduto produto : produtos){
+
+                // Adiciona à resposta um link para a leitura do produto em questão.
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produto.getId())
+                    )
+                    .withSelfRel()
+                );
+
+                // Adiciona à resposta um link para listar todos os produtos.
+                produto.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).listar(new Produto())
+                    )
+                    .withRel("collection")
+                );
+
+            }
+
+            // Produtos que serão mostrados na página atual.
+            // O início da página é a multiplicação do número da página pelo limite de produtos por página.
+            // O fim da página é o inicío da página mais o limite de produtos por página.
+            List<ResponseProduto> produtosPagina = produtos.subList(pagina * limite, (pagina * limite) + limite);
+
+            // Representa o total de páginas da pesquisa.
+            // O total de páginas é calculado dividindo o total de produtos pelo limite de produtos por página.
+            // O valor é arredondado para cima porque existe a possibilidade da ultima página não possuir o número limite de produtos.
+            Integer totalPaginas = (int) Math.ceil(produtos.size() / (double) limite);
+
+            // Total de produtos da pesquisa.
+            // Se o tamanho for maior que Integer.MAX_VALUE, o valor é Integer.MAX_VALUE.
+            Integer totalRegistros = produtos.size();
+
+            // Prepara uma resposta em formato de página
+            ResponsePagina responseProduto = PaginaUtils.criarResposta(pagina, limite, totalRegistros, totalPaginas, produtosPagina);
+
+            // Adiciona à resposta um link para a primeira página da listagem de produtos.
+            responseProduto.add(
+                linkTo(
+                    methodOn(MercadoController.class).listarProdutos(id, 0, limite)
+                )
+                .withRel("first")
+            );
+
+            // Se a página de produtos não estiver vazia.
+            if(!produtos.isEmpty()) {
+                // Se a página informada pelo cliente não for a primeira página da listagem de produtos.
+                if(pagina > 0) {
+                    // Adiciona à resposta um link para a página anterior da listagem de produtos.
+                    responseProduto.add(
+                        linkTo(
+                            methodOn(MercadoController.class).listarProdutos(id, pagina - 1, limite)
+                        )
+                        .withRel("previous")
+                    );
+                }
+
+                // Se a página informada pelo cliente não for a última página da listagem de produtos.
+                if(pagina < totalPaginas - 1) {
+                    // Adiciona à resposta um link para a página seguinte da listagem de produtos.
+                    responseProduto.add(
+                        linkTo(
+                            methodOn(MercadoController.class).listarProdutos(id, pagina + 1, limite)
+                        )
+                        .withRel("next")
+                    );
+                }
+
+                // Adiciona à resposta um link para a última página da listagem de produtos.
+                responseProduto.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listarProdutos(id, totalPaginas - 1, limite)
+                    )
+                    .withRel("last")
+                );
+            }
+
+            // Retorna o objeto do tipo ResponseMercado com o mercado lido e o link para a listagem dos mercados
+            return responseProduto;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que o mercado com o id informado não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
      * Método responsável por retornar o estoque do mercado com o produto informado.
      * @param id - Id do mercado que será buscado como parâmetro.
      * @return ResponseEstoque - Objeto de resposta do estoque do mercado com o produto informado.
@@ -809,6 +1267,537 @@ public class MercadoController {
     }
 
     /**
+     * Sobrecarga do método responsável por listar todas as sugestões de um produto específico no mercado. Pode ser paginado.
+     * @param id - Id do mercado que será buscado como parâmetro.
+     * @param produtoId - Id do produto no qual será buscadas as sugestões.
+     * @param pagina - Número da página que será listada.
+     * @param limite - Número de registros que serão listados por página.
+     * @return <b>ResponsePagina</b> - Objeto contendo as informações da página e a lista de sugestões.
+     */
+    @GetMapping(value = "/{id}/produto/{produtoId}/sugestao", params = {"pagina", "limite"})
+    @Cacheable("mercadoSugestoes")
+    public ResponsePagina ler(
+        @PathVariable("id") Integer id,
+        @PathVariable(value = "produtoId") Integer produtoId,
+        @RequestParam(required = false, defaultValue = "0") Integer pagina,
+        @RequestParam(required = false, defaultValue = "10") Integer limite
+    ) {
+        try {
+
+            // Criando uma lista de respostas de sugestões vazia.
+            List<ResponseSugestao> listaSugestoes = new ArrayList<ResponseSugestao>();
+
+            // Buscando o registro do estoque do mercado, que associa o produto ao estoque
+            // do mercado
+            Estoque estoque = estoqueRepository.findByProdutoIdAndMercadoId(produtoId, id);
+
+            // Se o estoque for nulo
+            if(estoque == null)
+                // Lança uma exceção informando que o produto não está no estoque do mercado.
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Buscando todas as sugestões de preço do produto no mercado informado
+            List<Sugestao> sugestoes = sugestaoRepository.findByEstoqueId(estoque.getId());
+
+            // Se não houver sugestões para esse produto
+            if(sugestoes == null)
+                // Lança uma exceção informando que não há sugestões para esse produto.
+                throw new NoSuchElementException("sugestao_nao_encontrado");
+
+            // Para cada sugestão encontrada
+            for(Sugestao sugestao : sugestoes) {
+                // Cria um objeto do tipo ResponseSugestao, convertendo o objeto Sugestao para o objeto ResponseSugestao
+                listaSugestoes.add(new ResponseSugestao(sugestao));
+            }
+
+            // Sugestões que serão mostradas na página atual.
+            // O início da página é a multiplicação do número da página pelo limite de sugestões por página.
+            // O fim da página é o inicío da página mais o limite de sugestões por página.
+            List<ResponseSugestao> sugestoesPagina = listaSugestoes.subList(pagina * limite, (pagina * limite) + limite);
+
+            // Representa o total de páginas da pesquisa.
+            // O total de páginas é calculado dividindo o total de sugestões pelo limite de sugestões por página.
+            // O valor é arredondado para cima porque existe a possibilidade da ultima página não possuir o número limite de sugestões.
+            Integer totalPaginas = (int) Math.ceil(listaSugestoes.size() / (double) limite);
+
+            // Total de sugestões da pesquisa.
+            // Se o tamanho for maior que Integer.MAX_VALUE, o valor é Integer.MAX_VALUE.
+            Integer totalRegistros = listaSugestoes.size();
+
+            // Para cada sugestão da resposta
+            for(ResponseSugestao sugestao : sugestoesPagina) {
+                // Converte o preço da sugestão de int para float para ser exibido no formato de moeda no retorno.
+                sugestao.setPreco(sugestao.getPreco() / 100);
+
+                // Adiciona à resposta um link para a leitura da sugestão em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(SugestaoController.class).ler(sugestao.getId())
+                    )
+                    .withSelfRel()
+                );
+                
+                // Adiciona à resposta um link para a listagem de mercados.
+                sugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listar(new Mercado())
+                    )
+                    .withRel("collection")
+                );
+
+                // Adiciona à resposta um link para a leitura do produto em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produtoId)
+                    )
+                    .withRel("produto")
+                );
+
+                // Adiciona à resposta um link para a leitura da sugestão em questão
+                sugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).ler(id)
+                    )
+                    .withRel("mercado")
+                );
+
+                // Adiciona à resposta um link para a leitura do estoque em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(EstoqueController.class).ler(estoque.getId())
+                    )
+                    .withRel("estoque")
+                );
+            }
+
+            // Prepara uma resposta em formato de página
+            ResponsePagina responseSugestao = PaginaUtils.criarResposta(pagina, limite, totalRegistros, totalPaginas, sugestoesPagina);
+
+            // Adiciona à resposta um link para a primeira página da listagem de sugestoes.
+            responseSugestao.add(
+                linkTo(
+                    methodOn(MercadoController.class).ler(id, produtoId, 0, limite)
+                )
+                .withRel("first")
+            );
+
+            // Se a página de sugestões não estiver vazia.
+            if(!listaSugestoes.isEmpty()) {
+                // Se a página informada pelo cliente não for a primeira página da listagem de sugestões.
+                if(pagina > 0) {
+                    // Adiciona à resposta um link para a página anterior da listagem de sugestões.
+                    responseSugestao.add(
+                        linkTo(
+                            methodOn(MercadoController.class).ler(id, produtoId, pagina - 1, limite)
+                        )
+                        .withRel("previous")
+                    );
+                }
+
+                // Se a página informada pelo cliente não for a última página da listagem de sugestões.
+                if(pagina < totalPaginas - 1) {
+                    // Adiciona à resposta um link para a página seguinte da listagem de sugestões.
+                    responseSugestao.add(
+                        linkTo(
+                            methodOn(MercadoController.class).ler(id, produtoId, pagina + 1, limite)
+                        )
+                        .withRel("next")
+                    );
+                }
+
+                // Adiciona à resposta um link para a última página da listagem de sugestões.
+                responseSugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).ler(id, produtoId, totalPaginas - 1, limite)
+                    )
+                    .withRel("last")
+                );
+            }
+
+            return responseSugestao;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que algum registro não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar todas as sugestões de um produto específico no mercado. Pode ser ordenado.
+     * @param id - Id do mercado que será buscado como parâmetro.
+     * @param produtoId - Id do produto no qual será buscadas as sugestões.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @return <b>List < ResponseSugestao ></b> - Lista de sugestões do produto específico no mercado ordenadas.
+     */
+    @GetMapping(value = "/{id}/produto/{produtoId}/sugestao", params = {"ordenarPor", "ordem"})
+    @Cacheable("mercadoSugestoes")
+    public List<ResponseSugestao> ler(
+        @PathVariable("id") Integer id,
+        @PathVariable(value = "produtoId") Integer produtoId,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem
+    ) {
+        try {
+
+            // Criando uma lista de respostas de sugestões vazia.
+            List<ResponseSugestao> responseSugestao = new ArrayList<ResponseSugestao>();
+
+            // Buscando o registro do estoque do mercado, que associa o produto ao estoque
+            // do mercado
+            Estoque estoque = estoqueRepository.findByProdutoIdAndMercadoId(produtoId, id);
+
+            // Se o estoque for nulo
+            if(estoque == null)
+                // Lança uma exceção informando que o produto não está no estoque do mercado.
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Buscando todas as sugestões de preço do produto no mercado informado
+            List<Sugestao> sugestoes = sugestaoRepository.findByEstoqueId(estoque.getId());
+
+            // Se não houver sugestões para esse produto
+            if(sugestoes == null)
+                // Lança uma exceção informando que não há sugestões para esse produto.
+                throw new NoSuchElementException("sugestao_nao_encontrado");
+
+            // Para cada sugestão encontrada
+            for(Sugestao sugestao : sugestoes) {
+                // Cria um objeto do tipo ResponseSugestao, convertendo o objeto Sugestao para o objeto ResponseSugestao
+                responseSugestao.add(new ResponseSugestao(sugestao));
+            }
+
+            // Para cada sugestão da resposta
+            for(ResponseSugestao sugestao : responseSugestao) {
+                // Converte o preço da sugestão de int para float para ser exibido no formato de moeda no retorno.
+                sugestao.setPreco(sugestao.getPreco() / 100);
+
+                // Adiciona à resposta um link para a leitura da sugestão em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(SugestaoController.class).ler(sugestao.getId())
+                    )
+                    .withSelfRel()
+                );
+                
+                // Adiciona à resposta um link para a listagem de mercados.
+                sugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listar(new Mercado())
+                    )
+                    .withRel("collection")
+                );
+
+                // Adiciona à resposta um link para a leitura do produto em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produtoId)
+                    )
+                    .withRel("produto")
+                );
+
+                // Adiciona à resposta um link para a leitura da sugestão em questão
+                sugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).ler(id)
+                    )
+                    .withRel("mercado")
+                );
+
+                // Adiciona à resposta um link para a leitura do estoque em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(EstoqueController.class).ler(estoque.getId())
+                    )
+                    .withRel("estoque")
+                );
+            }
+
+            // Faz a ordenação da lista de sugestões.
+            responseSugestao.sort((o1, o2) -> {
+
+                switch (ordenarPor) {
+
+                    case "id":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por id ascendente.
+                            return o1.getId().compareTo(o2.getId());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por id descendente.
+                            return o2.getId().compareTo(o1.getId());
+                    
+                    case "preco":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por preco ascendente.
+                            return o1.getPreco().compareTo(o2.getPreco());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por preco descendente.
+                            return o2.getPreco().compareTo(o1.getPreco());
+                    
+                    case "timestamp":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por data ascendente.
+                            return o1.getTimestamp().compareTo(o2.getTimestamp());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por data descendente.
+                            return o2.getTimestamp().compareTo(o1.getTimestamp());
+                    
+                    case "estoqueId":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por id do estoque ascendente.
+                            return o1.getEstoqueId().compareTo(o2.getEstoqueId());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por id do estoque descendente.
+                            return o2.getEstoqueId().compareTo(o1.getEstoqueId());
+                
+                    default:
+                        return 0;
+                }
+            });
+
+            return responseSugestao;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que algum registro não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar todas as sugestões de um produto específico no mercado. Pode ser paginado e ordenado.
+     * @param id - Id do mercado que será buscado como parâmetro.
+     * @param produtoId - Id do produto no qual será buscadas as sugestões.
+     * @param pagina - Número da página que será listada.
+     * @param limite - Número de registros que serão listados por página.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @return <b>ResponsePagina</b> - Objeto contendo as informações da página e a lista de sugestões ordenada.
+     */
+    @GetMapping(value = "/{id}/produto/{produtoId}/sugestao", params = {"pagina", "limite", "ordenarPor", "ordem"})
+    @Cacheable("mercadoSugestoes")
+    public ResponsePagina ler(
+        @PathVariable("id") Integer id,
+        @PathVariable(value = "produtoId") Integer produtoId,
+        @RequestParam(required = false, defaultValue = "0") Integer pagina,
+        @RequestParam(required = false, defaultValue = "10") Integer limite,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem
+    ) {
+        try {
+
+            // Criando uma lista de respostas de sugestões vazia.
+            List<ResponseSugestao> listaSugestoes = new ArrayList<ResponseSugestao>();
+
+            // Buscando o registro do estoque do mercado, que associa o produto ao estoque
+            // do mercado
+            Estoque estoque = estoqueRepository.findByProdutoIdAndMercadoId(produtoId, id);
+
+            // Se o estoque for nulo
+            if(estoque == null)
+                // Lança uma exceção informando que o produto não está no estoque do mercado.
+                throw new NoSuchElementException("estoque_nao_encontrado");
+
+            // Buscando todas as sugestões de preço do produto no mercado informado
+            List<Sugestao> sugestoes = sugestaoRepository.findByEstoqueId(estoque.getId());
+
+            // Se não houver sugestões para esse produto
+            if(sugestoes == null)
+                // Lança uma exceção informando que não há sugestões para esse produto.
+                throw new NoSuchElementException("sugestao_nao_encontrado");
+
+            // Para cada sugestão encontrada
+            for(Sugestao sugestao : sugestoes) {
+                // Cria um objeto do tipo ResponseSugestao, convertendo o objeto Sugestao para o objeto ResponseSugestao
+                listaSugestoes.add(new ResponseSugestao(sugestao));
+            }
+
+            // Faz a ordenação da lista de sugestões.
+            listaSugestoes.sort((o1, o2) -> {
+
+                switch (ordenarPor) {
+
+                    case "id":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por id ascendente.
+                            return o1.getId().compareTo(o2.getId());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por id descendente.
+                            return o2.getId().compareTo(o1.getId());
+                    
+                    case "preco":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por preco ascendente.
+                            return o1.getPreco().compareTo(o2.getPreco());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por preco descendente.
+                            return o2.getPreco().compareTo(o1.getPreco());
+                    
+                    case "timestamp":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por data ascendente.
+                            return o1.getTimestamp().compareTo(o2.getTimestamp());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por data descendente.
+                            return o2.getTimestamp().compareTo(o1.getTimestamp());
+                    
+                    case "estoqueId":
+
+                        // Se a ordem for "asc"
+                        if(ordem.equals("asc"))
+                            // Ordena a lista de produtos por id do estoque ascendente.
+                            return o1.getEstoqueId().compareTo(o2.getEstoqueId());
+                        // Se a ordem for "desc"
+                        else
+                            // Ordena a lista de produtos por id do estoque descendente.
+                            return o2.getEstoqueId().compareTo(o1.getEstoqueId());
+                
+                    default:
+                        return 0;
+                }
+            });
+
+            // Sugestões que serão mostradas na página atual.
+            // O início da página é a multiplicação do número da página pelo limite de sugestões por página.
+            // O fim da página é o inicío da página mais o limite de sugestões por página.
+            List<ResponseSugestao> sugestoesPagina = listaSugestoes.subList(pagina * limite, (pagina * limite) + limite);
+
+            // Representa o total de páginas da pesquisa.
+            // O total de páginas é calculado dividindo o total de sugestões pelo limite de sugestões por página.
+            // O valor é arredondado para cima porque existe a possibilidade da ultima página não possuir o número limite de sugestões.
+            Integer totalPaginas = (int) Math.ceil(listaSugestoes.size() / (double) limite);
+
+            // Total de sugestões da pesquisa.
+            // Se o tamanho for maior que Integer.MAX_VALUE, o valor é Integer.MAX_VALUE.
+            Integer totalRegistros = listaSugestoes.size();
+
+            // Para cada sugestão da resposta
+            for(ResponseSugestao sugestao : sugestoesPagina) {
+                // Converte o preço da sugestão de int para float para ser exibido no formato de moeda no retorno.
+                sugestao.setPreco(sugestao.getPreco() / 100);
+
+                // Adiciona à resposta um link para a leitura da sugestão em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(SugestaoController.class).ler(sugestao.getId())
+                    )
+                    .withSelfRel()
+                );
+                
+                // Adiciona à resposta um link para a listagem de mercados.
+                sugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listar(new Mercado())
+                    )
+                    .withRel("collection")
+                );
+
+                // Adiciona à resposta um link para a leitura do produto em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(ProdutoController.class).ler(produtoId)
+                    )
+                    .withRel("produto")
+                );
+
+                // Adiciona à resposta um link para a leitura da sugestão em questão
+                sugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).ler(id)
+                    )
+                    .withRel("mercado")
+                );
+
+                // Adiciona à resposta um link para a leitura do estoque em questão.
+                sugestao.add(
+                    linkTo(
+                        methodOn(EstoqueController.class).ler(estoque.getId())
+                    )
+                    .withRel("estoque")
+                );
+            }
+
+            // Prepara uma resposta em formato de página
+            ResponsePagina responseSugestao = PaginaUtils.criarResposta(pagina, limite, totalRegistros, totalPaginas, sugestoesPagina);
+
+            // Adiciona à resposta um link para a primeira página da listagem de sugestoes.
+            responseSugestao.add(
+                linkTo(
+                    methodOn(MercadoController.class).ler(id, produtoId, 0, limite)
+                )
+                .withRel("first")
+            );
+
+            // Se a página de sugestões não estiver vazia.
+            if(!listaSugestoes.isEmpty()) {
+                // Se a página informada pelo cliente não for a primeira página da listagem de sugestões.
+                if(pagina > 0) {
+                    // Adiciona à resposta um link para a página anterior da listagem de sugestões.
+                    responseSugestao.add(
+                        linkTo(
+                            methodOn(MercadoController.class).ler(id, produtoId, pagina - 1, limite)
+                        )
+                        .withRel("previous")
+                    );
+                }
+
+                // Se a página informada pelo cliente não for a última página da listagem de sugestões.
+                if(pagina < totalPaginas - 1) {
+                    // Adiciona à resposta um link para a página seguinte da listagem de sugestões.
+                    responseSugestao.add(
+                        linkTo(
+                            methodOn(MercadoController.class).ler(id, produtoId, pagina + 1, limite)
+                        )
+                        .withRel("next")
+                    );
+                }
+
+                // Adiciona à resposta um link para a última página da listagem de sugestões.
+                responseSugestao.add(
+                    linkTo(
+                        methodOn(MercadoController.class).ler(id, produtoId, totalPaginas - 1, limite)
+                    )
+                    .withRel("last")
+                );
+            }
+
+            return responseSugestao;
+
+        } catch (NoSuchElementException e) {
+            // Lança uma exceção informando que algum registro não foi encontrado.
+            throw new ResponseStatusException(404, e.getMessage(), e);
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
      * Método responsável por listar todos os mercados.
      * @param mercado - Objeto do tipo Mercado que será usado como parâmetro para filtrar os resultados.
      * @return <b>List < ResponseMercado ></b> - Lista de mercados.
@@ -881,7 +1870,7 @@ public class MercadoController {
      * @return <b>ResponseMercado</b> - Mercado encontrado.
      */
     @GetMapping(params = { "pagina", "limite" })
-    @Cacheable(value = "mercados", key = "#pagina.toString() + '-' + #limite.toString()")
+    @Cacheable("mercados")
     public ResponsePagina listar(
         Mercado requestMercado,
         @RequestParam(required = false, defaultValue = "0") Integer pagina,
@@ -901,6 +1890,194 @@ public class MercadoController {
                         .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
                 ),
                 PageRequest.of(pagina, limite)
+            );
+
+            // Criando uma lista de resposta de mercados vazia.
+            List<ResponseMercado> mercados = new ArrayList<ResponseMercado>();
+
+            // Para cada mercado encontrado
+            for(Mercado mercado : paginaMercado.getContent()) {
+                // Cria um objeto do tipo ResponseMercado, convertendo o objeto Mercado para o objeto ResponseMercado
+                mercados.add(new ResponseMercado(mercado));
+            }
+
+            // Criando um objeto do tipo ResponsePagina, que será retornado com os mercados e os dados de paginação.
+            ResponsePagina responseMercado = PaginaUtils.criarResposta(pagina, limite, paginaMercado, mercados);
+
+            // Adiciona à resposta um link para a primeira página da listagem de mercados.
+            responseMercado.add(
+                linkTo(
+                    methodOn(MercadoController.class).listar(requestMercado, 0, limite)
+                )
+                .withRel("first")
+            );
+
+            // Se a página de mercados não estiver vazia.
+            if(!paginaMercado.isEmpty()) {
+                // Se a página informada pelo cliente não for a primeira página da listagem de mercados.
+                if(pagina > 0) {
+                    // Adiciona à resposta um link para a página anterior da listagem de mercados.
+                    responseMercado.add(
+                        linkTo(
+                            methodOn(MercadoController.class).listar(requestMercado, pagina - 1, limite)
+                        )
+                        .withRel("previous")
+                    );
+                }
+
+                // Se a página informada pelo cliente não for a última página da listagem de mercados.
+                if(pagina < paginaMercado.getTotalPages() - 1) {
+                    // Adiciona à resposta um link para a página seguinte da listagem de mercados.
+                    responseMercado.add(
+                        linkTo(
+                            methodOn(MercadoController.class).listar(requestMercado, pagina + 1, limite)
+                        )
+                        .withRel("next")
+                    );
+                }
+
+                // Adiciona à resposta um link para a última página da listagem de mercados.
+                responseMercado.add(
+                    linkTo(
+                        methodOn(MercadoController.class).listar(requestMercado, paginaMercado.getTotalPages() - 1, limite)
+                    )
+                    .withRel("last")
+                );
+
+                // Para cada marcado da resposta
+                for(ResponseMercado mercado : mercados) {
+                    // Adiciona à resposta um link para a leitura do marcado em questão.
+                    mercado.add(
+                        linkTo(
+                            methodOn(MercadoController.class).ler(mercado.getId())
+                        )
+                        .withSelfRel()
+                    );
+                }
+            }
+
+            // Retorna a página com os marcados encontrados e as informações da paginação.
+            return responseMercado;
+
+        } catch (DadosInvalidosException e) {
+            // Lança uma exceção informando que os dados enviados pelo cliente são inválidos.
+            throw new ResponseStatusException(400, e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            // Lança uma exceção caso ocorra algum erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        } catch (NullPointerException e) {
+            // Lança uma exceção caso algum registro seja nulo
+            throw new ResponseStatusException(404, "nao_encontrado", e);
+        } catch (Exception e) {
+            // Lança uma exceção caso ocorra algum erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar todos os mercados podendo ser ordenado.
+     * @param mercado - Objeto do tipo Mercado que será usado como parâmetro para filtrar os resultados.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @return <b>List < ResponseMercado ></b> - Lista de mercados ordenados.
+     */
+    @GetMapping(params = { "ordenarPor", "ordem" })
+    @Cacheable("mercados")
+    public List<ResponseMercado> listar(
+        Mercado requestMercado,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem
+    ) {
+        try {
+
+            // Validando o mercado enviado como parâmetro pelo cliente.
+            Tratamento.validarMercado(requestMercado, true);
+
+            // Buscando todos os mercados de acordo com o filtro enviado por parâmetro e salvando na lista de mercados
+            List<Mercado> mercados = mercadoRepository.findAll(
+                Example.of(
+                    requestMercado, 
+                    ExampleMatcher
+                        .matching()
+                        .withIgnoreCase()
+                        .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                ),
+                Sort.by(Sort.Direction.fromString(ordem), ordenarPor)
+            );
+
+            // Criando uma lista de respostas de mercados vazia.
+            List<ResponseMercado> responseMercado = new ArrayList<ResponseMercado>();
+
+            // Para cada mercado encontrado
+            for(Mercado mercado : mercados) {
+                // Cria um objeto do tipo ResponseMercado, convertendo o objeto Mercado para o objeto ResponseMercado
+                responseMercado.add(new ResponseMercado(mercado));
+            }
+
+            // Se a lista de marcados a serem retornados não for vazia
+            if(!responseMercado.isEmpty()) {
+                // Para cada marcado da resposta
+                for(ResponseMercado mercado : responseMercado) {
+                    // Adiciona à resposta um link para a leitura do marcado em questão.
+                    mercado.add(
+                        linkTo(
+                            methodOn(MercadoController.class).ler(mercado.getId())
+                        )
+                        .withSelfRel()
+                    );
+                }
+            }
+
+            // Retorna a lista de marcados encontrados.
+            return responseMercado;
+
+        } catch (DadosInvalidosException e) {
+            // Lança uma exceção informando que os dados enviados pelo cliente são inválidos.
+            throw new ResponseStatusException(400, e.getMessage(), e);
+        } catch (NullPointerException e) {
+            // Lança uma exceção caso algum registro seja nulo
+            throw new ResponseStatusException(404, "nao_encontrado", e);
+        } catch (UnsupportedOperationException e) {
+            // Lança uma exceção caso ocorra algum erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        } catch (Exception e) {
+            // Lança uma exceção caso ocorra algum erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar todos os mercados podendo ser ordenado e paginado.
+     * @param mercado - Objeto do tipo Mercado que será usado como parâmetro para filtrar os resultados.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @param pagina - Número da página que será exibida, contada a partir do 0.
+     * @param limite - Número de registros que serão exibidos por página.
+     * @return <b>ResponsePagina</b> - Lista de mercados ordenados com as infromações de paginação.
+     */
+    @GetMapping(params = { "ordenarPor", "ordem", "pagina", "limite" })
+    //@Cacheable("mercados")
+    public ResponsePagina listar(
+        Mercado requestMercado,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem,
+        @RequestParam(required = false, defaultValue = "0") Integer pagina,
+        @RequestParam(required = false, defaultValue = "10") Integer limite
+    ) {
+        try {
+            // Validando o mercado enviado como parâmetro pelo cliente.
+            Tratamento.validarMercado(requestMercado, true);
+
+            // Buscando todos os mercados de acordo com o filtro enviado por parâmetro e salvando na página de Mercados.
+            Page<Mercado> paginaMercado = mercadoRepository.findAll(
+                Example.of(
+                    requestMercado, 
+                    ExampleMatcher
+                        .matching()
+                        .withIgnoreCase()
+                        .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                ),
+                PageRequest.of(pagina, limite, Sort.by(Sort.Direction.fromString(ordem), ordenarPor))
             );
 
             // Criando uma lista de resposta de mercados vazia.
