@@ -650,7 +650,7 @@ public class MercadoController {
      * @param id - Id do mercado que será lido.
      * @param pagina - Número da página que será listada.
      * @param limite - Número de registros que serão listados por página.
-     * @return <b>List < ResponsePagina ></b> - Objeto da página com as informações de paginação e os itens da página atual.
+     * @return <b>ResponsePagina</b> - Objeto da página com as informações de paginação e os itens da página atual.
      */
     @GetMapping(value = "/{id}/produto", params = {"pagina", "limite"})
     @Cacheable("mercadoProdutos")
@@ -913,7 +913,7 @@ public class MercadoController {
      * @param limite - Número de registros que serão listados por página.
      * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
      * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
-     * @return <b>List < ResponsePagina ></b> - Objeto da página com as informações de paginação e os itens da página atual ordenados.
+     * @return <b>ResponsePagina</b> - Objeto da página com as informações de paginação e os itens da página atual ordenados.
      */
     @GetMapping(value = "/{id}/produto", params = {"pagina", "limite", "ordenarPor", "ordem"})
     @Cacheable("mercadoProdutos")
@@ -1272,7 +1272,7 @@ public class MercadoController {
      * @param produtoId - Id do produto no qual será buscadas as sugestões.
      * @param pagina - Número da página que será listada.
      * @param limite - Número de registros que serão listados por página.
-     * @return <b>List < ResponsePagina ></b> - Objeto contendo as informações da página e a lista de sugestões.
+     * @return <b>ResponsePagina</b> - Objeto contendo as informações da página e a lista de sugestões.
      */
     @GetMapping(value = "/{id}/produto/{produtoId}/sugestao", params = {"pagina", "limite"})
     @Cacheable("mercadoSugestoes")
@@ -1588,7 +1588,7 @@ public class MercadoController {
      * @param limite - Número de registros que serão listados por página.
      * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
      * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
-     * @return <b>List < ResponsePagina ></b> - Objeto contendo as informações da página e a lista de sugestões ordenada.
+     * @return <b>ResponsePagina</b> - Objeto contendo as informações da página e a lista de sugestões ordenada.
      */
     @GetMapping(value = "/{id}/produto/{produtoId}/sugestao", params = {"pagina", "limite", "ordenarPor", "ordem"})
     @Cacheable("mercadoSugestoes")
