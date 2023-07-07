@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.pagueibaratoapi</groupId>
 	<artifactId>pagueibaratoapi</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.1.0</version>
 	<name>pagueibaratoapi</name>
 	<description>API para facilitar a comparação de preços dos produtos no varejo.</description>
 	<properties>
