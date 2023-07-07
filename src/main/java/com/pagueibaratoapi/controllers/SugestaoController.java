@@ -14,6 +14,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -229,7 +230,7 @@ public class SugestaoController {
      * @return Lista de sugestões com dados da página.
      */
     @GetMapping(params = { "pagina", "limite" })
-    @Cacheable(value = "sugestoes", key = "#pagina.toString() + '-' + #limite.toString()")
+    @Cacheable("sugestoes")
     public ResponsePagina listar(
         Sugestao requestSugestao,
         @RequestParam(required = false, defaultValue = "0") Integer pagina,
@@ -253,6 +254,193 @@ public class SugestaoController {
                         .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
                 ),
                 PageRequest.of(pagina, limite)
+            );
+
+            // Lista de sugestões que será retornada.
+            List<ResponseSugestao> sugestoes = new ArrayList<ResponseSugestao>();
+
+            // Formata a resposta com os dados obtidos.
+            ResponsePagina responsePagina = PaginaUtils.criarResposta(pagina, limite, paginaSugestao, sugestoes);
+
+            // Adiciona as sugestões a lista.
+            for(Sugestao sugestao : paginaSugestao.getContent()) {
+                sugestoes.add(new ResponseSugestao(sugestao));
+            }
+
+            // Adiciona o link para a primeira página de sugestões.
+            responsePagina.add(
+                linkTo(
+                    methodOn(SugestaoController.class).listar(requestSugestao, 0, limite)
+                )
+                .withRel("first")
+            );
+
+            // Se houver sugestões,
+            if(!paginaSugestao.isEmpty()) {
+                // Se a página atual não for a primeira,
+                if(pagina > 0) {
+                    // Adiciona o link para a página anterior.
+                    responsePagina.add(
+                        linkTo(
+                            methodOn(SugestaoController.class).listar(requestSugestao, pagina - 1, limite)
+                        )
+                        .withRel("previous")
+                    );
+                }
+
+                // Se a página atual não for a última,
+                if(pagina < paginaSugestao.getTotalPages() - 1) {
+                    // Adiciona o link para a página seguinte.
+                    responsePagina.add(
+                        linkTo(
+                            methodOn(SugestaoController.class).listar(requestSugestao, pagina + 1, limite)
+                        )
+                        .withRel("next")
+                    );
+                }
+
+                // Adiciona o link para a última página de sugestões.
+                responsePagina.add(
+                    linkTo(
+                        methodOn(SugestaoController.class).listar(requestSugestao, paginaSugestao.getTotalPages() - 1, limite)
+                    )
+                    .withRel("last")
+                );
+
+                // Percorre as sugestões,
+                for(ResponseSugestao sugestao : sugestoes) {
+                    // Divide o preço da sugestão atual por 100 para obter os centavos.
+                    sugestao.setPreco(sugestao.getPreco() / 100);
+                    // Adiciona o link para detalhamento da sugestão.
+                    sugestao.add(
+                        linkTo(
+                            methodOn(SugestaoController.class).ler(sugestao.getId())
+                        )
+                        .withSelfRel()
+                    );
+                }
+            }
+
+            // Retorna as sugestões.
+            return responsePagina;
+
+        } catch (DadosInvalidosException e) {
+            throw new ResponseStatusException(400, e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        } catch (NullPointerException e) {
+            throw new ResponseStatusException(404, "nao_encontrado", e);
+        } catch (Exception e) {
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar as sugestões. Pode ser ordenado.
+     * @param requestSugestao - Dados de pesquisa para filtragem.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @return Lista de sugestões ordenada.
+     */
+    @GetMapping(params = { "ordenarPor", "ordem" })
+    @Cacheable("sugestoes")
+    public List<ResponseSugestao> listar(
+        Sugestao requestSugestao,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem
+    ) {
+        try {
+
+            // Valida os dados fornecidos.
+            Tratamento.validarSugestao(requestSugestao, true);
+
+            // Busca as sugestões no banco semelhantes aos dados de pesquisa.
+            // Se não houver dados de pesquisa, busca todas as sugestões.
+            List<Sugestao> sugestoes = sugestaoRepository.findAll(
+                Example.of(
+                    requestSugestao, 
+                    ExampleMatcher
+                        .matching()
+                        .withIgnoreCase()
+                        .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                ),
+                Sort.by(Sort.Direction.fromString(ordem), ordenarPor)
+            );
+
+            // Lista de sugestões que será retornada.
+            List<ResponseSugestao> responseSugestao = new ArrayList<ResponseSugestao>();
+
+            // Adiciona as sugestões a lista de sugestões.
+            for(Sugestao sugestao : sugestoes) {
+                responseSugestao.add(new ResponseSugestao(sugestao));
+            }
+
+            // Se houver sugestões,
+            if(!responseSugestao.isEmpty()) {
+                // Percorre as sugestões,
+                for(ResponseSugestao sugestao : responseSugestao) {
+                    // Divide o preço da sugestão atual por 100 para obter os centavos.
+                    sugestao.setPreco(sugestao.getPreco() / 100);
+                    // Adiciona o link para detalhamento da sugestão.
+                    sugestao.add(
+                        linkTo(
+                            methodOn(SugestaoController.class).ler(sugestao.getId())
+                        )
+                        .withSelfRel()
+                    );
+                }
+            }
+
+            // Retorna as sugestões.
+            return responseSugestao;
+
+        } catch (DadosInvalidosException e) {
+            throw new ResponseStatusException(400, e.getMessage(), e);
+        } catch (NullPointerException e) {
+            throw new ResponseStatusException(404, "nao_encontrado", e);
+        } catch (UnsupportedOperationException e) {
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        } catch (Exception e) {
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
+     * Sobrecarga do método responsável por listar sugestões. Pode ser ordenada e paginada.
+     * @param requestSugestao - Dados de pesquisa para filtragem.
+     * @param pagina - Numero da página a ser mostrada.
+     * @param limite - Limite de registros por página.
+     * @param ordenarPor - Campo do banco de dados que servirá de parâmetro para ordenar.
+     * @param ordem - Direção em que os dados serão ordenados entre "asc" e "desc".
+     * @return Lista de sugestões oredenada com dados da página.
+     */
+    @GetMapping(params = { "pagina", "limite", "ordenarPor", "ordem" })
+    @Cacheable("sugestoes")
+    public ResponsePagina listar(
+        Sugestao requestSugestao,
+        @RequestParam(required = false, defaultValue = "0") Integer pagina,
+        @RequestParam(required = false, defaultValue = "10") Integer limite,
+        @RequestParam(required = false, defaultValue = "") String ordenarPor,
+        @RequestParam(required = false, defaultValue = "asc") String ordem
+    ) {
+        try {
+
+            // Valida os dados fornecidos.
+            Tratamento.validarSugestao(requestSugestao, true);
+
+            // Busca as sugestões no banco semelhantes aos dados de pesquisa.
+            // Se não houver dados de pesquisa, busca todas as sugestões.
+            // Informa os dados de paginação.
+            // Se não houver paginação, busca todas as sugestões.
+            Page<Sugestao> paginaSugestao = sugestaoRepository.findAll(
+                Example.of(
+                    requestSugestao, 
+                    ExampleMatcher
+                        .matching()
+                        .withIgnoreCase()
+                        .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                ),
+                PageRequest.of(pagina, limite, Sort.by(Sort.Direction.fromString(ordem), ordenarPor))
             );
 
             // Lista de sugestões que será retornada.
