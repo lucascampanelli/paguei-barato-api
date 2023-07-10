@@ -72,7 +72,7 @@ public class EstoqueController {
      * @throws DadosConflitantesException Lança exceção caso os dados do estoque sejam conflitantes.
      */
     @PostMapping
-    @CacheEvict(value = "estoques", allEntries = true)
+    @CacheEvict(value = "Estoques", allEntries = true)
     public ResponseEstoque criar(@RequestBody Estoque requestEstoque) {
         try {
 
@@ -196,7 +196,7 @@ public class EstoqueController {
      * @return List< ResponseEstoque > - Lista de objetos do tipo ResponseEstoque que representam os itens do estoque.
      */
     @GetMapping
-    @Cacheable("estoques")
+    @Cacheable("Estoques")
     public List<ResponseEstoque> listar(Estoque requestEstoque) {
         try {
             // Validando o estoque enviado como parâmetro
@@ -265,7 +265,7 @@ public class EstoqueController {
      * @return ResponseEstoque - Objeto com os estoques retornados e as informações da paginação;
      */
     @GetMapping(params = { "pagina", "limite" })
-    @Cacheable("estoques")
+    @Cacheable("Estoques")
     public ResponsePagina listar(
         Estoque requestEstoque,
         @RequestParam(required = false, defaultValue = "0") Integer pagina, 
@@ -375,7 +375,7 @@ public class EstoqueController {
      * @return Object - Link para listar os estoques.
      */
     @DeleteMapping("/{id}")
-    @CacheEvict(value = "estoques", allEntries = true)
+    @CacheEvict(value = "Estoques", allEntries = true)
     public Object remover(@PathVariable int id) {
         try {
 

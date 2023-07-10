@@ -50,7 +50,7 @@ public class CategoriaController {
      * @return Dados e id da categoria criada.
      */
     @PostMapping
-    @CacheEvict(value = "categorias", allEntries = true)
+    @CacheEvict(value = "Categorias", allEntries = true)
     public ResponseCategoria criar(@RequestBody Categoria requestCategoria) {
         try {
 
@@ -126,7 +126,7 @@ public class CategoriaController {
      * @return Lista de categorias.
      */
     @GetMapping
-    @Cacheable("categorias")
+    @Cacheable("Categorias")
     public List<ResponseCategoria> listar() {
         try {
             
@@ -286,7 +286,7 @@ public class CategoriaController {
      * @param id - Id da categoria a ser excluída.
      */
     @DeleteMapping("/{id}")
-    @CacheEvict(value = "categorias", allEntries = true)
+    @CacheEvict(value = "Categorias", allEntries = true)
     public Object remover(@PathVariable int id) {
         try {
 

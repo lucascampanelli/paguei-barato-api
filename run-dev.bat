@@ -1,0 +1,1 @@
+"c:\Users\nicho\Desktop\Files\Apps\paguei-barato-api\mvnw.cmd" spring-boot:run -f "c:\Users\nicho\Desktop\Files\Apps\paguei-barato-api\pom.xml"

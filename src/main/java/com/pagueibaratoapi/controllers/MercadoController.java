@@ -93,7 +93,7 @@ public class MercadoController {
      * @return ResponseMercado - Objeto do tipo ResponseMercado que contém os dados do novo mercado, já com o Id criado.
      */
     @PostMapping
-    @CacheEvict(value = "mercados", allEntries = true)
+    @CacheEvict(value = "Mercados", allEntries = true)
     public ResponseMercado criar(@RequestBody Mercado requestMercado) {
         try {
 
@@ -177,7 +177,7 @@ public class MercadoController {
      * @return ResponseEstoque - Objeto do estoque criado.
      */
     @PostMapping("/{id}/produto/{produtoId}")
-    @CacheEvict(value = "estoques", allEntries = true)
+    @CacheEvict(value = "Estoques", allEntries = true)
     public ResponseEstoque criarEstoque(
         @PathVariable("id") Integer id,
         @PathVariable(value = "produtoId") Integer produtoId,
@@ -299,8 +299,8 @@ public class MercadoController {
      */
     @PostMapping("/{id}/produto")
     @Caching(evict = {
-        @CacheEvict(value = "mercadoProdutos", allEntries = true),
-        @CacheEvict(value = "estoques", allEntries = true)
+        @CacheEvict(value = "MercadoProdutos", allEntries = true),
+        @CacheEvict(value = "Estoques", allEntries = true)
     })
     public ResponseEstoqueProduto criarProduto(
         @PathVariable("id") Integer id,
@@ -445,7 +445,7 @@ public class MercadoController {
      * @return ResponseSugestao - Objeto da sugestão criada.
      */
     @PostMapping("/{id}/produto/{produtoId}/sugestao")
-    @CacheEvict(value = "mercadoSugestoes", allEntries = true)
+    @CacheEvict(value = "MercadoSugestoes", allEntries = true)
     public ResponseSugestao criarSugestao(
         @PathVariable("id") Integer id,
         @PathVariable(value = "produtoId") Integer produtoId,
@@ -588,7 +588,7 @@ public class MercadoController {
      * @return <b>List < ResponseProduto ></b> - Lista de objetos ResponseProduto que contém todos os produtos do mercado.
      */
     @GetMapping("/{id}/produto")
-    @Cacheable("mercadoProdutos")
+    @Cacheable("MercadoProdutos")
     public List<ResponseProduto> listarProdutos(@PathVariable("id") Integer id) {
         try {
             // Verifica se o mercado informado existe. Caso não exista, lança exceção.
@@ -653,7 +653,7 @@ public class MercadoController {
      * @return <b>ResponsePagina</b> - Objeto da página com as informações de paginação e os itens da página atual.
      */
     @GetMapping(value = "/{id}/produto", params = {"pagina", "limite"})
-    @Cacheable("mercadoProdutos")
+    @Cacheable("MercadoProdutos")
     public ResponsePagina listarProdutos(
         @PathVariable("id") Integer id,
         @RequestParam(required = false, defaultValue = "0") Integer pagina,
@@ -780,7 +780,7 @@ public class MercadoController {
      * @return <b>List < ResponseProduto ></b> - Lista ordenada dos produtos do mercado.
      */
     @GetMapping(value = "/{id}/produto", params = {"ordenarPor", "ordem"})
-    @Cacheable("mercadoProdutos")
+    @Cacheable("MercadoProdutos")
     public List<ResponseProduto> listarProdutos(
         @PathVariable("id") Integer id,
         @RequestParam(required = false, defaultValue = "") String ordenarPor,
@@ -916,7 +916,7 @@ public class MercadoController {
      * @return <b>ResponsePagina</b> - Objeto da página com as informações de paginação e os itens da página atual ordenados.
      */
     @GetMapping(value = "/{id}/produto", params = {"pagina", "limite", "ordenarPor", "ordem"})
-    @Cacheable("mercadoProdutos")
+    @Cacheable("MercadoProdutos")
     public ResponsePagina listarProdutos(
         @PathVariable("id") Integer id,
         @RequestParam(required = false, defaultValue = "0") Integer pagina,
@@ -1176,7 +1176,7 @@ public class MercadoController {
      * @return <b>List < ResponseSugestao ></b> - Lista de sugestões do produto específico no mercado.
      */
     @GetMapping("/{id}/produto/{produtoId}/sugestao")
-    @Cacheable("mercadoSugestoes")
+    @Cacheable("MercadoSugestoes")
     public List<ResponseSugestao> ler(
         @PathVariable("id") Integer id,
         @PathVariable(value = "produtoId") Integer produtoId
@@ -1275,7 +1275,7 @@ public class MercadoController {
      * @return <b>ResponsePagina</b> - Objeto contendo as informações da página e a lista de sugestões.
      */
     @GetMapping(value = "/{id}/produto/{produtoId}/sugestao", params = {"pagina", "limite"})
-    @Cacheable("mercadoSugestoes")
+    @Cacheable("MercadoSugestoes")
     public ResponsePagina ler(
         @PathVariable("id") Integer id,
         @PathVariable(value = "produtoId") Integer produtoId,
@@ -1434,7 +1434,7 @@ public class MercadoController {
      * @return <b>List < ResponseSugestao ></b> - Lista de sugestões do produto específico no mercado ordenadas.
      */
     @GetMapping(value = "/{id}/produto/{produtoId}/sugestao", params = {"ordenarPor", "ordem"})
-    @Cacheable("mercadoSugestoes")
+    @Cacheable("MercadoSugestoes")
     public List<ResponseSugestao> ler(
         @PathVariable("id") Integer id,
         @PathVariable(value = "produtoId") Integer produtoId,
@@ -1591,7 +1591,7 @@ public class MercadoController {
      * @return <b>ResponsePagina</b> - Objeto contendo as informações da página e a lista de sugestões ordenada.
      */
     @GetMapping(value = "/{id}/produto/{produtoId}/sugestao", params = {"pagina", "limite", "ordenarPor", "ordem"})
-    @Cacheable("mercadoSugestoes")
+    @Cacheable("MercadoSugestoes")
     public ResponsePagina ler(
         @PathVariable("id") Integer id,
         @PathVariable(value = "produtoId") Integer produtoId,
@@ -1803,7 +1803,7 @@ public class MercadoController {
      * @return <b>List < ResponseMercado ></b> - Lista de mercados.
      */
     @GetMapping
-    @Cacheable("mercados")
+    @Cacheable("Mercados")
     public List<ResponseMercado> listar(Mercado requestMercado) {
         try {
 
@@ -1870,7 +1870,7 @@ public class MercadoController {
      * @return <b>ResponseMercado</b> - Mercado encontrado.
      */
     @GetMapping(params = { "pagina", "limite" })
-    @Cacheable("mercados")
+    @Cacheable("Mercados")
     public ResponsePagina listar(
         Mercado requestMercado,
         @RequestParam(required = false, defaultValue = "0") Integer pagina,
@@ -1982,7 +1982,7 @@ public class MercadoController {
      * @return <b>List < ResponseMercado ></b> - Lista de mercados ordenados.
      */
     @GetMapping(params = { "ordenarPor", "ordem" })
-    @Cacheable("mercados")
+    @Cacheable("Mercados")
     public List<ResponseMercado> listar(
         Mercado requestMercado,
         @RequestParam(required = false, defaultValue = "") String ordenarPor,
@@ -2056,7 +2056,7 @@ public class MercadoController {
      * @return <b>ResponsePagina</b> - Lista de mercados ordenados com as infromações de paginação.
      */
     @GetMapping(params = { "ordenarPor", "ordem", "pagina", "limite" })
-    //@Cacheable("mercados")
+    //@Cacheable("Mercados")
     public ResponsePagina listar(
         Mercado requestMercado,
         @RequestParam(required = false, defaultValue = "") String ordenarPor,
@@ -2339,7 +2339,7 @@ public class MercadoController {
      * @return Object - Link para a listagem de mercados.
      */
     @DeleteMapping("/{id}")
-    @CacheEvict(value = "mercados", allEntries = true)
+    @CacheEvict(value = "Mercados", allEntries = true)
     public Object remover(@PathVariable int id) {
         try {
 

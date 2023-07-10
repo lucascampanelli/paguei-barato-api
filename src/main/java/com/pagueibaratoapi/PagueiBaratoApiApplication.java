@@ -24,35 +24,35 @@ public class PagueiBaratoApiApplication {
 		SpringApplication.run(PagueiBaratoApiApplication.class, args);
 	}
 
-	@CacheEvict(value = "categorias", allEntries = true)
+	@CacheEvict(value = "Categorias", allEntries = true)
 	@Scheduled(fixedDelay = 7200000, initialDelay = 7200000)
 	public void limparCacheCategoria(){}
 
-	@CacheEvict(value = "estoques", allEntries = true)
+	@CacheEvict(value = "Estoques", allEntries = true)
 	@Scheduled(fixedDelay = 7200000, initialDelay = 7200000)
 	public void limparCacheEstoque(){}
 
-	@CacheEvict(value = "mercados", allEntries = true)
+	@CacheEvict(value = "Mercados", allEntries = true)
 	@Scheduled(fixedDelay = 7200000, initialDelay = 7200000)
 	public void limparCacheMercado(){}
 
-	@CacheEvict(value = "mercadoProdutos", allEntries = true)
+	@CacheEvict(value = "MercadoProdutos", allEntries = true)
 	@Scheduled(fixedDelay = 3600000, initialDelay = 3600000)
 	public void limparCacheMercadoProdutos(){}
 
-	@CacheEvict(value = "mercadoSugestoes", allEntries = true)
+	@CacheEvict(value = "MercadoSugestoes", allEntries = true)
 	@Scheduled(fixedDelay = 600000, initialDelay = 600000)
 	public void limparCacheMercadoSugestoes(){}
 
-	@CacheEvict(value = "produtos", allEntries = true)
+	@CacheEvict(value = "Produtos", allEntries = true)
 	@Scheduled(fixedDelay = 600000, initialDelay = 600000)
 	public void limparCacheProdutos(){}
 
-	@CacheEvict(value = "ramos", allEntries = true)
+	@CacheEvict(value = "Ramos", allEntries = true)
 	@Scheduled(fixedDelay = 7200000, initialDelay = 7200000)
 	public void limparCacheRamo(){}
 
-	@CacheEvict(value = "sugestoes", allEntries = true)
+	@CacheEvict(value = "Sugestoes", allEntries = true)
 	@Scheduled(fixedDelay = 7200000, initialDelay = 7200000)
 	public void limparCacheSugestao(){}
 }

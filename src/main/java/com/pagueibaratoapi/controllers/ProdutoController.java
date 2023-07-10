@@ -86,7 +86,7 @@ public class ProdutoController {
      * @return Dados e id do produto criado.
      */
     @PostMapping
-    @CacheEvict(value = "produtos", allEntries = true)
+    @CacheEvict(value = "Produtos", allEntries = true)
     public ResponseProduto criar(@RequestBody Produto requestProduto) {
         try {
 
@@ -950,7 +950,7 @@ public class ProdutoController {
      * @return Lista de produtos.
      */
     @GetMapping
-    @Cacheable("produtos")
+    @Cacheable("Produtos")
     public List<ResponseProduto> listar(Produto requestProduto) {
         try {
 
@@ -1012,7 +1012,7 @@ public class ProdutoController {
      * @return Lista de produtos com os dados da página.
      */
     @GetMapping(params = { "pagina", "limite" })
-    @Cacheable("produtos")
+    @Cacheable("Produtos")
     public ResponsePagina listar(
         Produto requestProduto,
         @RequestParam(required = false, defaultValue = "0") Integer pagina,
@@ -1123,7 +1123,7 @@ public class ProdutoController {
      * @return Lista de produtos ordenados.
      */
     @GetMapping(params = { "ordenarPor", "ordem" })
-    @Cacheable("produtos")
+    @Cacheable("Produtos")
     public List<ResponseProduto> listar(
         Produto requestProduto,
         @RequestParam(required = false, defaultValue = "") String ordenarPor,
@@ -1192,7 +1192,7 @@ public class ProdutoController {
      * @return Lista de produtos ordenados com os dados da página.
      */
     @GetMapping(params = { "ordenarPor", "ordem", "pagina", "limite" })
-    @Cacheable("produtos")
+    @Cacheable("Produtos")
     public ResponsePagina listar(
         Produto requestProduto,
         @RequestParam(required = false, defaultValue = "") String ordenarPor,
@@ -1442,7 +1442,7 @@ public class ProdutoController {
      * @param id - Id do produto a ser excluído.
      */
     @DeleteMapping("/{id}")
-    @CacheEvict(value = "produtos", allEntries = true)
+    @CacheEvict(value = "Produtos", allEntries = true)
     public Object remover(@PathVariable int id) {
         try {
 
