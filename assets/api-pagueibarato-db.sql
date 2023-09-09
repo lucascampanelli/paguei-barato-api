@@ -106,7 +106,7 @@ CREATE TABLE sugestao
     "estoqueId" integer NOT NULL,
     "criadoPor" integer NOT NULL,
     CONSTRAINT sugestao_pkey PRIMARY KEY (id),
-    CONSTRAINT "sugestao_estoqueId_fkey" FOREIGN KEY (id)
+    CONSTRAINT "sugestao_estoqueId_fkey" FOREIGN KEY ("estoqueId")
         REFERENCES estoque (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION,
