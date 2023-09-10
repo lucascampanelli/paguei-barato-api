@@ -21,8 +21,10 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.pagueibaratoapi.data.UsuarioService;
 import com.pagueibaratoapi.models.requests.Usuario;
+import com.pagueibaratoapi.models.responses.ResponseLogin;
 import com.pagueibaratoapi.utils.Senha;
 
 /**
@@ -100,8 +102,13 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRA_EM))
             .sign(Algorithm.HMAC512(SEGREDO));
 
+        ResponseLogin responseLogin = new ResponseLogin(usuarioService.getUsuario(), token);
+
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String json = ow.writeValueAsString(responseLogin);
+
         // Escreve o token na resposta e envia.
-        response.getWriter().write(token);
+        response.getWriter().write(json);
         response.getWriter().flush();
     }
 }

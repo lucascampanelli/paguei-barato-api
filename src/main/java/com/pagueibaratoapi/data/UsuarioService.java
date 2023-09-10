@@ -43,6 +43,11 @@ public class UsuarioService implements UserDetails {
         return usuario.orElse(new Usuario()).getEmail();
     }
 
+    // Obtém o objeto de usuário.
+    public Usuario getUsuario() {
+        return usuario.orElse(new Usuario());
+    }
+
     // Verifica se o usuário está vencido.
     @Override
     public boolean isAccountNonExpired() {
