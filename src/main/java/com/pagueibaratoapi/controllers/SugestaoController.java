@@ -68,7 +68,7 @@ public class SugestaoController {
      * @return Dados e id da sugestão criada.
      */
     @PostMapping
-    @CacheEvict(value = "sugestoes", allEntries = true)
+    @CacheEvict(value = "Sugestoes", allEntries = true)
     public ResponseSugestao criar(@RequestBody Sugestao requestSugestao) {
         try {
 
@@ -165,7 +165,7 @@ public class SugestaoController {
      * @return Lista de sugestões.
      */
     @GetMapping
-    @Cacheable("sugestoes")
+    @Cacheable("Sugestoes")
     public List<ResponseSugestao> listar(Sugestao requestSugestao) {
         try {
 
@@ -230,7 +230,7 @@ public class SugestaoController {
      * @return Lista de sugestões com dados da página.
      */
     @GetMapping(params = { "pagina", "limite" })
-    @Cacheable("sugestoes")
+    @Cacheable("Sugestoes")
     public ResponsePagina listar(
         Sugestao requestSugestao,
         @RequestParam(required = false, defaultValue = "0") Integer pagina,
@@ -343,7 +343,7 @@ public class SugestaoController {
      * @return Lista de sugestões ordenada.
      */
     @GetMapping(params = { "ordenarPor", "ordem" })
-    @Cacheable("sugestoes")
+    @Cacheable("Sugestoes")
     public List<ResponseSugestao> listar(
         Sugestao requestSugestao,
         @RequestParam(required = false, defaultValue = "") String ordenarPor,
@@ -415,7 +415,7 @@ public class SugestaoController {
      * @return Lista de sugestões oredenada com dados da página.
      */
     @GetMapping(params = { "pagina", "limite", "ordenarPor", "ordem" })
-    @Cacheable("sugestoes")
+    @Cacheable("Sugestoes")
     public ResponsePagina listar(
         Sugestao requestSugestao,
         @RequestParam(required = false, defaultValue = "0") Integer pagina,
@@ -647,7 +647,7 @@ public class SugestaoController {
      * @param id - Id da sugestão a ser excluída.
      */
     @DeleteMapping("/{id}")
-    @CacheEvict(value = "sugestoes", allEntries = true)
+    @CacheEvict(value = "Sugestoes", allEntries = true)
     public Object remover(@PathVariable int id) {
         try {
 

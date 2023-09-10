@@ -86,6 +86,7 @@ public class JWTConfig {
             .antMatchers(HttpMethod.GET, "/produto/**/**").permitAll()
             .antMatchers(HttpMethod.GET, "/ramo/**").permitAll()
             .antMatchers(HttpMethod.GET, "/sugestao/**").permitAll()
+            .antMatchers(HttpMethod.GET, "/cache-requisicoes/**").permitAll()
             .antMatchers(HttpMethod.GET, "/").permitAll()
 
             // Bloqueia qualquer outra requisição de qualquer outra rota.

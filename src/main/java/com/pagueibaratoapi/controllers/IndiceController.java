@@ -93,6 +93,78 @@ public class IndiceController {
                 .withRel("usuario")
             );
     
+            // Adiciona link para limpar todo o cache.
+            responseLinks.add(
+                linkTo(
+                    methodOn(CacheController.class).limparCache()
+                )
+                .withRel("limpar-cache")
+            );
+    
+            // Adiciona link para limpar o cache de categorias.
+            responseLinks.add(
+                linkTo(
+                    methodOn(CacheController.class).limparCacheCategorias()
+                )
+                .withRel("limpar-cache-categorias")
+            );
+    
+            // Adiciona link para limpar o cache de estoques.
+            responseLinks.add(
+                linkTo(
+                    methodOn(CacheController.class).limparCacheEstoques()
+                )
+                .withRel("limpar-cache-estoques")
+            );
+    
+            // Adiciona link para limpar o cache das relações entre mercados e produtos.
+            responseLinks.add(
+                linkTo(
+                    methodOn(CacheController.class).limparCacheMercadoProdutos()
+                )
+                .withRel("limpar-cache-mercado-produtos")
+            );
+    
+            // Adiciona link para limpar o cache das relações entre mercados e sugestões.
+            responseLinks.add(
+                linkTo(
+                    methodOn(CacheController.class).limparCacheMercadoSugestoes()
+                )
+                .withRel("limpar-cache-mercado-sugestoes")
+            );
+    
+            // Adiciona link para limpar o cache de mercados.
+            responseLinks.add(
+                linkTo(
+                    methodOn(CacheController.class).limparCacheMercados()
+                )
+                .withRel("limpar-cache-mercados")
+            );
+    
+            // Adiciona link para limpar o cache de produtos.
+            responseLinks.add(
+                linkTo(
+                    methodOn(CacheController.class).limparCacheProdutos()
+                )
+                .withRel("limpar-cache-produtos")
+            );
+    
+            // Adiciona link para limpar o cache de ramos.
+            responseLinks.add(
+                linkTo(
+                    methodOn(CacheController.class).limparCacheRamos()
+                )
+                .withRel("limpar-cache-ramos")
+            );
+    
+            // Adiciona link para limpar o cache de sugestões.
+            responseLinks.add(
+                linkTo(
+                    methodOn(CacheController.class).limparCacheSugestoes()
+                )
+                .withRel("limpar-cache-sugestoes")
+            );
+
             // Retorna lista de links.
             return responseLinks;
 
