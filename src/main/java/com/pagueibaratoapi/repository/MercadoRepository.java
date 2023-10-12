@@ -1,5 +1,7 @@
 package com.pagueibaratoapi.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -47,4 +49,13 @@ public interface MercadoRepository extends JpaRepository<Mercado, Integer> {
         @Param("cep") String cep
     );
 
+    /**
+     * Busca os mercados onde um dos seus campos correspondem ao texto de pesquisa, incluindo a relação do nome do ramo.
+     * @param pesquisa - Texto para pesquisa.
+     * @return Lista de mercados encontrados.
+     */
+    @Query("SELECT m FROM Mercado m WHERE UPPER(m.nome) LIKE UPPER(CONCAT('%',:pesquisa,'%')) OR UPPER(m.logradouro) LIKE UPPER(CONCAT('%',:pesquisa,'%')) OR UPPER(m.bairro) LIKE UPPER(CONCAT('%',:pesquisa,'%')) OR UPPER(m.cidade) LIKE UPPER(CONCAT('%',:pesquisa,'%')) OR UPPER(m.uf) LIKE UPPER(CONCAT('%',:pesquisa,'%')) OR m.cep LIKE CONCAT('%',:pesquisa,'%') OR UPPER(m.complemento) LIKE UPPER(CONCAT('%',:pesquisa,'%')) OR UPPER(m.ramo.nome) LIKE UPPER(CONCAT('%',:pesquisa,'%'))")
+    public List<Mercado> findByCorrespondenciasPesquisa(
+        @Param("pesquisa") String pesquisa
+    );
 }

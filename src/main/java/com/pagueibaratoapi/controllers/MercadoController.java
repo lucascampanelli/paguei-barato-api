@@ -583,6 +583,51 @@ public class MercadoController {
     }
 
     /**
+     * Método responsável por realizar a pesquisa de mercados que possuem alguma informação semelhante ao texto informado.
+     * @param search - Texto de pesquisa que será utilizado como parâmetro de consulta.
+     * @return <b>List< ResponseMercado ></b> - Lista de objetos ResponseMercado que contém os mercados relacionados com a pesquisa.
+     */
+    @GetMapping(params = {"search"})
+    public List<ResponseMercado> pesquisar(
+        @RequestParam(required = false, defaultValue = "") String search
+    ) {
+        try {
+            // Busca todos os mercados que possuem alguma informação semelhante ao texto informado.
+            List<Mercado> mercados = mercadoRepository.findByCorrespondenciasPesquisa(search.toLowerCase());
+
+            // Cria uma lista de objetos ResponseMercado.
+            List<ResponseMercado> responseMercados = new ArrayList<>();
+
+            // Para cada mercado encontrado
+            for(Mercado mercado : mercados) {
+                // Adiciona à lista de resposta um objeto ResponseMercado com o mercado atual.
+                responseMercados.add(new ResponseMercado(mercado));
+            }
+
+            // Se a lista de mercados não estiver vazia
+            if(!responseMercados.isEmpty()) {
+                // Para cada mercado da lista de resposta
+                for(ResponseMercado mercado : responseMercados) {
+                    // Adiciona à resposta um link para a leitura do mercado atual.
+                    mercado.add(
+                        linkTo(
+                            methodOn(MercadoController.class).ler(mercado.getId())
+                        )
+                        .withSelfRel()
+                    );
+                }
+            }
+
+            // Retorna a lista de mercados encontrados.
+            return responseMercados;
+
+        } catch (Exception e) {
+            // Lança uma exceção informando que ocorreu um erro inesperado.
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
      * Método responsável por listar todos os produtos de um mercado informado.
      * @param id - Id do mercado que será lido.
      * @return <b>List < ResponseProduto ></b> - Lista de objetos ResponseProduto que contém todos os produtos do mercado.

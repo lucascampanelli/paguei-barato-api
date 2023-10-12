@@ -1,5 +1,7 @@
 package com.pagueibaratoapi.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -32,5 +34,15 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
         @Param("marca") String marca, 
         @Param("tamanho") String tamanho, 
         @Param("cor") String cor
+    );
+
+    /**
+     * Busca os produtos onde um dos seus campos correspondem ao texto de pesquisa, incluindo a relação do nome da categoria.
+     * @param pesquisa - Texto para pesquisa.
+     * @return Lista de produtos encontrados.
+     */
+    @Query("SELECT p FROM Produto p WHERE UPPER(p.nome) LIKE UPPER(CONCAT('%',:pesquisa,'%')) OR UPPER(p.marca) LIKE UPPER(CONCAT('%',:pesquisa,'%')) OR UPPER(p.tamanho) LIKE UPPER(CONCAT('%',:pesquisa,'%')) OR UPPER(p.cor) LIKE UPPER(CONCAT('%',:pesquisa,'%')) OR UPPER(p.categoria.nome) LIKE UPPER(CONCAT('%',:pesquisa,'%'))")
+    public List<Produto> findByCorrespondenciasPesquisa(
+        @Param("pesquisa") String pesquisa
     );
 }

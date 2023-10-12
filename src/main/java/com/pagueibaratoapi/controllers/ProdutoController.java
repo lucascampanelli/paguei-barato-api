@@ -209,6 +209,52 @@ public class ProdutoController {
     }
 
     /**
+     * Método responsável por realizar a pesquisa de produtos que possuem alguma informação semelhante ao texto informado.
+     * @param search - Texto de pesquisa que será utilizado como parâmetro de consulta.
+     * @return <b>List< ResponseProduto ></b> - Lista de objetos ResponseProduto que contém os produtos relacionados com a pesquisa.
+     */
+    @GetMapping(params = {"search"})
+    public List<ResponseProduto> pesquisar(
+        @RequestParam(required = false, defaultValue = "") String search
+    ) {
+        try {
+            // Busca os produtos que possuem alguma informação semelhante ao texto informado.
+            List<Produto> produtos = produtoRepository.findByCorrespondenciasPesquisa(search);
+
+            // Busca os produtos no banco e transforma os dados obtidos em modelo de resposta.
+            List<ResponseProduto> responseProdutos = new ArrayList<>();
+
+            // Percorrendo cada produto encontrado
+            for(Produto produto : produtos){
+                // Armazenando o produto na lista de resposta com os produtos encontrados.
+                responseProdutos.add(new ResponseProduto(produto));
+            }
+
+            // Se a lista de produtos não estiver vazia
+            if (!responseProdutos.isEmpty()) {
+                // Para cada produto da lista de resposta.
+                for(ResponseProduto produto : responseProdutos) {
+                    // Adiciona ao produto o link para a leitura do produto atual.
+                    produto.add(
+                        linkTo(
+                            methodOn(ProdutoController.class).ler(produto.getId())
+                        )
+                        .withSelfRel()
+                    );
+                }
+            }
+
+            // Retorna os dados do produto.
+            return responseProdutos;
+
+        } catch (NoSuchElementException e) {
+            throw new ResponseStatusException(404, "nao_encontrado", e);
+        } catch (Exception e) {
+            throw new ResponseStatusException(500, "erro_inesperado", e);
+        }
+    }
+
+    /**
      * Rota responsável por listar todos os mercados onde o produto pode ser encontrado.
      * @param id - Id do produto a ser buscado como parâmetro.
      * @return <b>List< ResponseMercado ></b> - Lista de mercados onde o produto pode ser encontrado.
