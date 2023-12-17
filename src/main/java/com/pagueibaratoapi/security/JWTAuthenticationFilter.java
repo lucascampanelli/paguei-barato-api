@@ -98,7 +98,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         // Gera um token JWT com o email do usuário e o tempo de expiração.
         String token = JWT.create()
-            .withSubject(usuarioService.getUsername())
+            .withSubject(usuarioService.getId() + "")
             .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRA_EM))
             .sign(Algorithm.HMAC512(SEGREDO));
 

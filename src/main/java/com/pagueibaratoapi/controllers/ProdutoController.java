@@ -22,11 +22,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.pagueibaratoapi.models.exceptions.DadosConflitantesException;
 import com.pagueibaratoapi.models.exceptions.DadosInvalidosException;
 import com.pagueibaratoapi.models.requests.Estoque;
@@ -87,8 +90,13 @@ public class ProdutoController {
      */
     @PostMapping
     @CacheEvict(value = "Produtos", allEntries = true)
-    public ResponseProduto criar(@RequestBody Produto requestProduto) {
+    public ResponseProduto criar(@RequestBody Produto requestProduto, @RequestHeader(value = "Authorization", required = true) String authorization) {
         try {
+            System.out.println("Auth: " + authorization);
+            DecodedJWT authToken = JWT.decode(authorization.substring(7));
+            System.out.println(authToken);
+            String idUsuario = authToken.getSubject();
+            System.out.println(idUsuario);
 
             // Valida os dados fornecidos.
             Tratamento.validarProduto(requestProduto, false);

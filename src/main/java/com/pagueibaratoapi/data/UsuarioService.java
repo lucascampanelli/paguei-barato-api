@@ -43,6 +43,11 @@ public class UsuarioService implements UserDetails {
         return usuario.orElse(new Usuario()).getEmail();
     }
 
+    public int getId() {
+        // Retorna um modelo de usuário null ou seu id
+        return usuario.orElse(new Usuario()).getId();
+    }
+
     // Obtém o objeto de usuário.
     public Usuario getUsuario() {
         return usuario.orElse(new Usuario());
